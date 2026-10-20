@@ -1,0 +1,56 @@
+* DONE Add interactive make setup
+  - Prompt on first run for project name (folder default) and description.
+  - Generate pyproject.toml with exact requested dependencies, version 0.1.0,
+    README.md, and Python >=3.12; preserve configuration on repeat runs.
+  - Bootstrap Python 3.12 with uv, run setup through .venv, and sync dependencies.
+  - Validate names, escape TOML strings, and handle interrupted prompts.
+  - Add README, HOWTO, and ignores; preserve existing AGENTS.md changes.
+  - Verify defaults, custom metadata, escaping, invalid names, interruption,
+    repeat runs, and real dependency synchronization.
+  - Use the ten runtime dependencies supplied by the user, preserving all
+    minimum versions; include pytest>=9.1.1 in the development dependency group.
+  - Stop for review and commit approval; update log.org after acceptance and commit.
+  - Verification: seven unit tests passed; real first-run defaults and custom
+    metadata plus no-input repeat runs passed in fresh temporary directories.
+  - Dependencies synchronized successfully and uv.lock was generated. uv warned
+    that resolved snowflake-connector-python 5.0.0 lacks secure-local-storage;
+    the requested dependency constraint was preserved.
+  - Implementation verified and accepted; user approved committing the changes.
+* DONE Add Mermaid diagram skill
+  - Include PyYAML as a runtime dependency and in setup defaults for validation.
+  - Add a discoverable skill and standard-library Python render helper using
+    minlag/mermaid-cli:latest, with transparent PNG output by default.
+  - Retain Mermaid source under outputs/diagrams; support explicit SVG/PDF.
+  - Error on missing Docker or inaccessible daemon without installing/starting it.
+  - Validate metadata, error paths, paths with spaces, and a real Docker render.
+  - Verified: skill validator passed; 13 tests and 7 subtests passed; Docker
+    produced a visually inspected transparent PNG using paths with spaces.
+  - PyYAML resolved to 6.0.3; uv.lock updated. User accepted and approved commit.
+  - Stop for review and commit approval; log completion after acceptance and commit.
+* DONE Add explicit template initialization and untrack Python caches
+  - Add make init with explicit metadata prompts, preserving TOML and dependencies.
+  - Keep make setup behavior; synchronize before and after explicit initialization.
+  - Add tomlkit through uv, update documentation, and test initialization behavior.
+  - Untrack Python caches while retaining local copies and existing ignore rules.
+  - Stop for review and commit approval; update log.org after acceptance and commit.
+  - Verified: 18 unit tests passed; fresh-copy make init refreshed project metadata
+    and uv.lock, and repeat make setup preserved configuration without prompting.
+  - Five tracked Python cache files removed from the index; local copies retained.
+  - Implementation verified and accepted; user approved committing the changes.
+* DONE Add make setup-mattpocock-skills
+  - Install all mattpocock/skills locally for Codex using npx skills@latest.
+  - Add an npx prerequisite check and document the target in HOWTO.md.
+  - Run the target, verify installed skills and existing skill preservation.
+  - Stop for review and commit approval; log completion after acceptance and commit.
+  - Verified: target installed 38 skills with matching skills-lock.json entries;
+    existing RxP and Mermaid skills unchanged; missing-npx error and diff check passed.
+  - Implementation verified and accepted; user approved committing the changes.
+* DONE Add make uninstall-mattpocock-skills
+  - Select installed skills by mattpocock/skills source in skills-lock.json.
+  - Use the skills CLI to remove only those project-local skills and agent links.
+  - Document uninstall and reinstall; verify in a temporary copy, leaving this
+    repository's installed skills available.
+  - Stop for review and commit approval; log completion after acceptance and commit.
+  - Verified: temporary-copy uninstall removed 38 skills, preserved unrelated
+    skills and lock entries, and handled repeat runs, missing locks, and invalid
+    inputs. Working repository skills remain installed; user accepted and approved commit.

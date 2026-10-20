@@ -1,0 +1,36 @@
+* Interactive project setup
+  - Accepted by the user and committed as cb76a69
+    (feat: add interactive project setup).
+  - Added first-run metadata prompts, Python 3.12 environment bootstrap,
+    dependency synchronization, documentation, and generated-output ignores.
+  - Included the requested runtime dependencies and pytest>=9.1.1 for development.
+  - Verified seven tests, fresh default/custom setup, and no-input repeat runs.
+  - Dependency synchronization succeeded; uv warned that Snowflake connector
+    5.0.0 lacks the secure-local-storage extra. Requested constraints preserved.
+* Mermaid diagram skill
+  - Accepted by the user and committed as a8539c1
+    (feat: add Docker Mermaid diagram skill).
+  - Added the discoverable skill and Docker render helper with transparent PNG
+    defaults, SVG/PDF support, prerequisite checks, and preserved output on failure.
+  - Added PyYAML to runtime dependencies and setup defaults; updated uv.lock.
+  - Verified skill metadata, 13 tests and 7 subtests, and a visually inspected
+    transparent PNG rendered with Docker using paths containing spaces.
+* Explicit template initialization
+  - Accepted by the user and committed as f827fd3
+    (feat: add explicit template initialization).
+  - Added make init to update project name and description while preserving
+    dependencies, other settings, and TOML formatting with tomlkit.
+  - Preserved make setup behavior; updated setup documentation and uv.lock.
+  - Untracked five Python cache files while retaining local copies.
+  - Verified 18 unit tests, fresh-copy initialization and lockfile metadata,
+    repeat setup without prompts, and Git whitespace checks.
+* Matt Pocock skills installation and removal
+  - Accepted by the user and committed as 3416464
+    (feat: add Matt Pocock skills install and uninstall targets).
+  - Added make setup-mattpocock-skills and make uninstall-mattpocock-skills,
+    prerequisite checks, HOWTO instructions, 38 installed skills, and lockfile.
+  - Uninstall selects only mattpocock/skills entries and removes project-local
+    files and agent links while preserving unrelated skills and global installs.
+  - Verified installation, missing-npx handling, and temporary-copy uninstall,
+    including unrelated lock entries, repeat runs, missing locks, and invalid inputs.
+  - Working repository retains all 38 installed skills.
