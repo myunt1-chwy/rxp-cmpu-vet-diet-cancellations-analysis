@@ -1,5 +1,15 @@
 .DEFAULT_GOAL := setup
 
+.PHONY: create-aged-upload-lifecycle-distribution
+create-aged-upload-lifecycle-distribution:
+	@test -n "$(START_DATE)" -a -n "$(END_DATE)" || { echo 'START_DATE and END_DATE are required (end exclusive).' >&2; exit 1; }
+	.venv/bin/python -m src.python.create_aged_upload_lifecycle_distribution --start-date "$(START_DATE)" --end-date "$(END_DATE)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: create-vdam-upload-distribution
+create-vdam-upload-distribution:
+	@test -n "$(START_DATE)" -a -n "$(END_DATE)" || { echo 'START_DATE and END_DATE are required (end exclusive).' >&2; exit 1; }
+	.venv/bin/python src/python/create_vdam_upload_distribution.py --start-date "$(START_DATE)" --end-date "$(END_DATE)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
 .PHONY: setup init bootstrap setup-mattpocock-skills uninstall-mattpocock-skills
 
 bootstrap:

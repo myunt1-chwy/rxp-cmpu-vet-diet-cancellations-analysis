@@ -1,56 +1,75 @@
-* DONE Add interactive make setup
-  - Prompt on first run for project name (folder default) and description.
-  - Generate pyproject.toml with exact requested dependencies, version 0.1.0,
-    README.md, and Python >=3.12; preserve configuration on repeat runs.
-  - Bootstrap Python 3.12 with uv, run setup through .venv, and sync dependencies.
-  - Validate names, escape TOML strings, and handle interrupted prompts.
-  - Add README, HOWTO, and ignores; preserve existing AGENTS.md changes.
-  - Verify defaults, custom metadata, escaping, invalid names, interruption,
-    repeat runs, and real dependency synchronization.
-  - Use the ten runtime dependencies supplied by the user, preserving all
-    minimum versions; include pytest>=9.1.1 in the development dependency group.
-  - Stop for review and commit approval; update log.org after acceptance and commit.
-  - Verification: seven unit tests passed; real first-run defaults and custom
-    metadata plus no-input repeat runs passed in fresh temporary directories.
-  - Dependencies synchronized successfully and uv.lock was generated. uv warned
-    that resolved snowflake-connector-python 5.0.0 lacks secure-local-storage;
-    the requested dependency constraint was preserved.
-  - Implementation verified and accepted; user approved committing the changes.
-* DONE Add Mermaid diagram skill
-  - Include PyYAML as a runtime dependency and in setup defaults for validation.
-  - Add a discoverable skill and standard-library Python render helper using
-    minlag/mermaid-cli:latest, with transparent PNG output by default.
-  - Retain Mermaid source under outputs/diagrams; support explicit SVG/PDF.
-  - Error on missing Docker or inaccessible daemon without installing/starting it.
-  - Validate metadata, error paths, paths with spaces, and a real Docker render.
-  - Verified: skill validator passed; 13 tests and 7 subtests passed; Docker
-    produced a visually inspected transparent PNG using paths with spaces.
-  - PyYAML resolved to 6.0.3; uv.lock updated. User accepted and approved commit.
-  - Stop for review and commit approval; log completion after acceptance and commit.
-* DONE Add explicit template initialization and untrack Python caches
-  - Add make init with explicit metadata prompts, preserving TOML and dependencies.
-  - Keep make setup behavior; synchronize before and after explicit initialization.
-  - Add tomlkit through uv, update documentation, and test initialization behavior.
-  - Untrack Python caches while retaining local copies and existing ignore rules.
-  - Stop for review and commit approval; update log.org after acceptance and commit.
-  - Verified: 18 unit tests passed; fresh-copy make init refreshed project metadata
-    and uv.lock, and repeat make setup preserved configuration without prompting.
-  - Five tracked Python cache files removed from the index; local copies retained.
-  - Implementation verified and accepted; user approved committing the changes.
-* DONE Add make setup-mattpocock-skills
-  - Install all mattpocock/skills locally for Codex using npx skills@latest.
-  - Add an npx prerequisite check and document the target in HOWTO.md.
-  - Run the target, verify installed skills and existing skill preservation.
-  - Stop for review and commit approval; log completion after acceptance and commit.
-  - Verified: target installed 38 skills with matching skills-lock.json entries;
-    existing RxP and Mermaid skills unchanged; missing-npx error and diff check passed.
-  - Implementation verified and accepted; user approved committing the changes.
-* DONE Add make uninstall-mattpocock-skills
-  - Select installed skills by mattpocock/skills source in skills-lock.json.
-  - Use the skills CLI to remove only those project-local skills and agent links.
-  - Document uninstall and reinstall; verify in a temporary copy, leaving this
-    repository's installed skills available.
-  - Stop for review and commit approval; log completion after acceptance and commit.
-  - Verified: temporary-copy uninstall removed 38 skills, preserved unrelated
-    skills and lock entries, and handled repeat runs, missing locks, and invalid
-    inputs. Working repository skills remain installed; user accepted and approved commit.
+* DONE [#B] Distribution of VDAM uploaded prescriptions
+  :PROPERTIES:
+  :REFNUM:   1.
+  :END:
+   - Use the table EDLDB.BT_HCA_HCDM.RXP_UPLOAD_ENTITY.upload_entity
+   - Use the table ecom.orders table to get orders information
+   - The associated_resource_ids  contains the prescription
+   - the field created_ts_utc contains the upload time. This is in utc
+   - filter by upload_type = diet_prescription
+   - the order is created ORDER_PLACED_DTTM in ecom.orders. This is no time zone data
+   - Make sure the order_placed_dttm is converted to utc
+   - We need a bar graph with the distribution of times.
+   - Use 50 buckets
+   - Generate a sql
+   - Geerate a makefile target
+** DONE Implement accepted plan for REFNUM 1 (prescription-grain correction)
+   - Use RXP_UPLOAD_ENTITY.ORDER_ID directly with ECOM.ORDERS.ORDER_ID.
+   - Filter DIET_PRESCRIPTION uploads from 2026-07-30 inclusive to 2026-10-21 exclusive, UTC.
+   - Require ASSOCIATED_RESOURCE_TYPE = DIET_PRESCRIPTION, HAS_ASSOCIATED_RX = TRUE, and HAS_UPLOADED_FILE = TRUE.
+   - Expand brace-delimited RX_ID lists and count distinct prescriptions, not orders or ASSOCIATED_RX_CNT.
+   - Select the first qualifying matched upload per prescription within the window; retain negative durations and outliers.
+   - If a prescription links to multiple orders, use its earliest matched upload's order; break ties by upload ID then order ID.
+   - Interpret ORDER_PLACED_DTTM as UTC based on observed Eastern companion offsets; do not shift twice.
+   - Add SQL, Python, and a Make target requiring start/end dates, with SQL-only and cached modes.
+   - Export 50 equal-width bins to transparent PNG and Markdown; save audit extracts under data/.
+   - Test boundaries, joins, exclusions, first-upload selection, bins, and empty/constant data.
+   - Run the requested cohort, inspect the chart, and stop for review before committing.
+   - Supersedes the initial order-grain chart; regenerate SQL, extract, chart, and table at prescription grain.
+   - Verified: 27 tests pass; live and cached runs agree; 50 bins total 120,773 distinct prescriptions, including 24,536 negative durations.
+   - 147,053 qualifying uploads expand to 152,734 prescription-upload rows; 31,557 lack order IDs and 404 are repeat matched prescription uploads.
+   - PNG visually reviewed; user reviewed and approved committing the changes.
+** DONE Break down REFNUM 1 by order cancellation reason
+   - Read ORDER_CANCEL_REASON from the order on each selected prescription's first qualifying matched upload.
+   - Keep NULL (not cancelled), Aged Order, Customer Initiated Cancellation, and Customer Request separate; bucket all other non-null reasons as Other.
+   - Export a five-panel transparent PNG using 50 shared bin boundaries, with independent count scales and panel totals.
+   - Export group totals and all 250 bins as Markdown; verify group counts sum to the original prescription cohort.
+   - Refresh the source extract, test the mapping and reconciliation, and visually inspect the chart.
+   - Verified: 29 tests pass; all 250 group/bin rows reconcile to the 50 overall bins and 120,773 prescriptions; live and cached rendering succeed.
+   - Group counts: not cancelled 106,628; aged orders 2,220; customer initiated 5,457; customer requested 4,509; other 1,959.
+   - Five-panel PNG visually reviewed; user reviewed and approved committing the changes.
+** DONE Export separate figures for each cancellation group
+   - Export five transparent PNGs from the shared 50-bin data via the existing Make target.
+   - Preserve the combined figure and inspect the separate figures before review.
+   - Generated and visually checked all five PNGs; added export padding to prevent clipped labels. All 29 tests pass on rerun (existing setup test is sensitive to random temporary-directory names).
+* TODO [#B] Distribution of other prescriptions
+  :PROPERTIES:
+  :REFNUM:   2.
+  :END:
+* TODO [#B] Distribution of cancelled orders
+  :PROPERTIES:
+  :REFNUM:   3.
+  :END:
+* DONE [#B] Aged-order upload distribution stacked by final prescription lifecycle state
+  :PROPERTIES:
+  :REFNUM:   4.
+  :END:
+   - Focus on the existing aged-orders prescription cohort: ORDER_CANCEL_REASON = 'Aged Order' on the order selected for each prescription's first qualifying matched upload.
+   - Preserve REFNUM 1's upload filters, distinct-prescription grain, UTC date window (2026-07-30 inclusive to 2026-10-21 exclusive), and signed elapsed hours. The current cohort contains 2,220 prescriptions.
+   - Left join the expanded, individual prescription ID to EDLDB.BT_HCA_HCDM.RXP_PRESCRIPTIONS.RX_ID and retrieve RX_LIFECYCLE_STATE. Verify the identifier match and one-row-per-prescription grain before aggregating; do not multiply observations or silently drop unmatched IDs.
+   - Interpret final state as the latest available RX_LIFECYCLE_STATE at extraction time, not the state at upload or cancellation time. Record extraction time and retain nonterminal states as returned by the source.
+   - Create a stacked-bar histogram: x = hours from order placement to upload; y = number of distinct prescriptions; stack/color = RX_LIFECYCLE_STATE. Use counts, not a 100-percent-normalized chart.
+   - Keep the existing 50 shared bin boundaries so each stacked bar sums to the corresponding bar in the aged-orders figure. Retain negative durations and outliers.
+   - Show every observed lifecycle state separately with a legend. Keep unmatched prescriptions and matched prescriptions with null lifecycle state in separate labeled categories.
+   - Export a transparent PNG under outputs/charts/vdam-upload-distribution/, and Markdown tables of state totals and bin-by-state counts under outputs/tables/vdam-upload-distribution/. Save downloaded data and executed SQL under data/.
+   - Add a reproducible Make target and document it in HOWTO.md, including date parameters and cached rendering.
+   - Validate join coverage, duplicate source IDs, missing states, bin boundaries, and conservation of prescription counts across states and bins. Preserve the existing 2,220-prescription cohort while refreshing lifecycle states only.
+   - Visually inspect the stacked chart and stop for user review before committing.
+** DONE Implement accepted REFNUM 4 plan using the frozen cohort
+   - Preserve the exact existing 2,220 aged prescriptions and global bin boundaries; refresh lifecycle states only.
+   - Add a dedicated entrypoint and Make target with SQL-only and cached modes. Validate upload-cache provenance and fingerprint the cohort, selected upload/order IDs, delays, and bin edges.
+   - Store state extract, SQL, snapshot time, and cohort fingerprint under the dated data directory; reject stale cached states and duplicate source IDs.
+   - Export stacked counts and state/bin Markdown tables, validate conservation of all counts, inspect the PNG, and stop for review.
+   - Verified: 40 tests pass; all 2,220 prescriptions match uniquely with no null states; 300 state/bin rows reconcile exactly to the existing 50 aged bins.
+   - Latest states: CUSTOMER CANCELED 1,824; SYSTEM_CLOSED 209; VET APPROVED 112; VET_REVIEW 67; VET APPROVED - CLOSED 7; DENIED 1.
+   - Live lookup and cached rendering succeed; transparent PNG visually reviewed. User reviewed and approved committing the changes.
