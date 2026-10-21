@@ -34,3 +34,19 @@
   - Verified installation, missing-npx handling, and temporary-copy uninstall,
     including unrelated lock entries, repeat runs, missing locks, and invalid inputs.
   - Working repository retains all 38 installed skills.
+* Prescription upload distributions and aged-order lifecycle states
+  - Accepted by the user and committed as cf09aa5
+    (feat: add prescription upload and aged lifecycle distributions).
+  - Added reproducible SQL and Make targets for the UTC upload cohort from
+    July 30 through October 20, 2026, with SQL-only and cached-rendering modes.
+  - Counted distinct prescriptions from expanded upload RX_ID lists, requiring
+    diet-prescription resource type, associated prescriptions, and uploaded files.
+  - Generated the 50-bin distribution, cancellation-reason breakdown, five
+    separate group figures, and Markdown audit/bin tables for 120,773 prescriptions.
+  - Preserved the 2,220-prescription aged cohort and joined latest lifecycle
+    states, with cohort fingerprints, duplicate checks, and missing-state handling.
+  - Verified 40 tests, live and cached execution, unique state matches, exact
+    bin-count reconciliation, and visually inspected transparent PNGs.
+  - Generated data and figures remain ignored; existing src/ignore playground
+    files were left untracked. User specified Mehmet Yunt <myunt1@chewy.com>
+    as the commit identity; configured it locally for this repository.
