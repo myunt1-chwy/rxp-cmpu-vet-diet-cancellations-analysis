@@ -121,8 +121,7 @@ def make_flows(groups):
 def mermaid_source(flows, title=None):
     denominator = int(flows.loc[flows.transition.eq(1)].prescriptions.sum())
     totals = flows.loc[flows.transition.eq(1)].groupby('source').prescriptions.sum().to_dict()
-    totals.update(flows.loc[flows.transition.eq(1)].set_index('target').prescriptions.to_dict())
-    totals.update(flows.loc[flows.transition.eq(2)].groupby('target').prescriptions.sum().to_dict())
+    totals.update(flows.groupby('target').prescriptions.sum().to_dict())
     labels = {node: f'{node} ({count:,}; {100 * count / denominator:.2f}%)'
               for node, count in totals.items()}
     # Keep category colors consistent between the full and focused diagrams.
@@ -137,10 +136,17 @@ def mermaid_source(flows, title=None):
         'First order: Not canceled': '#4E79A7',
         'First order: Other cancellation reason': '#BAB0AB',
         'First order: No first order ID': '#AEB9C3',
+        'First order line status: X': '#E15759',
+        'First order line status: D': '#4E79A7',
+        'First order line status: S': '#8CC9EE',
+        'First order line status: C': '#AF7AA1',
+        'First order line status: R': '#F28E2C',
     }
+    palette.update(flows.attrs.get('node_colors', {}))
     node_colors = {
-        label: ('#8CC9EE' if ' / No matching upload' in node
-                else '#F28E2C' if ' / Has matching upload' in node else palette.get(node, '#BAB0AB'))
+        label: ('#8CC9EE' if ' / No matching upload' in node or node == 'Matching upload: No matching upload'
+                else '#F28E2C' if ' / Has matching upload' in node or node == 'Matching upload: Has matching upload'
+                else palette.get(node, '#BAB0AB'))
         for node, label in labels.items()
     }
     buffer = io.StringIO()
@@ -148,21 +154,22 @@ def mermaid_source(flows, title=None):
     writer = csv.writer(buffer, lineterminator='\n', quoting=csv.QUOTE_NONNUMERIC)
     for row in flows.itertuples(index=False):
         writer.writerow([labels[row.source], labels[row.target], row.prescriptions])
-    height = max(1000, 55 * len(flows.loc[flows.transition.eq(1)]))
+    height = int(max(1000, 55 * max(flows.groupby('transition').source.nunique().max(),
+                                   flows.groupby('transition').target.nunique().max())))
     config = {'theme': 'base', 'themeVariables': {'fontFamily': 'Arial', 'fontSize': f'{18 * TEXT_SCALE:g}px'},
               'themeCSS': (f'.node-labels, .node-labels text {{ font-size: {NODE_FONT_SIZE:g}px; font-weight: bold; }} '
                            '.links { stroke-opacity: 0.75; } .link { mix-blend-mode: normal !important; } '
                            f'[class$="TitleText"] {{ font-size: {24 * TEXT_SCALE:g}px; '
                            'paint-order: stroke; stroke: white; stroke-width: 3px; stroke-linejoin: round; }'),
-              'sankey': {'width': 2400, 'height': height, 'linkColor': 'source',
+              'sankey': {'width': 1200 * int(flows.transition.max()), 'height': height, 'linkColor': 'source',
                          'nodeColors': node_colors,
-                         'nodeAlignment': 'justify', 'showValues': False,
+                         'nodeAlignment': flows.attrs.get('node_alignment', 'justify'), 'showValues': False,
                          'useMaxWidth': False, 'nodePadding': 32, 'labelStyle': 'outlined'}}
     heading = 'title: ' + json.dumps(title) + '\n' if title else ''
     return '---\n' + heading + 'config: ' + json.dumps(config) + '\n---\nsankey-beta\n' + buffer.getvalue()
 
 
-def add_title(svg, title):
+def add_title(svg, title, columns=None):
     """Mermaid's Sankey renderer ignores visible frontmatter titles."""
     namespace = 'http://www.w3.org/2000/svg'
     ET.register_namespace('', namespace)
@@ -171,7 +178,7 @@ def add_title(svg, title):
     except ET.ParseError as error:
         raise ValueError('Mermaid produced invalid SVG') from error
     _, _, width, height = map(float, diagram.attrib['viewBox'].split())
-    header_height = 96 * TEXT_SCALE
+    header_height = 96 * TEXT_SCALE + (64 if columns else 0)
     wrapper = ET.Element(f'{{{namespace}}}svg', width=str(width), height=str(height + header_height),
                          viewBox=f'0 0 {width} {height + header_height}', role='img',
                          attrib={'aria-label': title})
@@ -184,6 +191,25 @@ def add_title(svg, title):
                     'font-weight': weight, 'fill': '#222222', 'stroke': 'white', 'stroke-width': '3',
                     'paint-order': 'stroke', 'stroke-linejoin': 'round'})
         label.text = text
+    if columns:
+        # Column headings act as swimlanes; retain full node IDs in Mermaid/flow data.
+        node_x = sorted({float(g.attrib['x']) for g in diagram.findall(
+            f'.//{{{namespace}}}g[@class="node"]') if 'x' in g.attrib})
+        if len(node_x) != len(columns):
+            node_x = [width * i / len(columns) for i in range(len(columns))]
+        headings = ET.SubElement(wrapper, f'{{{namespace}}}g', attrib={'class': 'stage-headings'})
+        for (prefix, heading), x in zip(columns, node_x):
+            label = ET.SubElement(headings, f'{{{namespace}}}text', x=str(x + 12),
+                y=str(header_height - 22), attrib={'font-family': 'Arial, sans-serif',
+                'font-size': '26', 'font-weight': 'bold', 'fill': '#222222', 'stroke': 'white',
+                'stroke-width': '3', 'paint-order': 'stroke'})
+            label.text = heading
+        for group in diagram.findall(f'.//{{{namespace}}}g[@class="node-labels"]'):
+            for label in group:
+                for prefix, _ in columns:
+                    if label.text and label.text.startswith(prefix):
+                        label.text = label.text.removeprefix(prefix)
+                        break
     # Also override Mermaid's hard-coded 14px label attribute in the SVG export.
     for group in diagram.findall(f'.//{{{namespace}}}g[@class="node-labels"]'):
         group.set('font-size', f'{NODE_FONT_SIZE:g}')
@@ -193,6 +219,13 @@ def add_title(svg, title):
         group.set('style', 'mix-blend-mode: normal;')
     for group in diagram.findall(f'.//{{{namespace}}}g[@class="links"]'):
         group.set('stroke-opacity', '0.75')
+    # Mermaid places its label group before the links, so links paint over text.
+    # Keep both outlined text layers above every flow without changing geometry.
+    for parent in diagram.iter():
+        for child in list(parent):
+            if child.attrib.get('class') == 'node-labels':
+                parent.remove(child)
+                parent.append(child)
     diagram.set('x', '0')
     diagram.set('y', str(header_height))
     diagram.set('width', str(width))
@@ -213,7 +246,7 @@ def render_sankey(flows, source, png, title):
     with TemporaryDirectory(prefix='.title-', dir=source.parent) as directory:
         staged_svg, staged_png = Path(directory) / 'diagram.svg', Path(directory) / 'diagram.png'
         subprocess.run([sys.executable, str(RENDERER), str(source), '-o', str(staged_svg)], cwd=ROOT, check=True)
-        titled_svg = add_title(staged_svg.read_text(), title)
+        titled_svg = add_title(staged_svg.read_text(), title, flows.attrs.get('columns'))
         staged_svg.write_text(titled_svg)
         subprocess.run([
             'docker', 'run', '--rm', '--user', f'{os.getuid()}:{os.getgid()}',

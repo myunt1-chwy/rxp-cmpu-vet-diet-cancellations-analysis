@@ -270,97 +270,133 @@ status alone is not used to determine shipping. Missing order-line coverage is
 audited. The summary is `shipments.md` in the same table directory; source data
 and SHA-256 metadata remain in the cancellation analysis data directory.
 
-## CMPU prescription first-order Sankey (REFNUM 14)
+## CMPU first-order-line Sankey (REFNUM 14)
 
 ```bash
 make cmpu-prescription-first-order-status
 make cmpu-prescription-first-order-status START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
 make cmpu-prescription-first-order-status CACHED=1
 make cmpu-prescription-first-order-status PRINT_SQL=1
+.venv/bin/python -m pytest -q tests/test_cmpu_first_order_line_status.py
 ```
 
-Defaults select prescriptions created August 15 through October 14, 2026,
-and search uploads from August 1 through October 14, UTC. `START_DATE` and
-`UPLOAD_START_DATE` are inclusive; `END_DATE` is exclusive for both windows.
-Upload start must be on or before prescription start. Dates are explicit:
-these defaults implement the requested August 1/August 15 boundaries.
-`PRINT_SQL=1` validates dates and prints the SQL
-without querying, writing files or invoking Docker. `CACHED=1` skips Snowflake
-and checks that the SQL, dates and extract SHA-256 match before regenerating
-tables and rendering. A fresh run uses the repository's read-only Snowflake
-runner and browser SSO. Cortex is not used.
+REFNUM 14 now uses `src/sql/cmpu_first_order_line_status.sql` and
+`EDLDB.BT_HCA_HCDM.ORDER_LINE_COST_MEASURES_RXP`. Join prescriptions using
+**FIRST_ORDER_ID = ORDER_ID AND numeric FIRST_ORDERITEM_ID = ORDER_LINE_ID**.
+There is no RX_ID join to the order-line source and no dependency on ECOM.ORDERS.
 
-Select CMPU vet-diet prescriptions, without deletion or prescription-status
-filters. Count each RX_ID once. Use only FIRST_ORDER_ID for the order join;
-there is no order-placement-date requirement. Latest ORDER_STATUS = X means
-canceled, grouped as Aged Order, Customer Initiated Cancellation, Customer
-Request, Other cancellation reason, or Canceled - missing reason. Retain Not
-canceled, No first order ID, First order not found, Unknown order status and
-unknown approval channels explicitly. A NULL cancellation reason alone does
-not imply that an order was not canceled.
+Count each matched **(ORDER_ID, ORDER_LINE_ID) once**, collapsing the source's
+shipment rows before joining. Prescriptions without first-order keys, invalid
+item IDs or unmatched order lines appear in the audit and association details;
+they are excluded from the Sankey denominator. Multiple prescriptions sharing
+a line count once. Conflicting channel/upload/status classifications for a
+shared line fail validation, as do conflicting shipment statuses or
+duplicate shipment/line source keys. Do not interpret shipment rows as lines.
 
-Upload presence means at least one DIET_PRESCRIPTION upload entity in the upload
-search window matching both expanded RX_ID and numeric CUSTOMER_ID. Brace-delimited
-IDs and repeated uploads are deduplicated. HAS_UPLOADED_FILE,
-HAS_ASSOCIATED_RX and ASSOCIATED_RESOURCE_TYPE are not filters; a matching
-entity does not independently verify a file. No upload-after-prescription
-requirement is imposed. Missing/malformed upload identifiers are audited for
-the whole upload window. Duplicate prescription, order or upload source keys
-fail validation rather than silently selecting a record.
+Defaults retain CMPU vet-diet prescriptions created August 15–October 14,
+2026 and upload search August 1–October 14 (UTC). Starts are inclusive; END_DATE
+is exclusive for both windows. Upload start must not exceed prescription start.
+No prescription-status/deletion or order-placement-date filter is applied.
 
-The three-stage Sankey shows approval channel → channel-specific matching
-upload presence → first-order cancellation group. It is a categorical breakdown,
-not a chronological sequence. Each stage totals the same prescription cohort;
-the two transition totals must not be added together as prescriptions.
+The full and CUSTOMER_UPLOAD figures use the order: **approval channel → first-order cancel
+reason → first-order line status → item block reason → matching upload or not**.
+Cancel reason is the raw trimmed ORDER_CANCEL_REASON; blank/null reasons appear
+as `[No cancellation reason recorded]` and do not imply an uncanceled order.
+The line stage uses ORDER_ORDER_LINE_STATUS codes directly (C, D, R, S, X),
+with blank/null codes shown as `[Unknown line status]`. The source has no separate
+line-cancellation-reason field in this analysis.
 
-Artifacts use `cmpu-prescription-first-order-status/<start>_<exclusive-end>/`,
-with `_uploads-from-<upload-start>` appended when upload and prescription starts
-differ. Both windows are recorded in the metadata and diagram subtitles;
-caches cannot be reused across different upload starts. Earlier same-window
-results remain in their original directories. The audit separately counts
-prescriptions matched only through uploads before prescription-cohort start.
+Actual ORDER_ITEM_BLOCK_REASON is shown only for known non-D line statuses.
+D lines use `[Not applicable: status D]` and unknown statuses use an explicit
+not-applicable node so every line still reaches the final upload split.
+Blank/null actual block reasons appear as `[No block reason recorded]`.
+Conflicting shipment statuses, cancellation reasons or block reasons fail validation.
 
-- `data/`: rendered SQL, source and classified Parquet, extraction timestamp,
-  warehouse and source fingerprints, plus SQL history.
-- `outputs/tables/`: summary, full distribution, prescription details, flow
-  counts and audits in Markdown.
-- `outputs/diagrams/`: editable `sankey.mmd`, transparent `sankey.png` and README,
-  plus a second `sankey-customer-upload.mmd`/`.png` restricted to approval channel
-  CUSTOMER_UPLOAD. Both use approval channel → upload presence → first-order
-  status/reason. The second diagram uses the same validated extract.
+The third figure, `sankey-non-d.png`, includes only CUSTOMER_UPLOAD lines with a
+known non-D final line status. Its percentages use that restricted denominator. This figure
+omits the explicit line-status column: channel → cancel reason → item block →
+upload presence. It retains all non-D statuses (including C/R/S), with status
+labels on the separate block/upload paths; it does not filter to X only. Column
+headers identify Approval channel, First-order cancel reason, Item block reason
+and Matching upload; visible node labels omit those repeated prefixes. The
+cancel-reason stage uses purple and the item-block stage light blue, replacing
+the gray defaults. Full node IDs remain in Mermaid sources and flow tables.
+Full and CUSTOMER_UPLOAD figures retain their respective line denominators.
+The same source cache can be reused with CACHED=1.
 
-Focused `customer-upload-summary.md`, `customer-upload-distribution.md` and
-`customer-upload-flows.md` tables accompany the second diagram; their
-percentages use only CUSTOMER_UPLOAD prescriptions as the denominator.
-Both diagrams label nodes with counts and percentages rounded to two decimals.
-The main diagram uses all cohort prescriptions as its denominator; the focused
-diagram uses only CUSTOMER_UPLOAD prescriptions, including at the final status
-stage. Percentages are not conditional on the preceding node. Flow tables use
-the same scope-specific denominators.
-Each diagram includes a title with its scope, inclusive date range and
-percentage denominator; titles are retained in the editable Mermaid source.
-Because the Mermaid Sankey renderer does not draw frontmatter titles, the
-pipeline adds a visible title band to its SVG output and exports the PNG using
-Chromium/Puppeteer bundled in the same Mermaid Docker image, preserving SVG
-colors and text styling. Titled SVG companions are saved alongside
-both PNGs. Rendering and conversion are staged to preserve an existing PNG if
-either step fails.
-Node labels, including counts and percentages, are bold 21px (an additional
-25% above the previous 16.8px labels). Titles remain 33.6px and subtitles
-21.6px, with the same title-band spacing. The Mermaid label override is applied
-before measuring the SVG so the enlarged labels fit the export.
-Both diagrams use an adjusted multicolor palette: blue, orange, purple, pink,
-coral and gray, with light blue replacing green tones. Matching-upload branches
-are orange; no-matching-upload branches are light blue. Category colors stay
-consistent between the full and focused diagrams. Links inherit their source node's color.
-Links use normal blending at 75% opacity so SVG and PNG exports retain the
-palette against a transparent background.
+Upload presence retains DIET_PRESCRIPTION upload entities matched on expanded
+RX_ID and numeric CUSTOMER_ID. Repeated uploads are deduplicated. No uploaded-file,
+association flag or upload-after-creation requirement is applied; a matching
+entity does not independently verify a file. Source-key audits cover the entire
+upload window.
 
-The existing Mermaid helper renders through `minlag/mermaid-cli:latest` in
-Docker. Docker must already be installed and running; the target does not
-install or start it. Render failures preserve the previous PNG and return an
-error. An empty cohort produces tables and removes stale Sankey artifacts.
+Item-block nodes and final upload nodes are separate for each line status.
+For example X and D each have their own Has matching upload / No matching upload
+endpoints. Block-reason nodes retain the status too, preventing X/D paths from
+merging before the final split. Counts and percentages retain each figure's
+whole-population denominator, not the individual status subtotal.
+
+All four transitions in each figure conserve its distinct-line population.
+Do not add the transition totals. Node and flow percentages use the figure's
+whole population, rounded to two decimal places, rather than the parent node.
+
+New artifacts use `cmpu-first-order-line-status/<start>_<exclusive-end>/`, with
+`_uploads-from-<upload-start>` when starts differ, followed by `_line-status`
+for the prior status-only figures. The current four-stage figures use
+`_line-status-non-d-block-reasons`; their source cache uses `_block-reasons`.
+Previous all-status block-reason figures remain under `_line-status-block-reasons`. Earlier
+figures and their extracts are preserved. The previous prescription-count
+artifacts remain under `cmpu-prescription-first-order-status/`.
+
+- `data/`: source Parquet, rendered/executed SQL/history, extraction timestamp,
+  warehouse and SHA-256 fingerprints. Cached mode requires unchanged SQL/dates/data.
+- `outputs/tables/`: association details, distinct order lines, full/focused
+  distributions and flows (including block reason), non-D-focused distributions,
+  flows and line details, non-D block-reason totals,
+  eligibility/source audits and order-vs-line-status table.
+- `outputs/diagrams/`: full, CUSTOMER_UPLOAD, and non-D-focused Mermaid sources,
+  transparent PNGs, titled SVGs and README. Existing orange/light-blue/multicolor styling is retained.
+
+`PRINT_SQL=1` validates dates and prints SQL without side effects; `CACHED=1`
+regenerates tables/figures without Snowflake. Fresh queries use the repository's
+read-only rxp-sql runner and browser SSO. Cortex is not used. The separate
+order-to-approval timing analysis is unchanged by this REFNUM 14 revision.
+
+## First order to first-usage approval distributions
 
 ```bash
-.venv/bin/python -m unittest discover -s tests -p 'test_cmpu_prescription_first_order_status.py'
+make cmpu-order-to-approval-distributions
+make cmpu-order-to-approval-distributions START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
+make cmpu-order-to-approval-distributions CACHED=1
+make cmpu-order-to-approval-distributions PRINT_SQL=1
+.venv/bin/python -m pytest -q tests/test_cmpu_order_to_approval_distributions.py
 ```
+
+Select CMPU vet-diet prescriptions with approval channel CUSTOMER_UPLOAD. Defaults
+cover prescription creation August 15–October 14 and uploads August 1–October 14,
+2026 (UTC, end date exclusive). Match DIET_PRESCRIPTION upload entities using
+expanded RX_ID and numeric CUSTOMER_ID; repeated uploads cannot multiply rows.
+Only FIRST_ORDER_ID is used. Require a matched order with known status other
+than X and both timestamps; duration is FIRST_USAGE_APPROVED_DATETIME minus
+ORDER_PLACED_DTTM in hours. There is no approval-date, prescription-status or
+deletion filter. Negative values and the entire observed range are retained.
+Order status reflects the extraction snapshot. Upload presence does not require
+upload before approval and does not establish a causal effect.
+
+Two stacked histograms use prescription counts, shared axes, and integer-aligned
+one-hour intervals [lower, upper). A separate PNG table gives N, minimum, 25th,
+median, 75th and 95th percentiles in hours, using unbinned linear interpolation.
+Empty groups are labeled; an entirely empty eligible cohort produces no figures.
+
+Outputs use `cmpu-order-to-approval-distributions/<start>_<exclusive-end>_uploads-from-<upload-start>/`
+(the suffix is omitted when upload and prescription starts coincide):
+- `data/`: prescription-level Parquet, executed SQL/history, extraction metadata,
+  warehouse and SQL/Parquet fingerprints; cached mode requires unchanged inputs.
+- `outputs/charts/`: transparent `distributions.png`, `statistics.png`, README.
+- `outputs/tables/`: Markdown prescription details, one-hour bins, statistics,
+  eligibility by upload group and upload-source audits. Eligibility exclusions
+  are mutually exclusive; negative and over-24-hour durations are audit subsets.
+
+The script rejects duplicate source keys and UTC/Eastern order timestamp
+inconsistencies above one second. It checks missing Eastern companions separately.
+Missing approval is excluded and never counted as a zero-hour approval.

@@ -46,6 +46,39 @@ def fake_render(command, **kwargs):
 
 
 class FirstOrderSankeyTests(unittest.TestCase):
+    def test_column_headers_shorten_visible_labels_and_preserve_counts(self):
+        svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1000">'
+               '<g class="node-labels"><text>First order cancel reason: Aged Order (2; 40.00%)</text>'
+               '<text>Item block reason: X / NEW_ITEM_AUTHORIZATION (3; 60.00%)</text></g></svg>')
+        columns=[('First order cancel reason: ', 'First-order cancel reason'),
+                 ('Item block reason: ', 'Item block reason')]
+        result=ET.fromstring(analysis.add_title(svg,'Fixture',columns))
+        headings=result.find('{http://www.w3.org/2000/svg}g[@class="stage-headings"]')
+        self.assertEqual([t.text for t in headings], ['First-order cancel reason','Item block reason'])
+        labels=result.findall('.//{http://www.w3.org/2000/svg}g[@class="node-labels"]/{http://www.w3.org/2000/svg}text')
+        self.assertEqual([t.text for t in labels],['Aged Order (2; 40.00%)','X / NEW_ITEM_AUTHORIZATION (3; 60.00%)'])
+
+    def test_many_nodes_have_serializable_render_dimensions(self):
+        groups = pd.DataFrame({'channel': ['CUSTOMER_UPLOAD']*21,
+                               'upload_group': ['Has matching upload']*21,
+                               'order_group': [f'Category {i}' for i in range(21)],
+                               'prescriptions': [1]*21})
+        source = analysis.mermaid_source(analysis.make_flows(groups))
+        config = json.loads(source.split('config: ',1)[1].split('\n---',1)[0])
+        self.assertEqual(config['sankey']['height'], 1155)
+
+    def test_upload_labels_render_above_links(self):
+        # Mermaid emits labels before links; the later opaque links cover this text.
+        svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1000">'
+               '<g class="nodes"/><g class="node-labels">'
+               '<text class="sankey-label-bg">Has matching upload</text>'
+               '<text class="sankey-label-fg">Has matching upload</text></g>'
+               '<g class="links"><path d="M0 0 L100 100"/></g></svg>')
+        result = ET.fromstring(analysis.add_title(svg, 'Fixture'))
+        inner = result.find('{http://www.w3.org/2000/svg}svg')
+        classes = [child.attrib.get('class') for child in inner]
+        self.assertGreater(classes.index('node-labels'), classes.index('links'))
+
     def test_prescription_grain_and_all_order_groups(self):
         frame, groups, audit = analysis.summarize(fixture())
         self.assertEqual(len(frame), 9)
