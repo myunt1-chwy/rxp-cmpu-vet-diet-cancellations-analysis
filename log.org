@@ -79,3 +79,34 @@
   - Committed only this conversation's code and documentation changes. Existing
     unrelated work remains unstaged; generated data, figures, environment files
     and src/ignore playground files remain outside the commits.
+
+* CMPU first-order-line Sankeys and first-usage approval timing
+  - User reviewed the analyses and figure revisions and approved committing on
+    2026-10-26. Implementation committed as 3107d73
+    (feat: add order-line Sankeys and approval timing analysis).
+  - Revised REFNUM 14 to join FIRST_ORDER_ID and numeric FIRST_ORDERITEM_ID
+    to ORDER_ID and ORDER_LINE_ID in certified ORDER_LINE_COST_MEASURES_RXP.
+    Collapse shipment rows and count each matched order line once. Preserve
+    missing-key/unmatched/conflicting-source audits and cached SQL fingerprints.
+  - Full and CUSTOMER_UPLOAD figures show channel -> first-order cancel reason
+    -> line status -> status-specific item block -> status-specific upload presence.
+    D/unknown block reasons are not applicable. X/D and other status paths retain
+    separate upload/no-upload endpoints. Denominators: 103,514 and 95,071 lines.
+  - The non-D figure includes CUSTOMER_UPLOAD only (65,147 lines), omits the
+    explicit status column, and retains status-specific block/upload labels.
+    Added aligned column headers, shorter visible labels and purple/light-blue
+    stages. Fixed labels hidden by flow bands and tall-layout JSON dimensions.
+  - Added make cmpu-order-to-approval-distributions with first-usage approval
+    minus first-order placement, one-hour count histograms, percentile-table PNG,
+    eligibility audits and fingerprint-checked cached/SQL-only modes. Of 41,083
+    uncanceled-order prescriptions, 29,971 have eligible approval timestamps:
+    24,244 with uploads (median 26.43 hours), 5,727 without (median 12.52 hours).
+  - Follow-up checks found all 27,454 available RxP-view line items on 24,868
+    cohort aged orders have line status X, including 26,957 cohort first lines.
+    Other non-Rx items outside the certified view are not covered by that check.
+  - Verified 140 working-tree tests and 94 tests in an isolated staged checkout
+    (22 subtests each), SQL/source/date/line-grain checks, status/upload endpoint
+    reconciliation, cached rendering, and visual inspection of all latest PNGs.
+  - Committed only this conversation's code/docs. Generated extracts, SQL logs,
+    tables and figures remain ignored; unrelated edits and playground/environment
+    files remain outside the commits.
