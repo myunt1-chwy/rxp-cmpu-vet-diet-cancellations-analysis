@@ -50,3 +50,32 @@
   - Generated data and figures remain ignored; existing src/ignore playground
     files were left untracked. User specified Mehmet Yunt <myunt1@chewy.com>
     as the commit identity; configured it locally for this repository.
+
+* CMPU upload matching, first-order comparisons and Sankey diagrams
+  - User reviewed the analyses and diagrams and approved committing on
+    2026-10-26. Implementation committed as 5fc117b
+    (feat: add CMPU upload matching and first-order Sankeys).
+  - Added Segment customer/product and prescription-ID matching SQL,
+    prescription-property coverage summaries, later canceled-order analysis,
+    actual prescription-item shipment analysis and first-order ID comparisons.
+  - Implemented REFNUM 14 with make cmpu-prescription-first-order-status,
+    independent prescription/upload start dates, SQL-only and fingerprint-checked
+    cached modes, classified extracts and Markdown distributions/audits.
+  - Final defaults: prescriptions August 15–October 14 inclusive; uploads
+    August 1–October 14 inclusive. Cohort: 113,608 prescriptions, 33,429 with
+    matching uploads. CUSTOMER_UPLOAD: 104,307 prescriptions, 32,229 matched.
+    The earlier upload window adds one VERBAL match and no CUSTOMER_UPLOAD match.
+  - Generated full and CUSTOMER_UPLOAD-only Mermaid/SVG/transparent PNG Sankeys
+    in approval-channel -> upload-presence -> first-order-status order. Added
+    scoped percentages, titles, bold labels and an adjusted multicolor palette
+    with light blue replacing green. Chromium export preserves SVG colors.
+  - Upload ORDER_ID differs from FIRST_ORDER_ID for 527 prescriptions, including
+    520 CUSTOMER_UPLOAD prescriptions. Usage history has additional orders for
+    17,103 prescriptions, all of which also reference their first order.
+  - Verified 99 working-tree tests and 53 tests in an isolated staged checkout;
+    all new modules import without pre-existing uncommitted analyses. Source
+    uniqueness, date bounds, group/flow conservation, cache fingerprints,
+    browser-export failure handling and visual checks passed.
+  - Committed only this conversation's code and documentation changes. Existing
+    unrelated work remains unstaged; generated data, figures, environment files
+    and src/ignore playground files remain outside the commits.
