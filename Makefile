@@ -1,5 +1,9 @@
 .DEFAULT_GOAL := setup
 
+.PHONY: cmpu-prescription-first-order-status
+cmpu-prescription-first-order-status:
+	.venv/bin/python -m src.python.create_cmpu_prescription_first_order_status --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
 .PHONY: create-aged-upload-lifecycle-distribution
 create-aged-upload-lifecycle-distribution:
 	@test -n "$(START_DATE)" -a -n "$(END_DATE)" || { echo 'START_DATE and END_DATE are required (end exclusive).' >&2; exit 1; }

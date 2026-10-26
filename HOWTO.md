@@ -185,3 +185,182 @@ install them again.
 
 See the [skills CLI reference](https://github.com/vercel-labs/skills/blob/main/docs/commands.md)
 for installation options.
+
+## CMPU vet-diet prescription matches to upload events
+
+Run the read-only summary query:
+
+```bash
+.venv/bin/python .agents/skills/rxp-sql/scripts/run_snowflake_query.py src/sql/cmpu_upload_event_matches.sql --output-parquet data/cmpu-upload-event-matches/2026-09-01_2026-09-16/summary.parquet --sql-log-dir data/cmpu-upload-event-matches/2026-09-01_2026-09-16/sql
+```
+
+Events are read from `EDLDB.SEGMENT.SEGMENT_HITS_PRODUCTS_UNION`.
+The event filters come from the supplied `src/ignore/rxp` query, with its
+undefined `c` reference removed. The query's `date_window` CTE sets both cohorts
+to September 1–15, 2026, inclusive: start `2026-09-01`, exclusive end
+`2026-09-16`. Events use `SESSION_DATE_EST`;
+prescriptions use `RX_CREATION_DATETIME` without a timezone conversion.
+Only `PRESCRIPTION_SOURCE = 'CMPU'` and `IS_VET_DIET_FLAG = TRUE` prescriptions
+qualify. No status or deletion filters are added.
+
+Match on customer and product IDs without timestamp ordering. Repeated events
+cannot inflate the distinct-prescription count. The summary includes missing
+keys, duplicate prescription IDs, and repeated customer/product pairs; those
+pairs indicate association, not proof that an upload created a prescription.
+The reviewed Markdown summary belongs under
+`outputs/tables/cmpu-upload-event-matches/2026-09-01_2026-09-16/summary.md`.
+The previous October results remain in the parent directory.
+
+### Match the prescription ID recorded in event properties
+
+```bash
+.venv/bin/python .agents/skills/rxp-sql/scripts/run_snowflake_query.py src/sql/cmpu_upload_prescription_id_matches.sql --output-parquet data/cmpu-upload-event-matches/2026-09-01_2026-09-16/prescription-id/matches.parquet --sql-log-dir data/cmpu-upload-event-matches/2026-09-01_2026-09-16/prescription-id/sql
+.venv/bin/python -m src.python.summarize_cmpu_prescription_id_matches
+```
+
+Uses the same September dates and upload-event filters. Extracts
+`properties:eventData:prescriptionId` and `properties:prescriptionId`, preferring
+the nested value when both are filled. Blank/JSON-null IDs are missing;
+conflicting values are audited. Joins the selected ID directly to `RX_ID`
+without requiring event customer or product IDs. The full outer join retains
+all cohort prescriptions and events for completeness checks and comparison
+with the original customer/product association method.
+
+The source extract and summary metadata are under the dated `prescription-id/`
+data directory. Markdown summary and event-type field coverage are under
+`outputs/tables/cmpu-upload-event-matches/2026-09-01_2026-09-16/prescription-id/`.
+Rerun only the summarizer to use the existing extract.
+
+## Later canceled orders for September CMPU vet-diet prescriptions
+
+```bash
+.venv/bin/python .agents/skills/rxp-sql/scripts/run_snowflake_query.py src/sql/cmpu_later_cancelled_orders.sql --output-parquet data/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/links.parquet --sql-log-dir data/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/sql
+.venv/bin/python -m src.python.summarize_cmpu_later_cancelled_orders
+```
+
+The cohort is CMPU vet-diet prescriptions created September 1–15, 2026,
+inclusive. Links combine FIRST_ORDER_ID with all available prescription usage
+action history, reduced to distinct prescription/order pairs. A qualifying
+order was placed strictly after prescription creation and has latest status
+Canceled. Orders and cancellations may occur after September 15. Cancellation
+reasons are not filtered; missing reasons remain explicit. Cancellation
+timestamps are checked against order placement, and order UTC/Eastern timestamp
+companions must agree where available. RX_CREATION_DATETIME is interpreted as UTC.
+
+Source SQL, Parquet and SHA-256 metadata are under
+`data/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/`.
+Summary, cancellation-reason and qualifying-link Markdown tables are under
+`outputs/tables/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/`.
+Each prescription counts once in the headline; reason-specific prescription
+counts may overlap. The summarizer reuses the cached extract without connecting.
+
+### Actual prescription-item shipments
+
+```bash
+.venv/bin/python .agents/skills/rxp-sql/scripts/run_snowflake_query.py src/sql/cmpu_prescription_shipments.sql --output-parquet data/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/shipments.parquet --sql-log-dir data/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/sql
+.venv/bin/python -m src.python.summarize_cmpu_prescription_shipments
+```
+
+Requires the cancellation analysis extract above. Uses a non-null
+ORDER_LINE_SHIPPED_DTTM in ORDER_LINE_COST_MEASURES_RXP as shipment evidence,
+joined directly by RX_ID. Counts distinct prescriptions, separating any shipped
+order, shipped orders placed after prescription creation, the canceled-order
+prescription subset, and shipping on the same canceled order. Current order
+status alone is not used to determine shipping. Missing order-line coverage is
+audited. The summary is `shipments.md` in the same table directory; source data
+and SHA-256 metadata remain in the cancellation analysis data directory.
+
+## CMPU prescription first-order Sankey (REFNUM 14)
+
+```bash
+make cmpu-prescription-first-order-status
+make cmpu-prescription-first-order-status START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
+make cmpu-prescription-first-order-status CACHED=1
+make cmpu-prescription-first-order-status PRINT_SQL=1
+```
+
+Defaults select prescriptions created August 15 through October 14, 2026,
+and search uploads from August 1 through October 14, UTC. `START_DATE` and
+`UPLOAD_START_DATE` are inclusive; `END_DATE` is exclusive for both windows.
+Upload start must be on or before prescription start. Dates are explicit:
+these defaults implement the requested August 1/August 15 boundaries.
+`PRINT_SQL=1` validates dates and prints the SQL
+without querying, writing files or invoking Docker. `CACHED=1` skips Snowflake
+and checks that the SQL, dates and extract SHA-256 match before regenerating
+tables and rendering. A fresh run uses the repository's read-only Snowflake
+runner and browser SSO. Cortex is not used.
+
+Select CMPU vet-diet prescriptions, without deletion or prescription-status
+filters. Count each RX_ID once. Use only FIRST_ORDER_ID for the order join;
+there is no order-placement-date requirement. Latest ORDER_STATUS = X means
+canceled, grouped as Aged Order, Customer Initiated Cancellation, Customer
+Request, Other cancellation reason, or Canceled - missing reason. Retain Not
+canceled, No first order ID, First order not found, Unknown order status and
+unknown approval channels explicitly. A NULL cancellation reason alone does
+not imply that an order was not canceled.
+
+Upload presence means at least one DIET_PRESCRIPTION upload entity in the upload
+search window matching both expanded RX_ID and numeric CUSTOMER_ID. Brace-delimited
+IDs and repeated uploads are deduplicated. HAS_UPLOADED_FILE,
+HAS_ASSOCIATED_RX and ASSOCIATED_RESOURCE_TYPE are not filters; a matching
+entity does not independently verify a file. No upload-after-prescription
+requirement is imposed. Missing/malformed upload identifiers are audited for
+the whole upload window. Duplicate prescription, order or upload source keys
+fail validation rather than silently selecting a record.
+
+The three-stage Sankey shows approval channel → channel-specific matching
+upload presence → first-order cancellation group. It is a categorical breakdown,
+not a chronological sequence. Each stage totals the same prescription cohort;
+the two transition totals must not be added together as prescriptions.
+
+Artifacts use `cmpu-prescription-first-order-status/<start>_<exclusive-end>/`,
+with `_uploads-from-<upload-start>` appended when upload and prescription starts
+differ. Both windows are recorded in the metadata and diagram subtitles;
+caches cannot be reused across different upload starts. Earlier same-window
+results remain in their original directories. The audit separately counts
+prescriptions matched only through uploads before prescription-cohort start.
+
+- `data/`: rendered SQL, source and classified Parquet, extraction timestamp,
+  warehouse and source fingerprints, plus SQL history.
+- `outputs/tables/`: summary, full distribution, prescription details, flow
+  counts and audits in Markdown.
+- `outputs/diagrams/`: editable `sankey.mmd`, transparent `sankey.png` and README,
+  plus a second `sankey-customer-upload.mmd`/`.png` restricted to approval channel
+  CUSTOMER_UPLOAD. Both use approval channel → upload presence → first-order
+  status/reason. The second diagram uses the same validated extract.
+
+Focused `customer-upload-summary.md`, `customer-upload-distribution.md` and
+`customer-upload-flows.md` tables accompany the second diagram; their
+percentages use only CUSTOMER_UPLOAD prescriptions as the denominator.
+Both diagrams label nodes with counts and percentages rounded to two decimals.
+The main diagram uses all cohort prescriptions as its denominator; the focused
+diagram uses only CUSTOMER_UPLOAD prescriptions, including at the final status
+stage. Percentages are not conditional on the preceding node. Flow tables use
+the same scope-specific denominators.
+Each diagram includes a title with its scope, inclusive date range and
+percentage denominator; titles are retained in the editable Mermaid source.
+Because the Mermaid Sankey renderer does not draw frontmatter titles, the
+pipeline adds a visible title band to its SVG output and exports the PNG using
+Chromium/Puppeteer bundled in the same Mermaid Docker image, preserving SVG
+colors and text styling. Titled SVG companions are saved alongside
+both PNGs. Rendering and conversion are staged to preserve an existing PNG if
+either step fails.
+Node labels, including counts and percentages, are bold 21px (an additional
+25% above the previous 16.8px labels). Titles remain 33.6px and subtitles
+21.6px, with the same title-band spacing. The Mermaid label override is applied
+before measuring the SVG so the enlarged labels fit the export.
+Both diagrams use an adjusted multicolor palette: blue, orange, purple, pink,
+coral and gray, with light blue replacing green tones. Matching-upload branches
+are orange; no-matching-upload branches are light blue. Category colors stay
+consistent between the full and focused diagrams. Links inherit their source node's color.
+Links use normal blending at 75% opacity so SVG and PNG exports retain the
+palette against a transparent background.
+
+The existing Mermaid helper renders through `minlag/mermaid-cli:latest` in
+Docker. Docker must already be installed and running; the target does not
+install or start it. Render failures preserve the previous PNG and return an
+error. An empty cohort produces tables and removes stale Sankey artifacts.
+
+```bash
+.venv/bin/python -m unittest discover -s tests -p 'test_cmpu_prescription_first_order_status.py'
+```
