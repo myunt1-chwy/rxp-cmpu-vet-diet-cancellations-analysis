@@ -1,11 +1,25 @@
 .DEFAULT_GOAL := setup
 
+.PHONY: cmpu-upload-to-approval-distribution
+cmpu-upload-to-approval-distribution:
+	.venv/bin/python -m src.python.create_cmpu_first_order_line_approval_distribution --endpoint upload-to-approval --exclude-negative --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: cmpu-first-order-line-upload-distribution
+cmpu-first-order-line-upload-distribution:
+	.venv/bin/python -m src.python.create_cmpu_first_order_line_approval_distribution --endpoint upload --exclude-negative --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: cmpu-first-order-line-approval-distribution
+cmpu-first-order-line-approval-distribution:
+	.venv/bin/python -m src.python.create_cmpu_first_order_line_approval_distribution --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" $(if $(filter 1,$(WITH_UPLOAD)),--with-upload --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)") $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
 .PHONY: cmpu-order-to-approval-distributions
 cmpu-order-to-approval-distributions:
 	.venv/bin/python -m src.python.create_cmpu_order_to_approval_distributions --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
 
-.PHONY: cmpu-prescription-first-order-status
-cmpu-prescription-first-order-status:
+.PHONY: cmpu-prescription-first-order-status cmpu-first-order-line-status
+cmpu-prescription-first-order-status: cmpu-first-order-line-status
+
+cmpu-first-order-line-status:
 	.venv/bin/python -m src.python.create_cmpu_first_order_line_status --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
 
 .PHONY: create-aged-upload-lifecycle-distribution

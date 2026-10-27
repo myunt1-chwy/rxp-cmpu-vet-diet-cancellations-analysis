@@ -286,6 +286,21 @@ class FirstOrderSankeyTests(unittest.TestCase):
                     analysis.render_sankey(analysis.make_flows(groups), source, png, 'Fixture title')
             self.assertEqual(png.read_bytes(), b'previous PNG')
 
+    def test_mermaid_source_separate_from_rendered_figures(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'src/diagram.mmd'
+            png = root / 'outputs/diagram.png'
+            source.parent.mkdir()
+            png.parent.mkdir()
+            _, groups, _ = analysis.summarize(fixture())
+            with patch.object(analysis, 'ROOT', root), patch.object(analysis.subprocess, 'run', side_effect=fake_render):
+                analysis.render_sankey(analysis.make_flows(groups), source, png, 'Fixture title')
+            self.assertTrue(source.exists())
+            self.assertTrue(png.exists())
+            self.assertTrue(png.with_suffix('.svg').exists())
+            self.assertFalse(source.with_suffix('.svg').exists())
+
     def test_separate_upload_start_and_cache_scope(self):
         sql = analysis.render_sql('2026-08-15', '2026-10-15', '2026-08-01')
         self.assertIn("rx_creation_datetime >= '2026-08-15'::TIMESTAMP_NTZ", sql)

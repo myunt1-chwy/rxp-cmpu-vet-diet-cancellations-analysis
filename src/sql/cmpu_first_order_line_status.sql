@@ -34,7 +34,7 @@ WITH prescriptions AS (
     FROM EDLDB.BT_HCA_HCDM.RXP_UPLOAD_ENTITY
     WHERE upload_type = 'DIET_PRESCRIPTION'
       AND created_ts_utc >= '{{ upload_start_date }}'::TIMESTAMP_NTZ
-      AND created_ts_utc < '{{ end_date }}'::TIMESTAMP_NTZ
+      AND created_ts_utc < '{{ upload_end_date }}'::TIMESTAMP_NTZ
 ), expanded AS (
     SELECT DISTINCT u.upload_id, u.customer_id, u.created_ts_utc,
            NULLIF(TRIM(t.value::VARCHAR), '') AS rx_id

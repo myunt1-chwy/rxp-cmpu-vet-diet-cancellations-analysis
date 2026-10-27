@@ -16,6 +16,7 @@ from src.python.markdown_tables import markdown_table
 ROOT = legacy.ROOT
 NAME = 'cmpu-first-order-line-status'
 TEMPLATE = ROOT / 'src/sql/cmpu_first_order_line_status.sql'
+UPLOAD_FOLLOWUP_DAYS = 11
 KEYS = ['matched_order_id', 'matched_order_line_id']
 
 
@@ -27,7 +28,8 @@ def non_d(frame):
 def render_sql(start, end, upload_start):
     legacy.render_sql(start, end, upload_start)  # Shared date validation.
     return Environment(undefined=StrictUndefined).from_string(TEMPLATE.read_text()).render(
-        start_date=start, end_date=end, upload_start_date=upload_start)
+        start_date=start, end_date=end, upload_start_date=upload_start,
+        upload_end_date=(date.fromisoformat(end) + timedelta(days=UPLOAD_FOLLOWUP_DAYS)).isoformat())
 
 
 def summarize(frame):
@@ -125,20 +127,23 @@ def flows_for_rendering(groups, show_line_status=True):
     return flows
 
 
-def write_outputs(frame, metadata, diagram_dir, table_dir):
+def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None):
     associations, lines, groups, audit = summarize(frame)
     start, end, upload_start = map(pd.Timestamp, [metadata['start_date'], metadata['end_date_exclusive'],
                                                  metadata['upload_start_date']])
     if (associations.rx_creation_datetime.isna().any()
             or not associations.rx_creation_datetime.between(start, end, inclusive='left').all()):
         raise ValueError('prescription outside cohort window')
-    if not associations.first_upload_at_utc.dropna().between(upload_start, end, inclusive='left').all():
+    upload_end = end + pd.Timedelta(days=UPLOAD_FOLLOWUP_DAYS)
+    if not associations.first_upload_at_utc.dropna().between(upload_start, upload_end, inclusive='left').all():
         raise ValueError('upload outside search window')
     diagram_dir.mkdir(parents=True, exist_ok=True)
+    source_dir = source_dir if source_dir is not None else diagram_dir
+    source_dir.mkdir(parents=True, exist_ok=True)
     table_dir.mkdir(parents=True, exist_ok=True)
     field = 'ORDER_ORDER_LINE_STATUS'
     note = (f"Prescription creation {metadata['start_date']} inclusive to {metadata['end_date_exclusive']} exclusive UTC; "
-            f"uploads {metadata['upload_start_date']} inclusive to the same exclusive end. "
+            f"uploads {metadata['upload_start_date']} inclusive to {upload_end.date()} exclusive UTC. "
             f"Extracted {metadata['extracted_at_utc']}.\n\n"
             'Source: EDLDB.BT_HCA_HCDM.ORDER_LINE_COST_MEASURES_RXP. Join FIRST_ORDER_ID = ORDER_ID AND '
             'numeric FIRST_ORDERITEM_ID = ORDER_LINE_ID; no RX_ID join to the order-line view. '
@@ -200,10 +205,11 @@ def write_outputs(frame, metadata, diagram_dir, table_dir):
         stages = ('cancel reason → item block → upload presence' if scope == 'non-d'
                   else 'cancel reason → line status → item block → upload presence')
         title = (f"CMPU vet-diet first-order lines | {scope_title} | "
-                 f"Rx: {metadata['start_date']}–{last}; uploads: {metadata['upload_start_date']}–{last} | "
+                 f"Rx: {metadata['start_date']}–{last}; uploads: {metadata['upload_start_date']}–{(upload_end - pd.Timedelta(days=1)).date()} | "
                  f"Denominator: {n:,} order lines; {stages}")
-        stem = 'sankey' if scope == 'all' else f'sankey-{scope}'
-        legacy.render_sankey(flows, diagram_dir / f'{stem}.mmd', diagram_dir / f'{stem}.png', title)
+        stem = (f"cmpu-first-order-lines_{scope}_uploads-{metadata['upload_start_date']}_"
+                f"{(upload_end - pd.Timedelta(days=1)).date()}_sankey")
+        legacy.render_sankey(flows, source_dir / f'{stem}.mmd', diagram_dir / f'{stem}.png', title)
     # Compare order-level and line-level statuses from the same line population.
     comparison = lines.groupby(['order_status', 'order_line_status'], dropna=False).size().reset_index(name='order_lines')
     outputs.append(('order-vs-line-status', comparison))
@@ -213,18 +219,21 @@ def write_outputs(frame, metadata, diagram_dir, table_dir):
         (table_dir / f'{name}.md').write_text(f'# {name.title()}\n\n'+note+markdown_table(data)+'\n')
     (table_dir / 'summary.md').write_text('# First-order lines\n\n'+note+markdown_table(
         pd.DataFrame(audit.items(), columns=['measure', 'count']))+'\n\n'+markdown_table(groups)+'\n')
-    (diagram_dir / 'README.md').write_text('# REFNUM 14: first-order lines\n\n'+note+
-        ('![All channels](sankey.png)\n\n' if len(lines) else 'No matched order lines.\n\n')+
-        ('![CUSTOMER_UPLOAD](sankey-customer-upload.png)\n' if lines.channel.eq('CUSTOMER_UPLOAD').any()
+    image_prefix = (f"cmpu-first-order-lines_{{scope}}_uploads-{metadata['upload_start_date']}_"
+                    f"{(upload_end - pd.Timedelta(days=1)).date()}_sankey.png")
+    (diagram_dir / 'cmpu-first-order-lines.md').write_text('# REFNUM 14: first-order lines\n\n'+note+
+        (f'![All channels]({image_prefix.format(scope="all")})\n\n' if len(lines) else 'No matched order lines.\n\n')+
+        (f'![CUSTOMER_UPLOAD]({image_prefix.format(scope="customer-upload")})\n' if lines.channel.eq('CUSTOMER_UPLOAD').any()
          else 'No matched CUSTOMER_UPLOAD order lines.\n')+
-        ('\n![CUSTOMER_UPLOAD non-D line statuses](sankey-non-d.png)\n' if len(non_d_lines)
+        (f'\n![CUSTOMER_UPLOAD non-D line statuses]({image_prefix.format(scope="non-d")})\n' if len(non_d_lines)
          else '\nNo matched known non-D CUSTOMER_UPLOAD order lines.\n'))
     return audit
 
 
 @click.command()
 @click.option('--start-date', default='2026-08-15', show_default=True)
-@click.option('--end-date', default='2026-10-15', show_default=True)
+@click.option('--end-date', default='2026-10-15', show_default=True,
+              help='Exclusive prescription end; uploads extend 11 days beyond this date.')
 @click.option('--upload-start-date', default='2026-08-01', show_default=True)
 @click.option('--cached', is_flag=True)
 @click.option('--print-sql', is_flag=True)
@@ -234,7 +243,8 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
         if print_sql:
             click.echo(sql)
             return
-        period = legacy.period_name(start_date, end_date, upload_start_date)
+        upload_end = (date.fromisoformat(end_date) + timedelta(days=UPLOAD_FOLLOWUP_DAYS)).isoformat()
+        period = legacy.period_name(start_date, end_date, upload_start_date) + f'_uploads-end-{upload_end}'
         directory = ROOT / 'data' / NAME / (period+'_block-reasons')
         parquet, manifest = directory / 'source.parquet', directory / 'source.json'
         if cached:
@@ -246,23 +256,30 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
             frame = pd.read_parquet(parquet).rename(columns=str.lower)
         else:
             directory.mkdir(parents=True, exist_ok=True)
-            query = directory / 'source.sql'
+            sql_dir = ROOT / 'src/autogenerated' / NAME / period
+            sql_dir.mkdir(parents=True, exist_ok=True)
+            query = sql_dir / 'cmpu_first_order_line_status.sql'
             query.write_text(sql+'\n')
             manifest.unlink(missing_ok=True)
             subprocess.run([sys.executable, str(legacy.RUNNER), str(query), '--output-parquet', str(parquet.relative_to(ROOT)),
-                            '--sql-log-dir', str((directory/'sql-history').relative_to(ROOT))], cwd=ROOT, check=True)
+                            '--sql-log-dir', str((sql_dir/'sql-history').relative_to(ROOT))], cwd=ROOT, check=True)
             frame = pd.read_parquet(parquet).rename(columns=str.lower)
             summarize(frame)
             metadata = dict(sql=sql, sql_sha256=hashlib.sha256(sql.encode()).hexdigest(),
                 parquet_sha256=legacy.digest(parquet), start_date=start_date, end_date_exclusive=end_date,
-                upload_start_date=upload_start_date, extracted_at_utc=datetime.now(timezone.utc).isoformat(),
+                upload_start_date=upload_start_date, upload_end_date_exclusive=upload_end,
+                upload_followup_days=UPLOAD_FOLLOWUP_DAYS, extracted_at_utc=datetime.now(timezone.utc).isoformat(),
                 source_extracted_at=frame.extracted_at_session_time.unique().tolist(),
                 warehouse=frame.extraction_warehouse.unique().tolist())
             manifest.write_text(json.dumps(metadata, indent=2)+'\n')
         metadata = dict(metadata, status_field='ORDER_ORDER_LINE_STATUS', block_reason_field='ORDER_ITEM_BLOCK_REASON')
         scope = period+'_line-status-non-d-block-reasons'
-        audit = write_outputs(frame, metadata, ROOT/'outputs/diagrams'/NAME/scope,
-                              ROOT/'outputs/tables'/NAME/scope)
+        date_range = f'{start_date}_{date.fromisoformat(end_date) - timedelta(days=1)}'
+        source_dir = ROOT / 'src/diagrams' / date_range
+        diagram_dir = ROOT / 'outputs/diagrams' / date_range
+        audit = write_outputs(frame, metadata, diagram_dir,
+                              ROOT/'outputs/tables'/NAME/scope, source_dir=source_dir)
+        click.echo(f'Mermaid sources: {source_dir}\nSankey figures: {diagram_dir}')
         click.echo(json.dumps(audit, indent=2))
     except (ValueError, OSError, KeyError, subprocess.CalledProcessError) as error:
         raise click.ClickException(str(error)) from error

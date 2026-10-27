@@ -235,7 +235,7 @@ def add_title(svg, title, columns=None):
 
 
 def render_sankey(flows, source, png, title):
-    svg = source.with_suffix('.svg')
+    svg = png.with_suffix('.svg')
     if flows.empty:
         source.unlink(missing_ok=True)
         png.unlink(missing_ok=True)
