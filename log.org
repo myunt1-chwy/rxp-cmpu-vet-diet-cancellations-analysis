@@ -135,3 +135,34 @@
   - Generated data, sources and figures remain ignored by Git. Unrelated VDAM,
     cancellation, editor, playground, AGENTS and diagram-example edits were not
     included in the implementation commit.
+
+* REFNUM 18 upload timing ratios and flat table outputs
+  - User accepted the work and approved committing on 2026-10-27.
+    Implementation committed as e63fc95 (feat: add upload timing ratios and
+    flat table outputs).
+  - Added make cmpu-upload-time-ratio-distribution with shared source loading,
+    fingerprint validation, cached/SQL-only modes, 0.01 ratio histogram and
+    exact CDF. The ratio is upload-minus-line duration divided by latest
+    approval-minus-line duration, using the established CMPU/CUSTOMER_UPLOAD
+    D-status first-order-line cohort and October 25 upload cutoff.
+  - Eligible N=24,695 after six missing approvals and 243 negative upload
+    durations. Mean ratio 0.787476, median 0.992258. Saved mean/quantiles,
+    line details, eligibility, bin/CDF counts and source provenance.
+  - Added elapsed-time OLS scatter and a natural-log OLS scatter with fitted
+    intercepts. Linear slope 0.960573, intercept -3.072068 hours, R²=0.952879.
+    Log slope 1.028342, log intercept -0.774953, power multiplier 0.460725,
+    R²(log)=0.741830. Strictly positive log-time pairs retain all 24,695 lines.
+    Figures, fit tables, transparency and independent calculations verified.
+  - Migrated all 207 saved Markdown tables into flat date folders without
+    changing contents. Filenames identify analysis, upload/filter variant and
+    table kind. Tracked table generators use the new layout by default;
+    explicit summary output-dir overrides remain supported. Historical
+    unbounded summaries use 2026-10-09_onward with snapshot dates in filenames.
+  - Verified 208 working-tree tests and 162 tests in an isolated staged
+    checkout, plus 22 subtests each. Cached regeneration, SQL-only behavior,
+    boundary/deduplication/empty/fit cases, source and migration hashes,
+    quantitative reconciliation and git diff --check passed. HOWTO updated.
+  - Data, generated SQL, figures and tables remain ignored. Unrelated SQL/VDAM
+    filter edits, AGENTS/editor/example changes and pre-existing untracked
+    analyses were excluded. Local table-layout adaptations in those untracked
+    analyses remain outside these commits.
