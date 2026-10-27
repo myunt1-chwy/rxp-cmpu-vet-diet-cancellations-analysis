@@ -221,7 +221,7 @@ def write_outputs(frame, metadata, period):
              'in REFNUM 5; this view has no cancellation Eastern companion. '
              'Null and negative durations remain. No survival outcomes or censoring rules assigned.\n\n')
     for kind, data in [('associations', associations), ('lines', lines), ('audit', audit)]:
-        write_text(directory / f'{prefix}{kind}.md', 
+        write_text(directory / f'{prefix}{kind}.md',
             f'# CMPU first-order-line event times: {kind}\n\n' + notes + markdown_table(data) + '\n')
     # Machine-readable validated datasets and fingerprints stay under data/.
     directory_data = ROOT / 'data' / NAME / period
