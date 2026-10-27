@@ -75,148 +75,6 @@ install them again.
 See the [skills CLI reference](https://github.com/vercel-labs/skills/blob/main/docs/commands.md)
 for installation options.
 
-## Aged-order upload-to-cancellation distribution (REFNUM 5)
-
-```bash
-make create-aged-upload-cancellation-distribution
-make create-aged-upload-cancellation-distribution START_DATE=2026-07-30 END_DATE=2026-10-21 CACHED=1
-make create-aged-upload-cancellation-distribution PRINT_SQL=1
-```
-
-Defaults cover uploads July 30 through October 20, 2026 (UTC, end exclusive).
-A fresh run extracts qualifying uploads and current order cancellation fields.
-Each aged order contributes its earliest qualifying upload within the window;
-multiple prescriptions do not multiply observations. Hours equal cancellation
-minus upload, including negative values. No order-placement timestamp is required.
-The UTC interpretation of ORDER_CANCEL_DTTM is checked against its Eastern
-companion; contradictory evidence stops chart generation. Missing companions
-are reported, and at least one paired eligible order is required for a nonempty
-chart. Source metadata does not explicitly document this timezone convention.
-
-SQL, Parquet and extraction provenance are saved in
-`data/aged-upload-cancellation-distribution/<start>_<end>/`.
-The transparent `distribution.png` goes under the matching directory in
-`outputs/charts/aged-upload-cancellation-distribution/`; distribution,
-quantile and order-detail Markdown tables use descriptive analysis-prefixed filenames under `outputs/tables/<start>_<last-day>/`.
-Cached mode validates the SQL and renders without connecting. Quantiles use
-linear interpolation. Missing upload timestamps cannot be assigned to the date
-window; their source-wide count is reported separately, or unavailable for an
-empty extract. Empty cohorts produce tables and no chart.
-
-### Cancellation time stacked by latest prescription lifecycle state
-
-```bash
-make create-aged-cancellation-lifecycle-distribution
-make create-aged-cancellation-lifecycle-distribution CACHED=1
-make create-aged-cancellation-lifecycle-distribution PRINT_SQL=1
-```
-
-Run the cancellation distribution first. This target freezes its eligible orders,
-selected uploads, durations and bin edges, and refreshes prescription associations
-and latest `RXP_PRESCRIPTIONS.RX_LIFECYCLE_STATE`. It counts each order once:
-identical states on its selected upload use that state; differing states use
-`[Mixed states]`. Missing information stays explicit and can contribute to a mixed
-group. This is the latest snapshot, not the state at cancellation.
-
-Dates accept the same START_DATE/END_DATE options. Lifecycle SQL, extract and cohort
-fingerprint live in the cancellation data directory's `lifecycle/` subdirectory.
-The existing cancellation output directories receive `distribution-by-lifecycle-state.png`,
-`distribution-by-lifecycle-state.md` and `orders-by-lifecycle-state.md`.
-Cached rendering rejects changed cohort/query fingerprints. Duplicate upload or
-prescription source records stop publication.
-
-The lifecycle target also extracts current `STATE_CHANGE_REASON` and writes
-`state-change-reasons.md` (order counts, percentages, exact reason combinations),
-`orders-by-state-change-reason.md`, and `prescription-state-change-reasons.md`.
-It preserves one count per order, grouping differing reasons as `[Mixed reasons]`.
-NULL/blank reasons are grouped together; missing sources remain explicit.
-These are latest prescription reasons, not historical reasons at cancellation.
-Refresh without `CACHED=1` once when upgrading an older lifecycle extract.
-
-## CMPU vet-diet prescription matches to upload events
-
-Run the read-only summary query:
-
-```bash
-.venv/bin/python .agents/skills/rxp-sql/scripts/run_snowflake_query.py src/sql/cmpu_upload_event_matches.sql --output-parquet data/cmpu-upload-event-matches/2026-09-01_2026-09-16/summary.parquet --sql-log-dir data/cmpu-upload-event-matches/2026-09-01_2026-09-16/sql
-```
-
-Events are read from `EDLDB.SEGMENT.SEGMENT_HITS_PRODUCTS_UNION`.
-The event filters come from the supplied `src/ignore/rxp` query, with its
-undefined `c` reference removed. The query's `date_window` CTE sets both cohorts
-to September 1–15, 2026, inclusive: start `2026-09-01`, exclusive end
-`2026-09-16`. Events use `SESSION_DATE_EST`;
-prescriptions use `RX_CREATION_DATETIME` without a timezone conversion.
-Only `PRESCRIPTION_SOURCE = 'CMPU'` and `IS_VET_DIET_FLAG = TRUE` prescriptions
-qualify. No status or deletion filters are added.
-
-Match on customer and product IDs without timestamp ordering. Repeated events
-cannot inflate the distinct-prescription count. The summary includes missing
-keys, duplicate prescription IDs, and repeated customer/product pairs; those
-pairs indicate association, not proof that an upload created a prescription.
-The reviewed Markdown summary belongs under
-`outputs/tables/2026-09-01_2026-09-15/cmpu-upload-event-matches_summary.md`.
-The previous October rolling-window summaries use `outputs/tables/2026-10-09_onward/`.
-
-### Match the prescription ID recorded in event properties
-
-```bash
-.venv/bin/python .agents/skills/rxp-sql/scripts/run_snowflake_query.py src/sql/cmpu_upload_prescription_id_matches.sql --output-parquet data/cmpu-upload-event-matches/2026-09-01_2026-09-16/prescription-id/matches.parquet --sql-log-dir data/cmpu-upload-event-matches/2026-09-01_2026-09-16/prescription-id/sql
-.venv/bin/python -m src.python.summarize_cmpu_prescription_id_matches
-```
-
-Uses the same September dates and upload-event filters. Extracts
-`properties:eventData:prescriptionId` and `properties:prescriptionId`, preferring
-the nested value when both are filled. Blank/JSON-null IDs are missing;
-conflicting values are audited. Joins the selected ID directly to `RX_ID`
-without requiring event customer or product IDs. The full outer join retains
-all cohort prescriptions and events for completeness checks and comparison
-with the original customer/product association method.
-
-The source extract and summary metadata are under the dated `prescription-id/`
-data directory. Markdown summary and event-type field coverage are under
-`outputs/tables/2026-09-01_2026-09-15/`.
-Rerun only the summarizer to use the existing extract.
-
-## Later canceled orders for September CMPU vet-diet prescriptions
-
-```bash
-.venv/bin/python .agents/skills/rxp-sql/scripts/run_snowflake_query.py src/sql/cmpu_later_cancelled_orders.sql --output-parquet data/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/links.parquet --sql-log-dir data/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/sql
-.venv/bin/python -m src.python.summarize_cmpu_later_cancelled_orders
-```
-
-The cohort is CMPU vet-diet prescriptions created September 1–15, 2026,
-inclusive. Links combine FIRST_ORDER_ID with all available prescription usage
-action history, reduced to distinct prescription/order pairs. A qualifying
-order was placed strictly after prescription creation and has latest status
-Canceled. Orders and cancellations may occur after September 15. Cancellation
-reasons are not filtered; missing reasons remain explicit. Cancellation
-timestamps are checked against order placement, and order UTC/Eastern timestamp
-companions must agree where available. RX_CREATION_DATETIME is interpreted as UTC.
-
-Source SQL, Parquet and SHA-256 metadata are under
-`data/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/`.
-Summary, cancellation-reason and qualifying-link Markdown tables are under
-`outputs/tables/2026-09-01_2026-09-15/`.
-Each prescription counts once in the headline; reason-specific prescription
-counts may overlap. The summarizer reuses the cached extract without connecting.
-
-### Actual prescription-item shipments
-
-```bash
-.venv/bin/python .agents/skills/rxp-sql/scripts/run_snowflake_query.py src/sql/cmpu_prescription_shipments.sql --output-parquet data/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/shipments.parquet --sql-log-dir data/cmpu-later-cancelled-orders/2026-09-01_2026-09-16/sql
-.venv/bin/python -m src.python.summarize_cmpu_prescription_shipments
-```
-
-Requires the cancellation analysis extract above. Uses a non-null
-ORDER_LINE_SHIPPED_DTTM in ORDER_LINE_COST_MEASURES_RXP as shipment evidence,
-joined directly by RX_ID. Counts distinct prescriptions, separating any shipped
-order, shipped orders placed after prescription creation, the canceled-order
-prescription subset, and shipping on the same canceled order. Current order
-status alone is not used to determine shipping. Missing order-line coverage is
-audited. The summary is `shipments.md` in the same table directory; source data
-and SHA-256 metadata remain in the cancellation analysis data directory.
-
 ## First order to first-usage approval distributions
 
 ```bash
@@ -375,26 +233,30 @@ reasons or block reasons, and duplicate shipment/line source keys fail validatio
 
 ### Three views and their stages
 
-The all-channel and CUSTOMER_UPLOAD views show **approval channel → first-order
-cancel reason → line status → item block reason → matching upload**.
-Cancellation reason is trimmed `ORDER_CANCEL_REASON`, with blank/null values
-shown as `[No cancellation reason recorded]`; this does not imply an uncanceled
-order. Line status uses raw `ORDER_ORDER_LINE_STATUS` codes (including C/D/R/S/X),
-with blank/null codes shown as `[Unknown line status]`. This analysis has no
-separate line-cancellation-reason field.
+All three views show **approval channel → order line status →
+cancellation reason → matching upload**. Column headers identify stages; visible
+node labels omit repeated prefixes such as `Channel:` and `First order cancel reason:`.
 
-Actual `ORDER_ITEM_BLOCK_REASON` is shown only for known non-D statuses. D lines
-use `[Not applicable: status D]`; unknown statuses use an explicit not-applicable
-node. Blank/null actual reasons appear as `[No block reason recorded]`, which
-alone does not establish an unblocked item. Block and upload nodes retain their
-line-status identity so different statuses keep separate endpoints.
+Line status uses raw `ORDER_ORDER_LINE_STATUS` codes (including C/D/R/S/X),
+with blank/null codes shown as `[Unknown line status]`. Order status remains in
+the data and comparison tables, but is omitted from the diagrams.
+Cancellation reason is trimmed `ORDER_CANCEL_REASON`; blank/null values appear
+as `[No cancellation reason recorded]`, which does not imply an uncanceled order.
+This analysis has no separate line-cancellation-reason field.
+
+`ORDER_ITEM_BLOCK_REASON` remains in extracts, line/association details, grouped
+distributions and block-reason tables, but is omitted from Sankey diagrams.
+Known non-D classifications retain actual reasons or `[No block reason recorded]`;
+D/unknown classifications retain explicit not-applicable values in the data.
+Upload endpoints use two groups: **With cancellation reason** and **No cancellation
+reason**, each split into **Has matching upload** and **No matching upload**.
+Null, blank and whitespace-only reasons belong to the no-reason group. All
+recorded reason values contribute to the with-reason group. These stages describe a
+categorical breakdown, not a chronological journey.
 
 The third view contains only CUSTOMER_UPLOAD lines with a known non-D status,
-including C/R/S/X rather than X alone. It omits the explicit line-status column:
-**approval channel → cancel reason → item block reason → matching upload**.
-Status labels remain on its separate block/upload paths. Column headings identify
-the stages, and visible labels omit repeated prefixes; cancel reasons use purple
-and item blocks light blue.
+including C/R/S/X rather than X alone. It includes the same four columns as the
+other views. Cancellation reasons use purple consistently across all views.
 
 Every transition conserves that figure's distinct-line population. Full,
 CUSTOMER_UPLOAD and non-D CUSTOMER_UPLOAD figures each use their own complete
@@ -1118,6 +980,49 @@ Reads and revalidates the frozen 7/14/21-day same-customer/product/pet reorder s
 Lag is UTC contact `SESSION_START_DTTM` minus the original aged-order cancellation time. Signed 24-hour bins use exact integer nanosecond floor division and intervals `[day,day+1)`: e.g. `[-2,-1)` is 24–48 hours before cancellation and `[4,5)` is 96–120 hours after. Day 0 covers `[0,24)` hours starting at cancellation. Exact-cancellation contacts are also counted separately in the summary. Missing contact times remain in contact details and summaries and are excluded only from the dated histogram denominator.
 
 Generates three transparent Altair PNG histograms with identical day and percentage axes, a vertical day-0 cancellation marker, before/at-after colors, contact totals and top-bin count labels. Y is share of dated contact legs within each horizon; counts and per-bin distinct customers/sessions are in the exported tables. All zeros and tails are retained. Files are under dated `outputs/charts/` and `outputs/tables/`; bins, summaries, contact details and dependency/source/export/figure fingerprints are under `data/aged-order-contact-cancellation-distribution/<period>_all-handled-contacts_all-order-history_UTC/`. The source SQL remains the REFNUM 25 all-order-history query; no new warehouse SQL is required.
+
+## Shipment history before aged cancellation (REFNUM 35)
+
+```bash
+make aged-customer-prior-shipped-prescriptions
+make aged-customer-prior-shipped-prescriptions CACHED=1
+make aged-customer-prior-shipped-prescriptions PRINT_SQL=1
+make aged-customer-prior-shipped-prescriptions START_DATE=2026-08-15 END_DATE=2026-10-15 AS_OF_DATE=2026-10-27
+```
+
+Uses the same aged-order cohort as REFNUM 32: CMPU vet-diet CUSTOMER_UPLOAD prescriptions created in the start-inclusive/end-exclusive UTC window, linked by both first-order keys to recorded Aged Order cancellations on or before AS_OF_DATE at 00:00 UTC. Collapse shipment rows and repeated associations, then count each known customer once. The frozen reference population contains 20,587 customers; a comparison table reports customer additions/removals when the matching REFNUM 32 snapshot is available. Missing customer IDs remain in order/association audits, outside customer denominators.
+
+For each customer, use the earliest qualifying cancellation and exclude every qualifying aged-cancelled ORDER_ID in the cohort, including all tied reference orders and all lines on those orders. A partially shipped line on an aged-cancelled order cannot count as prior shipment experience, even if another line was cancelled or the shipment predates the reference cancellation. Search all available prior shipment history; require ORDER_LINE_SHIPPED_DTTM strictly before cancellation and match both RX_ID and customer ID between ORDER_LINE_COST_MEASURES_RXP and RXP_PRESCRIPTIONS. No restriction on historical approval channel, prescription creation date, product or pet is added. A shipped line is sufficient evidence: delivery and full-order fulfillment are not required, and current order/prescription status does not override a shipment timestamp. All times are UTC.
+
+The headline counts and percentages use the complete aged-customer denominator:
+
+- **Prior inclusive pharmacy shipment:** IS_VET_DIET_FLAG=TRUE, or MERCH_CLASS2 Pharmacy, Compound or Over the Counter.
+- **Prior vet-diet shipment:** IS_VET_DIET_FLAG=TRUE, any prescription source.
+- **Prior CMPU vet-diet shipment:** vet diet with PRESCRIPTION_SOURCE=CMPU, any approval channel.
+
+These measures are nested, not additive. Exclusive groups reconcile the denominator: no qualifying inclusive-pharmacy history; inclusive pharmacy without vet diet; vet diet without CMPU vet diet; and CMPU vet diet. Category details include Pharmacy, Compound, Over the Counter, Vet diet and Other/unclassified, with distinct customers/orders/lines/prescriptions. The vet-diet flag takes precedence for category detail when merchandise classification disagrees; those disagreements are audited. Unmatched prescriptions, missing RX IDs and customer mismatches remain in shipment evidence/audits but cannot supply qualifying history. Conflicting source customers and duplicate historical RX identities stop publication.
+
+October 27, 2026 extraction: the same 20,587 customers as REFNUM 32, with no customer additions/removals. Prior inclusive-pharmacy shipments: 17,360 customers (84.33%); prior vet-diet shipments: 16,589 (80.58%); prior CMPU vet-diet shipments: 7,942 (38.58%). Exclusive groups: 3,227 without qualifying history, 771 with inclusive pharmacy but no vet diet, 8,647 with vet diet but no CMPU vet diet, and 7,942 with CMPU vet diet. Evidence includes 554,877 eligible order/line/RX records; 1,511,099 records missing RX_ID and 220 RX/customer mismatches are retained in audits and excluded from qualifying history. No eligible category was unclassified. Observed candidate shipment dates span September 27, 2011 through October 25, 2026; this is not a guarantee of complete historical coverage.
+
+The SQL template is `src/sql/aged_customer_prior_shipped_prescriptions.sql`. Generated SQL/history live under `src/autogenerated/aged-customer-prior-shipped-prescriptions/` per repository instructions. Full source, customer flags, reference orders, shipment evidence, association/category/group/audit/coverage exports and fingerprint manifests live under the matching `data/` directory. Descriptive Markdown tables are directly under dated `outputs/tables/` folders and obey the 1 MB limit. Cached mode verifies SQL/date/source fingerprints; SQL-only mode does not connect or export files. History coverage reports observed candidate shipment dates for these customers, not the source's retention boundary. No chart is generated.
+
+## Shipment history before the full CMPU order cohort (REFNUM 38)
+
+```bash
+make cmpu-customer-prior-shipped-prescriptions
+make cmpu-customer-prior-shipped-prescriptions CACHED=1
+make cmpu-customer-prior-shipped-prescriptions PRINT_SQL=1
+make cmpu-customer-prior-shipped-prescriptions APPROVAL_CHANNEL=CUSTOMER_UPLOAD
+make cmpu-customer-prior-shipped-prescriptions START_DATE=2026-08-15 END_DATE=2026-10-15 AS_OF_DATE=2026-10-27
+```
+
+Uses the full CMPU vet-diet prescription cohort, all approval channels by default (`APPROVAL_CHANNEL=ALL`), with no order-status, cancellation-reason or reorder restriction. The UTC prescription-creation window is start inclusive and end exclusive. Count each known prescription customer once. Match first-order lines by both FIRST_ORDER_ID and numeric FIRST_ORDERITEM_ID, collapse shipment rows and validate customer IDs and UTC/Eastern order-placement companions where populated. Conflicting source identities or timestamps stop publication. The earliest matched cohort order placement is the customer's reference, requiring complete matched order/customer/placement information for every associated cohort prescription. Missing/invalid/unmatched order keys, missing placement, customer disagreement or placement after AS_OF_DATE at 00:00 UTC make the reference unknown; do not call those customers new/no-history customers. Summaries expose both all-cohort and assessable denominators, and unknown references are an explicit exclusive group.
+
+Require a historical ORDER_LINE_SHIPPED_DTTM strictly before reference placement and matching RX_ID/customer ID across the two certified views. Exclude every FIRST_ORDER_ID in the analysed prescription set and all its lines, even if an older shipment on that same order exists. No approval-channel/product/pet/prescription-date filter restricts historical shipments. Use the same nested categories as REFNUM 35: inclusive pharmacy (Pharmacy + Compound + Over the Counter + vet diet), vet diet, and CMPU vet diet. One shipped line suffices; neither full-order fulfillment nor delivery is required. Current statuses do not replace shipment evidence. Existing aged-cancellation targets retain their cancellation-based reference and counts.
+
+SQL: `src/sql/cmpu_customer_prior_shipped_prescriptions.sql`. Generated SQL/history are under `src/autogenerated/cmpu-customer-prior-shipped-prescriptions/`. Full source and association/order/customer/history/category/group/audit/coverage Parquet exports and fingerprints are under `data/cmpu-customer-prior-shipped-prescriptions/<dates>_as-of-<date>_channel-<channel>/`. Bounded descriptive Markdown tables go directly under dated `outputs/tables/` folders. Cached mode verifies SQL/date/channel/source fingerprints; SQL-only mode does not connect or export. Historical records without RX_ID cannot establish matched prescription shipment experience and are omitted from candidate discovery; extracted unmatched RX/customer records remain audited. No chart is generated.
+
+October 27, 2026 all-channel snapshot: 113,608 prescriptions and 84,425 distinct customers. Complete matched order references are available for 75,553 customers; 8,872 remain unknown (10,095 prescription associations lack FIRST_ORDER_ID). Before earliest cohort order placement, 59,554 assessable customers had prior inclusive-pharmacy shipments (78.82% of assessable; 70.54% of all cohort customers), 55,184 had prior vet-diet shipments (73.04%; 65.36%), and 25,671 had prior CMPU vet-diet shipments (33.98%; 30.41%). Unknown-reference customers are not classified as having no prior history. There are 1,957,984 eligible shipment records and 1,049 excluded RX/customer mismatches; no eligible shipment references a cohort ORDER_ID. REFNUM 35's aged-order customer counts remain unchanged.
 
 ### Markdown export size limit
 

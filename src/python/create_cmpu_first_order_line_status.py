@@ -19,6 +19,8 @@ NAME = 'cmpu-first-order-line-status'
 TEMPLATE = ROOT / 'src/sql/cmpu_first_order_line_status.sql'
 UPLOAD_FOLLOWUP_DAYS = 11
 KEYS = ['matched_order_id', 'matched_order_line_id']
+DIMENSIONS = ['channel', 'order_group', 'order_status_group', 'cancel_reason',
+              'cancellation_reason_group', 'block_reason', 'upload_group']
 
 
 def non_d(frame):
@@ -55,10 +57,15 @@ def summarize(frame):
     associations, _, audits = legacy.summarize(validation)
     associations['order_group'] = (frame.order_line_status.astype('string').str.strip().str.upper()
                                    .replace('', pd.NA).fillna('[Unknown line status]'))
+    associations['order_status_group'] = (frame.order_status.astype('string').str.strip().str.upper()
+                                          .replace('', pd.NA).fillna('[Unknown order status]'))
     associations['block_reason'] = (frame.order_item_block_reason.astype('string').str.strip()
                                      .replace('', pd.NA).fillna('[No block reason recorded]'))
     associations['cancel_reason'] = (frame.order_cancel_reason.astype('string').str.strip()
                                       .replace('', pd.NA).fillna('[No cancellation reason recorded]'))
+    recorded = frame.order_cancel_reason.astype('string').str.strip().replace('', pd.NA).notna()
+    associations['cancellation_reason_group'] = recorded.map(
+        {True: 'With cancellation reason', False: 'No cancellation reason'})
     associations.loc[associations.order_group.eq('D'), 'block_reason'] = '[Not applicable: status D]'
     associations.loc[associations.order_group.eq('[Unknown line status]'), 'block_reason'] = '[Not applicable: unknown line status]'
     associations['line_match'] = 'Matched'
@@ -68,14 +75,14 @@ def summarize(frame):
     lines = associations.loc[matched].copy()
     if not lines.empty:
         # Do not choose one prescription arbitrarily if a line has conflicting attributes.
-        conflicts = lines.groupby(KEYS)[['channel', 'cancel_reason', 'order_group', 'block_reason', 'upload_group']].nunique(dropna=False)
+        conflicts = lines.groupby(KEYS)[DIMENSIONS].nunique(dropna=False)
         if conflicts.gt(1).any().any():
             raise ValueError('shared order line has conflicting channel/upload/status/block classifications')
         lines['associated_prescriptions'] = lines.groupby(KEYS).rx_id.transform('size')
         lines = lines.drop_duplicates(KEYS).copy()
     else:
         lines['associated_prescriptions'] = pd.Series(dtype='int64')
-    groups = lines.groupby(['channel', 'cancel_reason', 'order_group', 'block_reason', 'upload_group']).size().reset_index(name='order_lines')
+    groups = lines.groupby(DIMENSIONS).size().reset_index(name='order_lines')
     groups['percent_of_cohort'] = 100 * groups.order_lines / len(lines) if len(lines) else 0.
     audits = {f'prescription_{key}': value for key, value in audits.items()}
     audits.update(cohort_prescriptions=len(frame), matched_prescriptions=int(matched.sum()),
@@ -99,15 +106,12 @@ def summarize(frame):
     return associations, lines, groups, audits
 
 
-def flows_for_rendering(groups, show_line_status=True):
-    """Channel → cancel reason → line status → item block → upload presence."""
-    groups = groups.assign(block_node=groups.order_group + ' / ' + groups.block_reason,
-                           upload_node=groups.order_group + ' / ' + groups.upload_group)
-    stages = [('channel', 'Channel: '), ('cancel_reason', 'First order cancel reason: '),
-              ('order_group', 'First order line status: '), ('block_node', 'Item block reason: '),
+def flows_for_rendering(groups):
+    """Keep block reasons in grouped data, outside the displayed stages."""
+    groups = groups.assign(upload_node=groups.cancellation_reason_group + ' / ' + groups.upload_group)
+    stages = [('channel', 'Channel: '), ('order_group', 'First order line status: '),
+              ('cancel_reason', 'First order cancel reason: '),
               ('upload_node', 'Matching upload: ')]
-    if not show_line_status:
-        stages = [stage for stage in stages if stage[0] != 'order_group']
     rows = []
     for transition, ((source, source_label), (target, target_label)) in enumerate(zip(stages, stages[1:]), 1):
         for (left, right), count in groups.groupby([source, target]).order_lines.sum().items():
@@ -125,6 +129,10 @@ def flows_for_rendering(groups, show_line_status=True):
         if not incoming.loc[internal].equals(outgoing.loc[internal]):
             raise ValueError('unbalanced Sankey intermediate nodes')
     flows.attrs['node_alignment'] = 'left'
+    flows.attrs['columns'] = [(prefix, heading) for (_, prefix), heading in zip(stages,
+        ['Approval channel', 'Order line status', 'Cancellation reason', 'Matching upload'])]
+    nodes = set(flows.source) | set(flows.target)
+    flows.attrs['node_colors'] = {node: '#AF7AA1' for node in nodes if node.startswith('First order cancel reason: ')}
     return flows
 
 
@@ -152,22 +160,23 @@ def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None, tabl
             'Prescriptions without usable first-order keys or without a matching line are excluded from '
             'the Sankey denominators and reported in the audit. '
             f'The status stage uses the latest raw {field} codes directly; blank/null statuses are explicit. '
-            'Actual ORDER_ITEM_BLOCK_REASON is shown only for known non-D statuses. D and unknown statuses '
-            'use explicit not-applicable nodes so all lines continue to upload presence. Blank/null reasons are labeled '
+            'ORDER_ITEM_BLOCK_REASON is retained in data and tables but omitted from diagrams. '
+            'Its grouped classification is populated for known non-D statuses, with explicit not-applicable values for D/unknown. Blank/null reasons are labeled '
             '[No block reason recorded], which does not independently establish an unblocked item. '
-            'All figures show raw ORDER_CANCEL_REASON between channel and line status. '
+            'All figures show line status followed by raw ORDER_CANCEL_REASON; order status is retained only in data. '
             'Blank/null cancellation reasons are labeled [No cancellation reason recorded]; this does not establish '
             'whether the overall order was canceled. '
             'Multiple prescriptions sharing a line are counted once; conflicting classifications fail validation. '
             'Upload matching retains the DIET_PRESCRIPTION expanded RX_ID + numeric CUSTOMER_ID rules, '
             'without file/association flags, prescription-status/deletion filters or upload-after-creation requirement. '
-            'A matching entity does not verify file presence. Approval channel → first-order cancel reason → '
-            'line status → item block reason → upload presence is a categorical breakdown. Full percentages use all matched distinct lines; focused '
+            'A matching entity does not verify file presence. Approval channel → line status → '
+            'cancellation reason → upload presence is a categorical breakdown, not a chronological journey. Full percentages use all matched distinct lines; focused '
             'percentages use matched distinct CUSTOMER_UPLOAD lines. The separate non-D figure uses only '
-            'known non-D CUSTOMER_UPLOAD lines as its denominator. Item-block and upload nodes retain their '
-            'line-status identity, so X, D and other statuses have separate upload/no-upload endpoints even '
-            'when they share the same block reason. The non-D figure omits the explicit line-status column, '
-            'while retaining all non-D statuses and their labels on block/upload nodes. '
+            'known non-D CUSTOMER_UPLOAD lines as its denominator. Upload endpoints separate lines with a '
+            'recorded cancellation reason from lines without one, each split into has/no matching upload. '
+            'Blank/null/whitespace reasons mean no recorded reason, not proof of an uncanceled order. '
+            'All three figures include the explicit line-status column. '
+            'Column headers identify stages; visible node labels omit repeated stage prefixes. '
             'Percentages retain the whole-figure denominator.\n\n')
     non_d_lines = lines.loc[non_d(lines) & lines.channel.eq('CUSTOMER_UPLOAD')]
     audit.update(non_d_order_lines=int(non_d(lines).sum()),
@@ -178,23 +187,10 @@ def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None, tabl
                ('audit', pd.DataFrame(audit.items(), columns=['measure', 'count']))]
     for scope, selected in [('all', lines), ('customer-upload', lines.loc[lines.channel.eq('CUSTOMER_UPLOAD')]),
                             ('non-d', non_d_lines)]:
-        dimensions = ['channel', 'cancel_reason', 'order_group', 'block_reason', 'upload_group']
-        selected_groups = selected.groupby(dimensions).size().reset_index(name='order_lines')
+        selected_groups = selected.groupby(DIMENSIONS).size().reset_index(name='order_lines')
         n = len(selected)
         selected_groups['percent_of_cohort'] = 100 * selected_groups.order_lines / n if n else 0.
-        flows = flows_for_rendering(selected_groups, show_line_status=scope != 'non-d')
-        if scope == 'non-d':
-            flows.attrs['columns'] = [
-                ('Channel: ', 'Approval channel'),
-                ('First order cancel reason: ', 'First-order cancel reason'),
-                ('Item block reason: ', 'Item block reason'),
-                ('Matching upload: ', 'Matching upload'),
-            ]
-            nodes = set(flows.source) | set(flows.target)
-            flows.attrs['node_colors'] = {
-                node: '#AF7AA1' if node.startswith('First order cancel reason: ') else '#8CC9EE'
-                for node in nodes if node.startswith(('First order cancel reason: ', 'Item block reason: '))
-            }
+        flows = flows_for_rendering(selected_groups)
         exported_flows = flows.rename(columns={'prescriptions': 'order_lines'})
         prefix = '' if scope == 'all' else f'{scope}-'
         outputs.extend([(prefix+'flows', exported_flows)])
@@ -203,8 +199,7 @@ def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None, tabl
         last = (date.fromisoformat(metadata['end_date_exclusive'])-timedelta(days=1)).isoformat()
         scope_title = {'all': 'All approval channels', 'customer-upload': 'CUSTOMER_UPLOAD only',
                        'non-d': 'CUSTOMER_UPLOAD only · non-D line statuses'}[scope]
-        stages = ('cancel reason → item block → upload presence' if scope == 'non-d'
-                  else 'cancel reason → line status → item block → upload presence')
+        stages = 'line status → cancellation reason → upload presence by reason recorded/missing'
         title = (f"CMPU vet-diet first-order lines | {scope_title} | "
                  f"Rx: {metadata['start_date']}–{last}; uploads: {metadata['upload_start_date']}–{(upload_end - pd.Timedelta(days=1)).date()} | "
                  f"Denominator: {n:,} order lines; {stages}")

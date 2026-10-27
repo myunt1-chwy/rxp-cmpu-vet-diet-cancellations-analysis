@@ -33,9 +33,9 @@ def test_line_grain_and_shipment_collapse():
     assert audit['canceled_lines_on_uncanceled_orders'] == 1
     assert lines.order_group.tolist() == ['X','X','D','D','D']
     flows = analysis.flows_for_rendering(groups)
-    assert flows.groupby('transition').prescriptions.sum().to_dict() == {1:5,2:5,3:5,4:5}
+    assert flows.groupby('transition').prescriptions.sum().to_dict() == {1:5,2:5,3:5}
     assert abs(groups.percent_of_cohort.sum()-100) < 1e-9
-    assert set(flows.loc[flows.transition.eq(2),'target']) == {
+    assert set(flows.loc[flows.transition.eq(1),'target']) == {
         'First order line status: X','First order line status: D'}
 
 
@@ -123,14 +123,14 @@ def test_outputs_and_focus_denominator(tmp_path):
     assert 'CUSTOMER_UPLOAD only' in render.call_args_list[2].args[-1]
     focused=render.call_args_list[2].args[0]
     assert len(focused.attrs['columns'])==4
-    assert set(focused.attrs['node_colors'].values())=={'#AF7AA1','#8CC9EE'}
-    assert not render.call_args_list[0].args[0].attrs.get('columns')
+    assert set(focused.attrs['node_colors'].values())=={'#AF7AA1'}
+    assert len(render.call_args_list[0].args[0].attrs['columns'])==4
     assert set(focused.loc[focused.transition.eq(1),'source'])=={'Channel: CUSTOMER_UPLOAD'}
     assert focused.groupby('transition').prescriptions.sum().eq(1).all()
     assert focused.groupby('transition').percent_of_cohort.sum().eq(100).all()
     assert set(focused.transition)=={1,2,3}
-    assert not focused.source.str.startswith('First order line status:').any()
-    assert not focused.target.str.startswith('First order line status:').any()
+    assert focused.loc[focused.transition.eq(2),'source'].str.startswith('First order line status:').all()
+    assert focused.loc[focused.transition.eq(1),'target'].str.startswith('First order line status:').all()
     assert (tmp_path/'tables'/'non-d-order-lines.md').exists()
     assert (tmp_path/'tables'/'non-d-flows.md').exists()
     assert (tmp_path/'tables'/'non-d-distribution.md').exists()
@@ -158,83 +158,90 @@ def test_cached_sql_fingerprint_rejected(tmp_path):
     assert 'fingerprint' in result.output
 
 
-def test_block_reason_stage_missingness_and_conservation():
-    f=fixture()
-    f.loc[1,'order_item_block_reason']=' '
-    _, lines, groups, _ = analysis.summarize(f)
-    assert lines.block_reason.tolist() == ['Clinic response','[No block reason recorded]']+['[Not applicable: status D]']*3
+def test_block_reasons_remain_in_data_but_are_not_diagram_nodes():
+    f=fixture();f.loc[1,'order_item_block_reason']=' '
+    _,lines,groups,_=analysis.summarize(f)
+    assert lines.block_reason.tolist()==['Clinic response','[No block reason recorded]']+['[Not applicable: status D]']*3
+    assert 'block_reason' in groups
     flows=analysis.flows_for_rendering(groups)
-    assert set(flows.transition) == {1,2,3,4}
-    assert flows.groupby('transition').prescriptions.sum().to_dict() == {1:5,2:5,3:5,4:5}
-    assert set(flows.loc[flows.source.eq('First order line status: D'),'target']) == {
-        'Item block reason: D / [Not applicable: status D]'}
-    source=analysis.legacy.mermaid_source(flows)
-    assert 'Item block reason: X / Clinic response (1; 20.00%)' in source
-    assert 'Item block reason: X / [No block reason recorded] (1; 20.00%)' in source
+    nodes=set(flows.source)|set(flows.target)
+    assert not any('Item block reason:' in n or 'Clinic response' in n for n in nodes)
+    assert flows.groupby('transition').prescriptions.sum().to_dict()=={1:5,2:5,3:5}
+    assert flows.groupby('transition').percent_of_cohort.sum().eq(100).all()
 
 
-def test_status_branches_remain_separate_through_blocks_and_uploads():
-    f=fixture()
-    f.loc[2,'order_line_status']='C'
-    f.loc[2,'order_item_block_reason']='Clinic response'  # Same reason as X.
+def test_order_status_removed_and_uploads_split_by_cancellation_reason_presence():
+    f=fixture();f.loc[2,'order_line_status']='C'
     _,_,groups,_=analysis.summarize(f)
     flows=analysis.flows_for_rendering(groups)
-    endpoints=flows.loc[flows.transition.eq(4)]
-    for row in endpoints.itertuples():
-        status=row.source.removeprefix('Item block reason: ').split(' / ',1)[0]
-        assert row.target.startswith(f'Matching upload: {status} / ')
-    counts=endpoints.groupby('target').prescriptions.sum().to_dict()
-    assert counts['Matching upload: X / Has matching upload']==1
-    assert counts['Matching upload: X / No matching upload']==1
-    assert counts['Matching upload: D / Has matching upload']==1
-    assert counts['Matching upload: D / No matching upload']==1
-    assert counts['Matching upload: C / No matching upload']==1
-    source=analysis.legacy.mermaid_source(flows)
-    assert 'Matching upload: X / Has matching upload (1; 20.00%)' in source
-    assert '#F28E2C' in source and '#8CC9EE' in source
+    assert flows.loc[flows.transition.eq(1),'target'].str.startswith('First order line status:').all()
+    pairs=flows.loc[flows.transition.eq(2)]
+    assert pairs.source.str.startswith('First order line status:').all()
+    assert pairs.target.str.startswith('First order cancel reason:').all()
+    assert not any(n.startswith('First order status:') for n in set(flows.source)|set(flows.target))
+    counts=flows.loc[flows.transition.eq(3)].groupby('target').prescriptions.sum().to_dict()
+    assert counts=={'Matching upload: With cancellation reason / Has matching upload':1,
+        'Matching upload: With cancellation reason / No matching upload':1,
+        'Matching upload: No cancellation reason / Has matching upload':1,
+        'Matching upload: No cancellation reason / No matching upload':2}
 
 
-def test_hidden_line_status_preserves_non_x_lines_and_status_upload_paths():
-    f=fixture()
-    f.loc[2,'order_line_status']='C'
+@pytest.mark.parametrize('reason',[None,'','   ','Customer Request'])
+def test_upload_groups_use_reason_presence_and_merge_recorded_reasons(reason):
+    f=fixture();f.loc[1,'order_cancel_reason']=reason
+    _,lines,groups,_=analysis.summarize(f)
+    expected='No cancellation reason' if reason is None or not reason.strip() else 'With cancellation reason'
+    assert lines.loc[1,'cancellation_reason_group']==expected
+    # Row 1 has order status D even when it has a reason: use reason presence, not order status.
+    assert lines.loc[1,'order_status']=='D'
+    flows=analysis.flows_for_rendering(groups)
+    targets=flows.loc[flows.transition.eq(3)].groupby('target').prescriptions.sum()
+    assert f'Matching upload: {expected} / Has matching upload' in targets.index
+    assert int(targets.sum())==5
+
+
+def test_non_d_keeps_explicit_line_status_column_and_all_non_d_codes():
+    f=fixture();f.loc[2,'order_line_status']='C'
     _,lines,_,_=analysis.summarize(f)
     selected=lines.loc[analysis.non_d(lines)]
-    groups=selected.groupby(['channel','cancel_reason','order_group','block_reason','upload_group']).size().reset_index(name='order_lines')
-    flows=analysis.flows_for_rendering(groups, show_line_status=False)
+    groups=selected.groupby(analysis.DIMENSIONS).size().reset_index(name='order_lines')
+    flows=analysis.flows_for_rendering(groups)
     assert flows.groupby('transition').prescriptions.sum().to_dict()=={1:3,2:3,3:3}
-    assert not flows.target.str.startswith('First order line status:').any()
-    assert 'Matching upload: C / No matching upload' in flows.target.tolist()
+    assert set(flows.loc[flows.transition.eq(1),'target'])=={'First order line status: X','First order line status: C'}
+    assert [heading for _,heading in flows.attrs['columns']]==[
+        'Approval channel','Order line status','Cancellation reason','Matching upload']
 
 
-def test_d_and_unknown_statuses_use_not_applicable_then_reach_upload():
-    f=fixture()
-    f['order_line_status']=['D',None,'D','D','D']
+def test_unknown_order_and_line_statuses_reach_upload_and_cancel_reasons_stay_explicit():
+    f=fixture();f.loc[1,'order_status']=None;f.loc[1,'order_line_status']=None
+    f.loc[1,'order_cancel_reason']=None
     _,_,groups,_=analysis.summarize(f)
     flows=analysis.flows_for_rendering(groups)
-    assert set(flows.transition)=={1,2,3,4}
-    blocks=flows.loc[flows.transition.eq(3),'target']
-    assert blocks.str.contains('Not applicable:',regex=False).all()
-    assert flows.loc[flows.transition.eq(4),'target'].str.startswith('Matching upload:').all()
+    assert 'First order line status: [Unknown line status]' in flows.target.tolist()
+    assert not any(n.startswith('First order status:') for n in set(flows.source)|set(flows.target))
+    assert set(flows.loc[flows.transition.eq(2),'target'])=={
+        'First order cancel reason: Aged Order','First order cancel reason: [No cancellation reason recorded]'}
+    assert flows.loc[flows.transition.eq(3),'target'].str.startswith('Matching upload:').all()
     assert flows.groupby('transition').prescriptions.sum().eq(5).all()
 
 
-def test_non_d_cancel_reason_step_conservation_and_missingness():
-    f=fixture()
-    f.loc[1,'order_cancel_reason']=None
-    _,lines,_,_=analysis.summarize(f)
-    selected=lines.loc[analysis.non_d(lines)].copy()
-    dimensions=['channel','cancel_reason','order_group','block_reason','upload_group']
-    groups=selected.groupby(dimensions).size().reset_index(name='order_lines')
-    flows=analysis.flows_for_rendering(groups)
-    assert flows.groupby('transition').prescriptions.sum().to_dict()=={1:2,2:2,3:2,4:2}
-    assert set(flows.loc[flows.transition.eq(1),'target'])=={
-        'First order cancel reason: Aged Order',
-        'First order cancel reason: [No cancellation reason recorded]'}
-    assert flows.loc[flows.transition.eq(2),'target'].eq('First order line status: X').all()
-    assert flows.loc[flows.transition.eq(3),'source'].eq('First order line status: X').all()
-    assert flows.loc[flows.transition.eq(4),'source'].str.startswith('Item block reason:').all()
-    assert flows.loc[flows.transition.eq(4),'target'].str.startswith('Matching upload:').all()
-    assert flows.groupby('transition').percent_of_cohort.sum().eq(100).all()
+def test_column_headers_remove_prefixes_from_visible_labels_in_all_views(tmp_path):
+    import xml.etree.ElementTree as ET
+    metadata=dict(start_date='2026-08-15',end_date_exclusive='2026-10-15',upload_start_date='2026-08-01',extracted_at_utc='test')
+    with patch.object(analysis.legacy,'render_sankey') as render:
+        analysis.write_outputs(fixture(),metadata,tmp_path/'diagrams',tmp_path/'tables')
+    for call in render.call_args_list:
+        flows=call.args[0]
+        nodes=sorted(set(flows.source)|set(flows.target))
+        svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5000 1000"><g class="node-labels">'+''.join(
+            '<text>'+n+' (1; 20.00%)</text>' for n in nodes)+'</g></svg>'
+        tree=ET.fromstring(analysis.legacy.add_title(svg,'Fixture',flows.attrs['columns']))
+        ns={'s':'http://www.w3.org/2000/svg'}
+        labels=[t.text for t in tree.findall('.//s:g[@class="node-labels"]/s:text',ns)]
+        assert not any(label.startswith(tuple(prefix for prefix,_ in flows.attrs['columns'])) for label in labels)
+        assert len(tree.findall('.//s:g[@class="stage-headings"]/s:text',ns))==4
+    assert 'Clinic response' in (tmp_path/'tables'/'order-lines.md').read_text()
+    assert 'block_reason' in (tmp_path/'tables'/'distribution.md').read_text()
 
 
 @pytest.mark.parametrize('column,timestamp,allowed', [

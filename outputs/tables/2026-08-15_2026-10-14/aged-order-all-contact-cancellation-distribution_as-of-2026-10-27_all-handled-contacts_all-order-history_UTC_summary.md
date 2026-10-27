@@ -1,0 +1,7 @@
+# All aged-order contact timing: summary
+
+CMPU vet-diet CUSTOMER_UPLOAD first-order cohort; every aged order, regardless of reordering. Distinct order/order-line keys collapse shipment rows; orders are counted once across prescriptions and lines. All available HANDLED_FLAG=TRUE contact rows on aged orders, all categories, with no contact-time restriction. Contacts and cancellations are UTC. The as-of cutoff applies to cancellations, not contact history. Lag = contact time minus cancellation; exact nanosecond floor bins [day,day+1). Undated contacts remain in details and totals but are excluded from histogram shares. Counts follow contact source rows (contact legs), not unique sessions. Daily customer/session/order counts can overlap across bins. Full data are in the corresponding data/ Parquet files. Source extracted 2026-10-27T20:26:14.162146+00:00; SHA-256 5001100ecaaac06e0c82ac13cc26031e6168ebfcab923295726b6596d26e657c.
+
+| aged_orders | customers | orders_with_contacts | orders_without_contacts | customers_with_contacts | customers_without_contacts | orders_missing_customer | contact_legs | dated_contact_legs | undated_contact_legs | contacts_before_cancellation | contacts_at_cancellation | contacts_after_cancellation | min_elapsed_days | median_elapsed_days | max_elapsed_days |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 24408 | 20587 | 24298 | 110 | 20513 | 74 | 0 | 31477 | 31477 | 0 | 31206 | 0 | 271 | -13.81491224537037 | -10.55626611111111 | 39.02688704861111 |
