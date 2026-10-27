@@ -15,7 +15,7 @@ import click
 from jinja2 import Environment, StrictUndefined
 import pandas as pd
 
-from src.python.markdown_tables import markdown_table
+from src.python.markdown_tables import markdown_table, table_layout
 
 ROOT = Path(__file__).resolve().parents[2]
 NAME = 'cmpu-prescription-first-order-status'
@@ -263,7 +263,7 @@ def render_sankey(flows, source, png, title):
     return f'Diagram: {png.relative_to(ROOT)}. Mermaid source: {source.relative_to(ROOT)}.'
 
 
-def write_outputs(frame, metadata, diagram_dir, table_dir):
+def write_outputs(frame, metadata, diagram_dir, table_dir, table_prefix=''):
     prescriptions, groups, audits = summarize(frame)
     upload_start = metadata.get('upload_start_date', metadata['start_date'])
     start, end, upload_start_time = map(pd.Timestamp, [metadata['start_date'], metadata['end_date_exclusive'], upload_start])
@@ -292,7 +292,7 @@ def write_outputs(frame, metadata, diagram_dir, table_dir):
             'Missing/invalid upload-key audits describe the entire upload window.\n\n')
     for name, table in [('distribution', groups), ('flows', flows), ('prescriptions', prescriptions),
                         ('audit', pd.DataFrame(audits.items(), columns=['measure', 'count']))]:
-        (table_dir / f'{name}.md').write_text(f'# {name.title()}\n\n' + note + markdown_table(table) + '\n')
+        (table_dir / (table_prefix + f'{name}.md')).write_text(f'# {name.title()}\n\n' + note + markdown_table(table) + '\n')
     data_dir = ROOT / 'data' / NAME / period_name(metadata['start_date'], metadata['end_date_exclusive'], upload_start)
     prescriptions.to_parquet(data_dir / 'prescriptions.parquet', index=False)
     period = (f"{metadata['start_date']} through "
@@ -310,14 +310,14 @@ def write_outputs(frame, metadata, diagram_dir, table_dir):
     focused_note = render_sankey(focused_flows, diagram_dir / 'sankey-customer-upload.mmd',
                                  diagram_dir / 'sankey-customer-upload.png', focused_title)
     for name, table in [('customer-upload-distribution', focused), ('customer-upload-flows', focused_flows)]:
-        (table_dir / f'{name}.md').write_text(f'# {name.title()}\n\n' + note
+        (table_dir / (table_prefix + f'{name}.md')).write_text(f'# {name.title()}\n\n' + note
             + 'Approval channel CUSTOMER_UPLOAD only. Percentages use this channel as the denominator.\n\n'
             + markdown_table(table) + '\n')
-    (table_dir / 'customer-upload-summary.md').write_text('# CUSTOMER_UPLOAD first-order status\n\n'
+    (table_dir / (table_prefix + 'customer-upload-summary.md')).write_text('# CUSTOMER_UPLOAD first-order status\n\n'
         + note + f'Approval channel CUSTOMER_UPLOAD only: **{focused_total:,} prescriptions**. '
         'Percentages use this channel as the denominator.\n\n' + markdown_table(focused)
         + '\n\n' + focused_note + '\n')
-    (table_dir / 'summary.md').write_text('# CMPU prescriptions: first order and uploads\n\n' + note
+    (table_dir / (table_prefix + 'summary.md')).write_text('# CMPU prescriptions: first order and uploads\n\n' + note
         + markdown_table(pd.DataFrame(audits.items(), columns=['measure', 'count']))
         + '\n\n' + markdown_table(groups) + '\n\n' + diagram_note + '\n')
     (diagram_dir / 'README.md').write_text('# CMPU first-order status\n\n' + note +
@@ -368,8 +368,9 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
                             source_extracted_at_session_time=frame.extracted_at_session_time.unique().tolist(),
                             warehouse=frame.extraction_warehouse.unique().tolist())
             manifest.write_text(json.dumps(metadata, indent=2) + '\n')
+        table_dir, table_prefix = table_layout(ROOT, NAME, period)
         audits = write_outputs(frame, metadata, ROOT / 'outputs/diagrams' / NAME / period,
-                               ROOT / 'outputs/tables' / NAME / period)
+                               table_dir, table_prefix=table_prefix)
         click.echo(json.dumps(audits, indent=2))
     except (ValueError, OSError, KeyError, subprocess.CalledProcessError) as error:
         raise click.ClickException(str(error)) from error

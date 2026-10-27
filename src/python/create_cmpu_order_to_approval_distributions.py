@@ -15,7 +15,7 @@ import pandas as pd
 from src.python.create_cmpu_prescription_first_order_status import (
     AUDIT_COLUMNS, ROOT, RUNNER, digest, period_name,
 )
-from src.python.markdown_tables import markdown_table
+from src.python.markdown_tables import markdown_table, table_layout
 
 NAME = 'cmpu-order-to-approval-distributions'
 TEMPLATE = ROOT / 'src/sql/cmpu_order_to_approval_distributions.sql'
@@ -157,7 +157,7 @@ def figures(stats, bins, directory, subtitle):
         directory / 'statistics.png', scale_factor=2)
 
 
-def write_outputs(frame, metadata, charts, tables):
+def write_outputs(frame, metadata, charts, tables, table_prefix=''):
     details, audit, stats, bins = summarize(frame, metadata['start_date'], metadata['end_date_exclusive'],
                                            metadata['upload_start_date'])
     tables.mkdir(parents=True, exist_ok=True)
@@ -177,9 +177,9 @@ def write_outputs(frame, metadata, charts, tables):
         if name == 'statistics':
             for col in display.columns[2:]:
                 display[col] = display[col].map(lambda x: '—' if pd.isna(x) else f'{x:.2f}')
-        (tables / f'{name}.md').write_text(f'# {name.title()}\n\n' + note + markdown_table(display) + '\n')
+        (tables / (table_prefix + f'{name}.md')).write_text(f'# {name.title()}\n\n' + note + markdown_table(display) + '\n')
     source_audit = {col: int(frame[col].iloc[0]) if len(frame) else None for col in AUDIT_COLUMNS}
-    (tables / 'source-audit.md').write_text('# Upload source audit\n\n' + note + markdown_table(
+    (tables / (table_prefix + 'source-audit.md')).write_text('# Upload source audit\n\n' + note + markdown_table(
         pd.DataFrame(source_audit.items(), columns=['measure', 'count'])) + '\n')
     if stats.N.sum():
         figures(stats, bins, charts, subtitle)
@@ -230,8 +230,9 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
                             source_extracted_at=frame.extracted_at_session_time.unique().tolist(),
                             warehouse=frame.extraction_warehouse.unique().tolist())
             manifest.write_text(json.dumps(metadata, indent=2) + '\n')
+        table_dir, table_prefix = table_layout(ROOT, NAME, period)
         audit, stats = write_outputs(frame, metadata, ROOT / 'outputs/charts' / NAME / period,
-                                     ROOT / 'outputs/tables' / NAME / period)
+                                     table_dir, table_prefix=table_prefix)
         click.echo(audit.to_string(index=False) + '\n\n' + stats.to_string(index=False))
     except (ValueError, OSError, KeyError, subprocess.CalledProcessError) as error:
         raise click.ClickException(str(error)) from error

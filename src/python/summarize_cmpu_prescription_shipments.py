@@ -5,7 +5,7 @@ import json
 
 import pandas as pd
 
-from src.python.markdown_tables import markdown_table
+from src.python.markdown_tables import markdown_table, table_layout
 
 NAME = 'cmpu-later-cancelled-orders/2026-09-01_2026-09-16'
 
@@ -70,9 +70,10 @@ def main():
         'and shipment/placement ordering checks passed.\n\n'
         f'Shipment extract timestamp(s): {frame.extracted_at_session_time.unique().tolist()}.\n'
     )
-    output = Path('outputs/tables') / NAME
+    analysis, period = NAME.split('/', 1)
+    output, table_prefix = table_layout(Path('.'), analysis, period)
     output.mkdir(parents=True, exist_ok=True)
-    (output / 'shipments.md').write_text(text)
+    (output / (table_prefix + 'shipments.md')).write_text(text)
     (base / 'shipment-summary.json').write_text(json.dumps({
         'metrics': {k: int(v) for k, v in metrics.items()},
         'shipments_sha256': hashlib.sha256((base / 'shipments.parquet').read_bytes()).hexdigest(),

@@ -1,4 +1,6 @@
 """Stack the existing aged-order upload cohort by latest prescription state."""
+from src.python.markdown_tables import table_layout
+
 
 from datetime import date, datetime, timedelta, timezone
 import hashlib
@@ -93,7 +95,7 @@ def state_histograms(merged: pd.DataFrame, bins: pd.DataFrame) -> pd.DataFrame:
 
 
 def write_outputs(merged: pd.DataFrame, bins: pd.DataFrame, metadata: dict,
-                  chart_dir: Path, table_dir: Path) -> None:
+                  chart_dir: Path, table_dir: Path, table_prefix='') -> None:
     stacked = state_histograms(merged, bins)
     totals = merged.lifecycle_state.value_counts().rename_axis("state").reset_index(name="prescriptions")
     totals = totals.sort_values(["prescriptions", "state"], ascending=[False, True])
@@ -142,7 +144,7 @@ def write_outputs(merged: pd.DataFrame, bins: pd.DataFrame, metadata: dict,
             ],
         )).configure_axis(labelFontSize=12, titleFontSize=14, gridColor="#DDE2E7").configure_legend(labelFontSize=12, titleFontSize=13).configure_view(stroke=None)
         chart.save(png, scale_factor=2)
-    (table_dir / f"{STEM}.md").write_text("\n".join(lines) + "\n")
+    (table_dir / (table_prefix + f"{STEM}.md")).write_text("\n".join(lines) + "\n")
     click.echo(totals.to_string(index=False) if len(totals) else "No aged-order prescriptions.")
 
 
@@ -194,9 +196,9 @@ def main(start_date: str, end_date: str, print_sql: bool, cached: bool) -> None:
             manifest.write_text(json.dumps(metadata, indent=2) + "\n")
         merged = attach_states(aged, states)
         chart_dir = ROOT / "outputs/charts/vdam-upload-distribution" / run_name
-        table_dir = ROOT / "outputs/tables/vdam-upload-distribution" / run_name
-        write_outputs(merged, bins, metadata, chart_dir, table_dir)
-        click.echo(f"Table: {(table_dir / (STEM + '.md')).relative_to(ROOT)}")
+        table_dir, table_prefix = table_layout(ROOT, "vdam-upload-distribution", run_name)
+        write_outputs(merged, bins, metadata, chart_dir, table_dir, table_prefix=table_prefix)
+        click.echo(f"Table: {(table_dir / (table_prefix + STEM + '.md')).relative_to(ROOT)}")
         if len(merged):
             click.echo(f"Chart: {(chart_dir / (STEM + '.png')).relative_to(ROOT)}")
     except (ValueError, OSError, KeyError, subprocess.CalledProcessError) as error:

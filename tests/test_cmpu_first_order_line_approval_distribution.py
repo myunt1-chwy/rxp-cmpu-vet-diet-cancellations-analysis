@@ -233,6 +233,11 @@ def test_upload_endpoint_cache_separate_outputs_and_labels(tmp_path):
     assert 'Approval timestamp is not required' in notes.read_text()
     assert all(path.is_file() for path in output.iterdir())
     assert not (tmp_path/'outputs/charts'/analysis.NAME).exists()
+    tables = tmp_path/'outputs/tables/2026-08-15_2026-10-14'
+    assert len(list(tables.glob('*.md'))) == 6
+    assert all(path.name.startswith(analysis.chart_stem(dict(metadata, endpoint='upload')))
+               for path in tables.iterdir())
+    assert not (tmp_path/'outputs/tables'/analysis.NAME).exists()
     with patch.object(analysis.alt.TopLevelMixin, 'save', autospec=True) as save:
         _, _, _, stats, bins = analysis.summarize(frame.iloc[[0]], *DATES, endpoint='upload')
         analysis.figure(bins, int(stats.N.iloc[0]), None, ['Test'], endpoint='upload')

@@ -6,7 +6,7 @@ import json
 import click
 import pandas as pd
 
-from src.python.markdown_tables import markdown_table
+from src.python.markdown_tables import markdown_table, table_layout
 
 NAME = 'cmpu-later-cancelled-orders/2026-09-01_2026-09-16'
 
@@ -70,8 +70,12 @@ def summarize(frame):
 
 @click.command()
 @click.option('--input', 'input_path', type=click.Path(path_type=Path), default=f'data/{NAME}/links.parquet')
-@click.option('--output-dir', type=click.Path(path_type=Path), default=f'outputs/tables/{NAME}')
+@click.option('--output-dir', type=click.Path(path_type=Path), default=None, help='Override the default flat dated table folder')
 def main(input_path, output_dir):
+    table_prefix = ''
+    if output_dir is None:
+        analysis, period = NAME.split('/', 1)
+        output_dir, table_prefix = table_layout(Path('.'), analysis, period)
     frame = pd.read_parquet(input_path)
     metrics, reasons, eligible, audits = summarize(frame)
     total = metrics['Cohort prescriptions']
@@ -102,11 +106,11 @@ def main(input_path, output_dir):
         'among qualifying orders, and reason totals reconcile. Missing timestamps/status/links are audited above.\n'
     )
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / 'summary.md').write_text(text)
-    (output_dir / 'cancellation-reasons.md').write_text(markdown_table(reasons) + '\n')
+    (output_dir / (table_prefix + 'summary.md')).write_text(text)
+    (output_dir / (table_prefix + 'cancellation-reasons.md')).write_text(markdown_table(reasons) + '\n')
     columns = ['rx_id', 'rx_creation_datetime', 'order_id', 'order_placed_at_utc',
                'cancelled_at_utc', 'reason', 'via_first_order', 'via_usage', 'deletion_flagged']
-    (output_dir / 'qualifying-links.md').write_text(markdown_table(eligible[columns]) + '\n')
+    (output_dir / (table_prefix + 'qualifying-links.md')).write_text(markdown_table(eligible[columns]) + '\n')
     sql = Path('src/sql/cmpu_later_cancelled_orders.sql')
     metadata = {'metrics': {k: int(v) for k, v in metrics.items()}, 'match_percent': rate,
                 'timestamp_audits': audits, 'extracted_at_session_time': snapshot,

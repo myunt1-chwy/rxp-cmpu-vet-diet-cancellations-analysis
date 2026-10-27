@@ -11,7 +11,7 @@ from jinja2 import Environment, StrictUndefined
 import pandas as pd
 
 from src.python import create_cmpu_prescription_first_order_status as legacy
-from src.python.markdown_tables import markdown_table
+from src.python.markdown_tables import markdown_table, table_layout
 
 ROOT = legacy.ROOT
 NAME = 'cmpu-first-order-line-status'
@@ -127,7 +127,7 @@ def flows_for_rendering(groups, show_line_status=True):
     return flows
 
 
-def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None):
+def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None, table_prefix=''):
     associations, lines, groups, audit = summarize(frame)
     start, end, upload_start = map(pd.Timestamp, [metadata['start_date'], metadata['end_date_exclusive'],
                                                  metadata['upload_start_date']])
@@ -216,8 +216,8 @@ def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None):
     outputs.append(('block-reasons', non_d_lines.groupby('block_reason').size().reset_index(name='order_lines')))
     outputs.append(('non-d-order-lines', non_d_lines))
     for name, data in outputs:
-        (table_dir / f'{name}.md').write_text(f'# {name.title()}\n\n'+note+markdown_table(data)+'\n')
-    (table_dir / 'summary.md').write_text('# First-order lines\n\n'+note+markdown_table(
+        (table_dir / (table_prefix + f'{name}.md')).write_text(f'# {name.title()}\n\n'+note+markdown_table(data)+'\n')
+    (table_dir / (table_prefix + 'summary.md')).write_text('# First-order lines\n\n'+note+markdown_table(
         pd.DataFrame(audit.items(), columns=['measure', 'count']))+'\n\n'+markdown_table(groups)+'\n')
     image_prefix = (f"cmpu-first-order-lines_{{scope}}_uploads-{metadata['upload_start_date']}_"
                     f"{(upload_end - pd.Timedelta(days=1)).date()}_sankey.png")
@@ -277,8 +277,9 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
         date_range = f'{start_date}_{date.fromisoformat(end_date) - timedelta(days=1)}'
         source_dir = ROOT / 'src/diagrams' / date_range
         diagram_dir = ROOT / 'outputs/diagrams' / date_range
+        table_dir, table_prefix = table_layout(ROOT, NAME, scope)
         audit = write_outputs(frame, metadata, diagram_dir,
-                              ROOT/'outputs/tables'/NAME/scope, source_dir=source_dir)
+                              table_dir, source_dir=source_dir, table_prefix=table_prefix)
         click.echo(f'Mermaid sources: {source_dir}\nSankey figures: {diagram_dir}')
         click.echo(json.dumps(audit, indent=2))
     except (ValueError, OSError, KeyError, subprocess.CalledProcessError) as error:

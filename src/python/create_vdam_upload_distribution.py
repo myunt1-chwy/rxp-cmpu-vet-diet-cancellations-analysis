@@ -1,4 +1,6 @@
 """Plot the first qualifying order-linked upload for each distinct prescription."""
+from src.python.markdown_tables import table_layout
+
 
 from datetime import date, timedelta, datetime, timezone
 import json
@@ -102,7 +104,7 @@ def cancellation_histograms(selected: pd.DataFrame, bins: pd.DataFrame) -> pd.Da
 
 
 def write_cancellation_outputs(selected: pd.DataFrame, bins: pd.DataFrame, period: str,
-                               chart_dir: Path, table_dir: Path) -> None:
+                               chart_dir: Path, table_dir: Path, table_prefix='') -> None:
     grouped = cancellation_histograms(selected, bins)
     lines = [
         "# Upload delay by order cancellation reason", "", f"Upload dates: {period}.", "",
@@ -162,10 +164,10 @@ def write_cancellation_outputs(selected: pd.DataFrame, bins: pd.DataFrame, perio
                 ]),
             ).configure_axis(labelFontSize=12, titleFontSize=14, gridColor="#DDE2E7").configure_view(stroke=None)
             individual.save(chart_dir / f"distribution-{group.lower().replace(' ', '-')}.png", scale_factor=2)
-    (table_dir / "distribution-by-cancel-reason.md").write_text("\n".join(lines) + "\n")
+    (table_dir / (table_prefix + "distribution-by-cancel-reason.md")).write_text("\n".join(lines) + "\n")
 
 
-def write_outputs(frame: pd.DataFrame, start: str, end: str, chart_dir: Path, table_dir: Path) -> dict:
+def write_outputs(frame: pd.DataFrame, start: str, end: str, chart_dir: Path, table_dir: Path, table_prefix='') -> dict:
     selected, counts = summarize(frame)
     bins = histogram(selected.elapsed_hours)
     chart_dir.mkdir(parents=True, exist_ok=True)
@@ -214,8 +216,8 @@ def write_outputs(frame: pd.DataFrame, start: str, end: str, chart_dir: Path, ta
             ]),
         ).configure_axis(labelFontSize=12, titleFontSize=14, gridColor="#DDE2E7").configure_view(stroke=None)
         chart.save(png, scale_factor=2)
-    (table_dir / "distribution.md").write_text("\n".join(lines) + "\n")
-    write_cancellation_outputs(selected, bins, period, chart_dir, table_dir)
+    (table_dir / (table_prefix + "distribution.md")).write_text("\n".join(lines) + "\n")
+    write_cancellation_outputs(selected, bins, period, chart_dir, table_dir, table_prefix=table_prefix)
     return counts
 
 
@@ -235,7 +237,7 @@ def main(start_date: str, end_date: str, print_sql: bool, cached: bool) -> None:
     run_name = f"{start_date}_{end_date}"
     data_dir = ROOT / "data/vdam-upload-distribution" / run_name
     chart_dir = ROOT / "outputs/charts/vdam-upload-distribution" / run_name
-    table_dir = ROOT / "outputs/tables/vdam-upload-distribution" / run_name
+    table_dir, table_prefix = table_layout(ROOT, "vdam-upload-distribution", run_name)
     parquet = data_dir / "uploads.parquet"
     manifest = data_dir / "source.json"
     if cached:
@@ -259,7 +261,7 @@ def main(start_date: str, end_date: str, print_sql: bool, cached: bool) -> None:
             "start_date": start_date, "end_date_exclusive": end_date,
         }, indent=2) + "\n")
     try:
-        counts = write_outputs(pd.read_parquet(parquet), start_date, end_date, chart_dir, table_dir)
+        counts = write_outputs(pd.read_parquet(parquet), start_date, end_date, chart_dir, table_dir, table_prefix=table_prefix)
     except ValueError as error:
         raise click.ClickException(str(error)) from error
     click.echo(json.dumps(counts, indent=2))

@@ -1,5 +1,9 @@
 .DEFAULT_GOAL := setup
 
+.PHONY: cmpu-upload-time-ratio-distribution
+cmpu-upload-time-ratio-distribution:
+	.venv/bin/python -m src.python.create_cmpu_upload_time_ratio_distribution --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
 .PHONY: cmpu-upload-to-approval-distribution
 cmpu-upload-to-approval-distribution:
 	.venv/bin/python -m src.python.create_cmpu_first_order_line_approval_distribution --endpoint upload-to-approval --exclude-negative --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)

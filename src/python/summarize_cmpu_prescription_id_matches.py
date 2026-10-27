@@ -7,7 +7,7 @@ import json
 import click
 import pandas as pd
 
-from src.python.markdown_tables import markdown_table
+from src.python.markdown_tables import markdown_table, table_layout
 
 BASE = 'cmpu-upload-event-matches/2026-09-01_2026-09-16'
 
@@ -86,8 +86,12 @@ def summarize(frame):
 @click.option('--input', 'input_path', type=click.Path(path_type=Path),
               default=f'data/{BASE}/prescription-id/matches.parquet', show_default=True)
 @click.option('--output-dir', type=click.Path(path_type=Path),
-              default=f'outputs/tables/{BASE}/prescription-id', show_default=True)
+              default=None, help='Override the default flat dated table folder')
 def main(input_path, output_dir):
+    table_prefix = ''
+    if output_dir is None:
+        analysis, period = BASE.split('/', 1)
+        output_dir, table_prefix = table_layout(Path('.'), analysis, period+'_'+'prescription-id')
     metrics, coverage = summarize(pd.read_parquet(input_path))
     total = metrics['Total CMPU vet-diet prescriptions']
     rate = 100 * metrics['Matched by prescription ID'] / total if total else None
@@ -115,8 +119,8 @@ def main(input_path, output_dir):
         'Validation: unique/nonmissing cohort RX_IDs, unique event/product rows, full matched/unmatched '
         'and method-overlap reconciliation, and complete event-type coverage checks passed.\n'
     )
-    (output_dir / 'summary.md').write_text(text)
-    (output_dir / 'field-coverage.md').write_text(markdown_table(coverage) + '\n')
+    (output_dir / (table_prefix + 'summary.md')).write_text(text)
+    (output_dir / (table_prefix + 'field-coverage.md')).write_text(markdown_table(coverage) + '\n')
     sql = Path('src/sql/cmpu_upload_prescription_id_matches.sql')
     metadata = {'summarized_at_utc': datetime.now(timezone.utc).isoformat(),
                 'input': str(input_path), 'input_sha256': hashlib.sha256(input_path.read_bytes()).hexdigest(),

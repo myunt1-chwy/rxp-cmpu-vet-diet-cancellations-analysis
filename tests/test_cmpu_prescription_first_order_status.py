@@ -176,8 +176,8 @@ class FirstOrderSankeyTests(unittest.TestCase):
                 self.assertEqual(result.exit_code, 0, result.output)
                 self.assertEqual(run.call_count, 4)  # SVG and browser PNG for both diagrams; no query.
                 self.assertTrue(any(str(analysis.RENDERER) in call.args[0] for call in run.call_args_list))
-                self.assertTrue((root / 'outputs/tables' / analysis.NAME /
-                                 '2026-08-14_2026-10-15/distribution.md').is_file())
+                self.assertTrue((root / 'outputs/tables/2026-08-14_2026-10-14' /
+                                 'cmpu-prescription-first-order-status_distribution.md').is_file())
                 focused = root / 'outputs/diagrams' / analysis.NAME / '2026-08-14_2026-10-15/sankey-customer-upload.mmd'
                 focused_csv = focused.read_text().split('sankey-beta\n', 1)[1]
                 rows = list(csv.reader(io.StringIO(focused_csv)))
@@ -200,7 +200,7 @@ class FirstOrderSankeyTests(unittest.TestCase):
                 self.assertEqual(node_labels.attrib['font-weight'], 'bold')
                 self.assertIn('Channel: CUSTOMER_UPLOAD (4; 44.44%)', main_source)
                 self.assertIn('First order: Customer Initiated Cancellation (1; 11.11%)', main_source)
-                summary = root / 'outputs/tables' / analysis.NAME / '2026-08-14_2026-10-15/customer-upload-summary.md'
+                summary = root / 'outputs/tables/2026-08-14_2026-10-14/cmpu-prescription-first-order-status_customer-upload-summary.md'
                 self.assertIn('**4 prescriptions**', summary.read_text())
                 for key in ['sql', 'start_date', 'end_date_exclusive', 'upload_start_date', 'parquet_sha256']:
                     manifest.write_text(json.dumps({**metadata, key: 'stale'}))
