@@ -1,116 +1,5 @@
 # Setup
 
-## VDAM upload distribution (REFNUM 1)
-
-Generate the distribution for uploads dated July 30 through October 20, 2026,
-inclusive in UTC:
-
-```sh
-make create-vdam-upload-distribution START_DATE=2026-07-30 END_DATE=2026-10-21
-```
-
-Both dates are required; `END_DATE` is exclusive. The dates filter uploads,
-not order placement. Require `UPLOAD_TYPE = 'DIET_PRESCRIPTION'`,
-`ASSOCIATED_RESOURCE_TYPE = 'DIET_PRESCRIPTION'`, `HAS_ASSOCIATED_RX = TRUE`,
-and `HAS_UPLOADED_FILE = TRUE`. Expand the brace-delimited `RX_ID` list and
-deduplicate IDs within each upload; do not use `ASSOCIATED_RX_CNT` as a weight.
-Each distinct prescription contributes its earliest qualifying order-linked
-upload within the window, joined using the upload table's order ID directly.
-For prescriptions linked to multiple orders, use the order on that earliest
-matched upload; break timestamp ties by upload ID, then order ID.
-`ORDER_PLACED_DTTM` is interpreted as UTC based on its four/five-hour offset
-from the Eastern companion column; this is an inference, not a documented
-timezone guarantee. No additional timezone shift is applied. Negative elapsed
-hours and all outliers remain in the 50 equal-width bins.
-
-The read-only runner uses browser SSO and a local ignored `.env` containing
-`RXP_SNOWFLAKE_ACCOUNT`, `RXP_SNOWFLAKE_USER`, `RXP_SNOWFLAKE_DATABASE`,
-`RXP_SNOWFLAKE_WAREHOUSE`, `RXP_SNOWFLAKE_SCHEMA`, and optionally
-`RXP_SNOWFLAKE_ROLE`. Run `make setup` if dependencies are missing.
-
-Add `PRINT_SQL=1` to print SQL without accessing Snowflake or writing files.
-Add `CACHED=1` to redraw from a completed extract with matching dates and SQL.
-Downloaded Parquet, executed SQL, and extraction provenance are saved under
-`data/vdam-upload-distribution/<start>_<end>/`. The transparent PNG is under
-`outputs/charts/vdam-upload-distribution/<start>_<end>/distribution.png`;
-the 50-bin Markdown table and reconciliation counts are under
-`outputs/tables/<start>_<last-day>/vdam-upload-distribution_distribution.md`.
-All generated outputs are ignored by Git.
-
-The same target also exports `distribution-by-cancel-reason.png` and
-`distribution-by-cancel-reason.md` alongside those files. This five-panel chart
-uses the same 50 bin boundaries for every group, with independent count scales
-and the prescription total in each panel title. The Markdown table includes
-group totals and 250 bin rows; bin percentages are within each group.
-Five separate transparent figures are also exported to the same chart directory:
-`distribution-not-cancelled.png`, `distribution-aged-orders.png`,
-`distribution-customer-initiated.png`, `distribution-customer-requested.png`,
-and `distribution-other.png`. They retain the shared bin boundaries and use
-count scales appropriate to each group. Regenerate them from the existing
-extract by adding `CACHED=1` to the Make command.
-`ORDER_CANCEL_REASON` is taken from the selected upload's order at extraction
-time, not reconstructed as of the upload date. Groups are:
-
-- NULL: Not cancelled.
-- `Aged Order`: Aged orders.
-- `Customer Initiated Cancellation`: Customer initiated.
-- `Customer Request`: Customer requested.
-- Every other non-null value: Other.
-
-Reason matching ignores case and leading/trailing whitespace. Prescription
-deduplication happens before grouping, so every prescription belongs to exactly
-one group. Existing caches without the cancellation-reason column require a
-fresh run without `CACHED=1`.
-
-Missing prescription IDs, missing/invalid order IDs, unmatched orders, and
-missing order timestamps are reported separately at prescription-upload grain.
-Repeated matched uploads are reduced to one observation per prescription.
-Duplicate upload/prescription pairs or duplicate order-source rows fail validation
-instead of silently multiplying observations. Uploads with missing timestamps
-cannot be assigned to a date cohort. Empty results produce a table explaining
-the result and no chart; a constant duration uses a one-hour plotting range.
-
-Run the focused checks with:
-
-```sh
-.venv/bin/python -m unittest discover -s tests -p 'test_vdam_upload_distribution.py'
-```
-
-## Aged-order lifecycle-state distribution (REFNUM 4)
-
-Keep the existing upload cohort and fetch only its latest prescription states:
-
-```sh
-make create-aged-upload-lifecycle-distribution START_DATE=2026-07-30 END_DATE=2026-10-21
-```
-
-This requires the completed REFNUM 1 upload cache for those dates. It does not
-refresh uploads or orders. The current cohort contains 2,220 aged-order
-prescriptions, selected after deduplicating prescriptions across all orders.
-Both dates are required; the end is exclusive. `PRINT_SQL=1` reads the existing
-cohort and prints the lifecycle-state query without querying or writing files.
-`CACHED=1` renders saved states without contacting Snowflake; a cohort or SQL
-mismatch requires a fresh state lookup. The cohort fingerprint covers selected
-prescriptions, their upload/order IDs and delays, and all 50 global bin edges.
-
-States are read from `EDLDB.BT_HCA_HCDM.RXP_PRESCRIPTIONS` by individual `RX_ID`.
-The chart shows the latest available state at extraction time, including
-nonterminal states; it does not reconstruct the state at upload or cancellation.
-Duplicate source IDs stop the run. Unmatched prescriptions and null states are
-retained as separate categories. Every stack sums to the existing aged-order
-bin count; negative durations and outliers remain included.
-
-The executed SQL, state Parquet, timestamps, and provenance are stored under
-`data/vdam-upload-distribution/<start>_<end>/aged-lifecycle/`. The transparent
-`distribution-aged-orders-by-lifecycle-state.png` goes in the dated chart
-directory. The identically named `.md` file in the dated table directory contains
-state totals, cohort percentages, and all bin-by-state counts. Existing figures
-are preserved. An empty aged cohort produces an explanatory table and no PNG.
-
-```sh
-.venv/bin/python -m unittest discover -s tests -p 'test_aged_upload_lifecycle_distribution.py'
-```
-
 ## Environment setup
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then run:
@@ -185,6 +74,64 @@ install them again.
 
 See the [skills CLI reference](https://github.com/vercel-labs/skills/blob/main/docs/commands.md)
 for installation options.
+
+## Aged-order upload-to-cancellation distribution (REFNUM 5)
+
+```bash
+make create-aged-upload-cancellation-distribution
+make create-aged-upload-cancellation-distribution START_DATE=2026-07-30 END_DATE=2026-10-21 CACHED=1
+make create-aged-upload-cancellation-distribution PRINT_SQL=1
+```
+
+Defaults cover uploads July 30 through October 20, 2026 (UTC, end exclusive).
+A fresh run extracts qualifying uploads and current order cancellation fields.
+Each aged order contributes its earliest qualifying upload within the window;
+multiple prescriptions do not multiply observations. Hours equal cancellation
+minus upload, including negative values. No order-placement timestamp is required.
+The UTC interpretation of ORDER_CANCEL_DTTM is checked against its Eastern
+companion; contradictory evidence stops chart generation. Missing companions
+are reported, and at least one paired eligible order is required for a nonempty
+chart. Source metadata does not explicitly document this timezone convention.
+
+SQL, Parquet and extraction provenance are saved in
+`data/aged-upload-cancellation-distribution/<start>_<end>/`.
+The transparent `distribution.png` goes under the matching directory in
+`outputs/charts/aged-upload-cancellation-distribution/`; distribution,
+quantile and order-detail Markdown tables use descriptive analysis-prefixed filenames under `outputs/tables/<start>_<last-day>/`.
+Cached mode validates the SQL and renders without connecting. Quantiles use
+linear interpolation. Missing upload timestamps cannot be assigned to the date
+window; their source-wide count is reported separately, or unavailable for an
+empty extract. Empty cohorts produce tables and no chart.
+
+### Cancellation time stacked by latest prescription lifecycle state
+
+```bash
+make create-aged-cancellation-lifecycle-distribution
+make create-aged-cancellation-lifecycle-distribution CACHED=1
+make create-aged-cancellation-lifecycle-distribution PRINT_SQL=1
+```
+
+Run the cancellation distribution first. This target freezes its eligible orders,
+selected uploads, durations and bin edges, and refreshes prescription associations
+and latest `RXP_PRESCRIPTIONS.RX_LIFECYCLE_STATE`. It counts each order once:
+identical states on its selected upload use that state; differing states use
+`[Mixed states]`. Missing information stays explicit and can contribute to a mixed
+group. This is the latest snapshot, not the state at cancellation.
+
+Dates accept the same START_DATE/END_DATE options. Lifecycle SQL, extract and cohort
+fingerprint live in the cancellation data directory's `lifecycle/` subdirectory.
+The existing cancellation output directories receive `distribution-by-lifecycle-state.png`,
+`distribution-by-lifecycle-state.md` and `orders-by-lifecycle-state.md`.
+Cached rendering rejects changed cohort/query fingerprints. Duplicate upload or
+prescription source records stop publication.
+
+The lifecycle target also extracts current `STATE_CHANGE_REASON` and writes
+`state-change-reasons.md` (order counts, percentages, exact reason combinations),
+`orders-by-state-change-reason.md`, and `prescription-state-change-reasons.md`.
+It preserves one count per order, grouping differing reasons as `[Mixed reasons]`.
+NULL/blank reasons are grouped together; missing sources remain explicit.
+These are latest prescription reasons, not historical reasons at cancellation.
+Refresh without `CACHED=1` once when upgrading an older lifecycle extract.
 
 ## CMPU vet-diet prescription matches to upload events
 
@@ -269,101 +216,6 @@ prescription subset, and shipping on the same canceled order. Current order
 status alone is not used to determine shipping. Missing order-line coverage is
 audited. The summary is `shipments.md` in the same table directory; source data
 and SHA-256 metadata remain in the cancellation analysis data directory.
-
-## CMPU first-order-line Sankey (REFNUM 14)
-
-```bash
-make cmpu-prescription-first-order-status
-make cmpu-prescription-first-order-status START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
-make cmpu-prescription-first-order-status CACHED=1
-make cmpu-prescription-first-order-status PRINT_SQL=1
-.venv/bin/python -m pytest -q tests/test_cmpu_first_order_line_status.py
-```
-
-REFNUM 14 now uses `src/sql/cmpu_first_order_line_status.sql` and
-`EDLDB.BT_HCA_HCDM.ORDER_LINE_COST_MEASURES_RXP`. Join prescriptions using
-**FIRST_ORDER_ID = ORDER_ID AND numeric FIRST_ORDERITEM_ID = ORDER_LINE_ID**.
-There is no RX_ID join to the order-line source and no dependency on ECOM.ORDERS.
-
-Count each matched **(ORDER_ID, ORDER_LINE_ID) once**, collapsing the source's
-shipment rows before joining. Prescriptions without first-order keys, invalid
-item IDs or unmatched order lines appear in the audit and association details;
-they are excluded from the Sankey denominator. Multiple prescriptions sharing
-a line count once. Conflicting channel/upload/status classifications for a
-shared line fail validation, as do conflicting shipment statuses or
-duplicate shipment/line source keys. Do not interpret shipment rows as lines.
-
-Defaults retain CMPU vet-diet prescriptions created August 15–October 14,
-2026 and upload search August 1–October 14 (UTC). Starts are inclusive; END_DATE
-is exclusive for both windows. Upload start must not exceed prescription start.
-No prescription-status/deletion or order-placement-date filter is applied.
-
-The full and CUSTOMER_UPLOAD figures use the order: **approval channel → first-order cancel
-reason → first-order line status → item block reason → matching upload or not**.
-Cancel reason is the raw trimmed ORDER_CANCEL_REASON; blank/null reasons appear
-as `[No cancellation reason recorded]` and do not imply an uncanceled order.
-The line stage uses ORDER_ORDER_LINE_STATUS codes directly (C, D, R, S, X),
-with blank/null codes shown as `[Unknown line status]`. The source has no separate
-line-cancellation-reason field in this analysis.
-
-Actual ORDER_ITEM_BLOCK_REASON is shown only for known non-D line statuses.
-D lines use `[Not applicable: status D]` and unknown statuses use an explicit
-not-applicable node so every line still reaches the final upload split.
-Blank/null actual block reasons appear as `[No block reason recorded]`.
-Conflicting shipment statuses, cancellation reasons or block reasons fail validation.
-
-The third figure, `sankey-non-d.png`, includes only CUSTOMER_UPLOAD lines with a
-known non-D final line status. Its percentages use that restricted denominator. This figure
-omits the explicit line-status column: channel → cancel reason → item block →
-upload presence. It retains all non-D statuses (including C/R/S), with status
-labels on the separate block/upload paths; it does not filter to X only. Column
-headers identify Approval channel, First-order cancel reason, Item block reason
-and Matching upload; visible node labels omit those repeated prefixes. The
-cancel-reason stage uses purple and the item-block stage light blue, replacing
-the gray defaults. Full node IDs remain in Mermaid sources and flow tables.
-Full and CUSTOMER_UPLOAD figures retain their respective line denominators.
-The same source cache can be reused with CACHED=1.
-
-Upload presence retains DIET_PRESCRIPTION upload entities matched on expanded
-RX_ID and numeric CUSTOMER_ID. Repeated uploads are deduplicated. No uploaded-file,
-association flag or upload-after-creation requirement is applied; a matching
-entity does not independently verify a file. Source-key audits cover the entire
-upload window.
-
-Item-block nodes and final upload nodes are separate for each line status.
-For example X and D each have their own Has matching upload / No matching upload
-endpoints. Block-reason nodes retain the status too, preventing X/D paths from
-merging before the final split. Counts and percentages retain each figure's
-whole-population denominator, not the individual status subtotal.
-
-All four transitions in each figure conserve its distinct-line population.
-Do not add the transition totals. Node and flow percentages use the figure's
-whole population, rounded to two decimal places, rather than the parent node.
-
-Older artifacts used `cmpu-first-order-line-status/<start>_<exclusive-end>/`, with
-`_uploads-from-<upload-start>` when starts differ, followed by `_line-status`
-for the prior status-only figures. The current four-stage figures use
-`_line-status-non-d-block-reasons`; their source cache uses `_block-reasons`.
-Previous all-status block-reason figures remain under `_line-status-block-reasons`. Earlier
-figures and their extracts are preserved. The previous prescription-count
-artifacts remain under `cmpu-prescription-first-order-status/`.
-
-- `data/`: source Parquet, extraction timestamp, warehouse and SHA-256
-  fingerprints. Rendered SQL and SQL history now use `src/autogenerated/`.
-  Cached mode requires unchanged SQL/dates/data.
-- `outputs/tables/`: association details, distinct order lines, full/focused
-  distributions and flows (including block reason), non-D-focused distributions,
-  flows and line details, non-D block-reason totals,
-  eligibility/source audits and order-vs-line-status table.
-- `src/diagrams/<start>_<last-prescription-day>/`: generated full, CUSTOMER_UPLOAD,
-  and non-D-focused Mermaid source data. Dates are inclusive.
-- `outputs/diagrams/<start>_<last-prescription-day>/`: transparent PNGs, titled
-  SVGs and companion notes with descriptive filenames. Existing styling is retained.
-
-`PRINT_SQL=1` validates dates and prints SQL without side effects; `CACHED=1`
-regenerates tables/figures without Snowflake. Fresh queries use the repository's
-read-only rxp-sql runner and browser SSO. Cortex is not used. The separate
-order-to-approval timing analysis is unchanged by this REFNUM 14 revision.
 
 ## First order to first-usage approval distributions
 
@@ -494,30 +346,97 @@ underlying data, tables and source files remain available.
 make cmpu-first-order-line-status
 make cmpu-first-order-line-status CACHED=1
 make cmpu-first-order-line-status PRINT_SQL=1
-# Existing target remains an alias:
-make cmpu-prescription-first-order-status CACHED=1
+.venv/bin/python -m pytest -q tests/test_cmpu_first_order_line_status.py
 ```
 
-The Sankeys use prescriptions in `[START_DATE, END_DATE)` and uploads in
-`[UPLOAD_START_DATE, END_DATE + 11 days)`: August 15–October 14 and August 1–October
-25 inclusive by default. The three views are all channels, CUSTOMER_UPLOAD and
-non-D CUSTOMER_UPLOAD lines. Existing join, status, block and flow rules above
-remain unchanged. Titles and table notes show both date ranges.
+This is the default CMPU first-order-line Sankey run (REFNUM 14/17).
+`cmpu-prescription-first-order-status` remains an alias to this same extended run.
+Override `START_DATE`, exclusive prescription `END_DATE`, and `UPLOAD_START_DATE`
+as needed. Prescriptions use `[START_DATE, END_DATE)` and uploads use
+`[UPLOAD_START_DATE, END_DATE + 11 days)`, all UTC. Defaults are prescriptions
+August 15–October 14, 2026, and uploads August 1–October 25 inclusive
+(exclusive ends October 15 and October 26). Upload start must not exceed
+prescription start. No prescription-status, deletion or order-placement-date
+filter is applied.
 
-Mermaid files live directly in `src/diagrams/2026-08-15_2026-10-14/`, named
-`cmpu-first-order-lines_<scope>_uploads-2026-08-01_2026-10-25_sankey.mmd`,
-where scope is `all`, `customer-upload` or `non-d`. Transparent PNGs and titled
-SVGs use the same descriptive basenames under
-`outputs/diagrams/2026-08-15_2026-10-14/`. Generated sources and figures are
-ignored by Git. Targets print both directories. Source extracts remain under
-`data/`; rendered SQL and execution history use
-`src/autogenerated/cmpu-first-order-line-status/`. Cache identity includes the
-exclusive upload end date, preserving earlier extracts.
+### Source, joins and counting
 
-The refreshed Sankey cohort has 113,608 prescriptions and 103,514 matched
-unique lines, including 95,071 CUSTOMER_UPLOAD lines. Its 24,944 CUSTOMER_UPLOAD
-D-status lines with uploads exactly reconcile to the timing analysis before
-missing-approval exclusions.
+Use `src/sql/cmpu_first_order_line_status.sql` and the certified
+`EDLDB.BT_HCA_HCDM.ORDER_LINE_COST_MEASURES_RXP` view. Join on both
+**FIRST_ORDER_ID = ORDER_ID AND numeric FIRST_ORDERITEM_ID = ORDER_LINE_ID**;
+there is no RX_ID join to the line view or dependency on ECOM.ORDERS.
+
+Count each matched **(ORDER_ID, ORDER_LINE_ID) once**, collapsing shipment rows
+before prescription associations. Multiple prescriptions sharing a line count
+once. Missing first-order keys, invalid item IDs and unmatched lines are retained
+in association details and audits, outside the Sankey denominator. Conflicting
+shared-line channel/upload classifications, shipment statuses, cancellation
+reasons or block reasons, and duplicate shipment/line source keys fail validation.
+
+### Three views and their stages
+
+The all-channel and CUSTOMER_UPLOAD views show **approval channel → first-order
+cancel reason → line status → item block reason → matching upload**.
+Cancellation reason is trimmed `ORDER_CANCEL_REASON`, with blank/null values
+shown as `[No cancellation reason recorded]`; this does not imply an uncanceled
+order. Line status uses raw `ORDER_ORDER_LINE_STATUS` codes (including C/D/R/S/X),
+with blank/null codes shown as `[Unknown line status]`. This analysis has no
+separate line-cancellation-reason field.
+
+Actual `ORDER_ITEM_BLOCK_REASON` is shown only for known non-D statuses. D lines
+use `[Not applicable: status D]`; unknown statuses use an explicit not-applicable
+node. Blank/null actual reasons appear as `[No block reason recorded]`, which
+alone does not establish an unblocked item. Block and upload nodes retain their
+line-status identity so different statuses keep separate endpoints.
+
+The third view contains only CUSTOMER_UPLOAD lines with a known non-D status,
+including C/R/S/X rather than X alone. It omits the explicit line-status column:
+**approval channel → cancel reason → item block reason → matching upload**.
+Status labels remain on its separate block/upload paths. Column headings identify
+the stages, and visible labels omit repeated prefixes; cancel reasons use purple
+and item blocks light blue.
+
+Every transition conserves that figure's distinct-line population. Full,
+CUSTOMER_UPLOAD and non-D CUSTOMER_UPLOAD figures each use their own complete
+population for node/flow percentages, rounded to two decimals, not the parent-node
+or individual-status subtotal. Transition totals must not be added together.
+
+### Matching upload entities
+
+Match `DIET_PRESCRIPTION` entities on expanded RX_ID and numeric CUSTOMER_ID
+within the extended upload window; deduplicate repeated uploads. No uploaded-file
+or association-flag filter, or upload-after-prescription-creation requirement,
+is applied. Matching entity presence does not independently verify a file.
+Upload-source audits cover the entire search window.
+
+### Outputs and reproducibility
+
+Mermaid sources live directly in `src/diagrams/<start>_<last-prescription-day>/`,
+with inclusive folder dates. Their descriptive basenames are
+`cmpu-first-order-lines_<scope>_uploads-<upload-start>_<last-upload-day>_sankey`,
+where scope is `all`, `customer-upload` or `non-d`. Transparent PNGs, titled SVGs
+and companion notes use the same dated folder under `outputs/diagrams/`.
+Titles and table notes show both prescription and upload ranges.
+
+Dated `outputs/tables/` folders contain distributions/flows for all three views,
+block-reason counts, association and line-detail previews, eligibility/source
+audits and the order-vs-line-status comparison. Markdown exports obey the 1 MB
+limit; complete source records remain in Parquet under
+`data/cmpu-first-order-line-status/`. Cache identity includes prescription/upload
+dates and the exclusive upload end, plus SQL/data fingerprints. Rendered SQL and
+execution history use `src/autogenerated/cmpu-first-order-line-status/`.
+Generated data, Mermaid sources and figures remain ignored by Git.
+
+`CACHED=1` verifies the source and regenerates outputs without querying Snowflake.
+`PRINT_SQL=1` validates dates and prints SQL without creating files. Fresh runs
+use the read-only rxp-sql runner with browser SSO. Both Make names above select
+this extended window automatically; no shorter-window flag is needed.
+
+The existing extended-window extract contains 113,608 prescriptions and 103,514
+matched unique lines, including 95,071 CUSTOMER_UPLOAD lines. Its 24,944
+CUSTOMER_UPLOAD D-status lines with uploads reconcile to the timing analysis
+before missing-approval exclusions. Historical shorter-window source extracts
+remain available; their superseded diagrams and Markdown exports are removed.
 
 ## Upload time as a share of approval time (REFNUM 18)
 
@@ -641,3 +560,567 @@ than implying a bounded cohort, with `snapshot-2026-10-23` in their filenames.
 Other folders use the source window's inclusive end (exclusive end minus one
 day). Historical October 14-upload tables remain available as data; their
 previously removed figures/companion chart notes are not recreated.
+
+## First-order-line event-time dataset (REFNUM 20)
+
+```bash
+make cmpu-first-order-line-event-times
+make cmpu-first-order-line-event-times CACHED=1
+make cmpu-first-order-line-event-times PRINT_SQL=1
+make cmpu-first-order-line-event-times START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
+```
+
+`END_DATE` is exclusive. Defaults select CMPU vet-diet CUSTOMER_UPLOAD
+prescriptions August 15–October 14, 2026 UTC, and search DIET_PRESCRIPTION
+upload entities August 1–October 25 inclusive (exclusive end = `END_DATE + 11 days`).
+Expanded RX_ID and numeric customer ID must both match. All first-order-line
+statuses and nullable IS_DELETED/IS_REFILL flags remain; this command assigns
+no survival outcomes or censoring rules.
+
+The complete calculation is in `src/sql/cmpu_first_order_line_event_times.sql`.
+It joins both FIRST_ORDER_ID and numeric FIRST_ORDERITEM_ID, collapses shipment
+rows per order/line pair, and uses the earliest populated
+MIN_APPROVED_DENIED_DATETIME. Conflicting statuses, flags, creation timestamps
+(including null versus populated) or populated cancellation timestamps stop
+exports. Multiple prescriptions referencing one line contribute their earliest
+matching upload. Missing/invalid keys and unmatched prescriptions remain in a
+separate association table.
+
+Estimated upload = line creation + 0.96 × (approval/denial minimum − creation),
+without an intercept. SQL uses decimal arithmetic and rounds the offset to the
+nearest nanosecond; timestamp strings preserve nine fractional digits through
+extraction. Python independently checks the estimate using integer nanoseconds
+and Decimal. The estimate is retained even when actual upload exists. Candidate
+upload uses actual upload first, then the estimate; event time is the earliest
+populated candidate/cancellation timestamp. A populated cancellation always
+caps the event, regardless of line status. Equal times produce `tie` while
+retaining the candidate source. Sources are `actual_upload`, `estimated_upload`,
+`order_cancellation`, `tie`, or `missing`.
+
+Unsuffixed timestamps are interpreted as UTC. Creation is checked against its
+Eastern companion where present. ORDER_CANCEL_DTTM uses the established UTC
+interpretation checked against ORDER_CANCEL_DTTM_EST in REFNUM 5; the certified
+line view has no cancellation Eastern companion. Missing creation or event
+produces null elapsed hours. Null and negative durations remain exported with
+quality flags and audit counts; missing estimate inputs leave the estimate null.
+
+Extract, SQL/date fingerprints, provenance, validated line/association/audit
+Parquets and export fingerprints live under
+`data/cmpu-first-order-line-event-times/<start>_<exclusive-end>_uploads-<upload-start>_<exclusive-upload-end>/`.
+Rendered SQL/history use the same variant under
+`src/autogenerated/cmpu-first-order-line-event-times/`.
+Descriptive `cmpu-first-order-line-event-times_uploads-<upload-start>_<exclusive-upload-end>_{lines,associations,audit}.md`
+files live directly in `outputs/tables/<start>_<inclusive-last-day>/`.
+Generated artifacts are ignored by Git. Cached mode verifies SQL, dates and the
+extract fingerprint and repeats the independent audit without connecting;
+SQL-only mode prints the query without writing files or connecting.
+
+## First-order-line survival curve (REFNUM 21)
+
+```bash
+# Reuse the audited REFNUM 20 extract; no Snowflake connection is made.
+make cmpu-first-order-line-survival
+make cmpu-first-order-line-survival START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
+```
+
+Run `make cmpu-first-order-line-event-times` first if its matching extract is
+missing. The survival command verifies that extract's SQL, dates and fingerprint
+and repeats its source audit before deriving outcomes. It uses the same
+prescription/upload windows, all statuses and nullable flags, and one observation
+per distinct order/order-line pair. No new dependency is required.
+
+Default interpretation: the event is REFNUM 20's earlier actual/estimated upload
+or order cancellation, including ties. The curve estimates the probability of
+still awaiting either upload or cancellation after elapsed days from line
+creation. It does not estimate upload completion alone. Estimated upload times
+use REFNUM 20's fixed 0.96 rule and are treated as event times.
+
+Right-censor missing events and events later than the exclusive upload end
+(`END_DATE + 11 days`; October 26, 2026 at 00:00 UTC by default) at that cutoff.
+An event exactly at the cutoff is observed. The source must have been extracted
+at or after the cutoff. Exclude negative event durations, missing creation and
+creation after cutoff from the curve, retaining every line in the detail export.
+Zero durations remain. No 12-day truncation or outlier removal is applied.
+
+The Kaplan–Meier calculation groups exact integer nanosecond durations; tied
+events use the risk set before censoring at the same duration. Every event-time
+risk set and survival probability is checked against the installed statsmodels
+SurvfuncRight estimator. Shading shows pointwise 95% log-log Greenwood confidence
+intervals conditional on the supplied event times; it does not include uncertainty
+from the upload-estimation rule. Independent right censoring is assumed.
+
+Transparent PNG and companion notes use descriptive
+`cmpu-first-order-line-survival_uploads-<upload-start>_<exclusive-upload-end>`
+filenames directly under `outputs/charts/<start>_<inclusive-last-day>/`.
+Line details, the full exact curve (including events, censoring and numbers at
+risk), selected-day risk table and audit Markdown files use the matching dated
+`outputs/tables/` folder. For PNG rendering only, the first and last exact step
+within each horizontal output-pixel bin are retained to bound renderer memory;
+the curve tables retain every step. The PNG displays days 0–13 with labeled vertical markers at days 3, 6, 10 and 11;
+horizontal guides label the survival probabilities at days 3, 6 and 10.
+The curve tables retain the full observed follow-up.
+Derived Parquets and a manifest recording source/export fingerprints, endpoint,
+cutoff and exclusion/interval rules live under
+`data/cmpu-first-order-line-survival/<same-run-variant-as-REFNUM-20>/`.
+Generated outputs stay ignored by Git.
+
+## Same-product reorders within seven days of aged cancellation (REFNUM 22)
+
+```bash
+make aged-order-same-product-reorders AS_OF_DATE=2026-10-27
+make aged-order-same-product-reorders AS_OF_DATE=2026-10-27 CACHED=1
+make aged-order-same-product-reorders AS_OF_DATE=2026-10-27 PRINT_SQL=1
+# Optional broader original prescription cohort:
+make aged-order-same-product-reorders AS_OF_DATE=2026-10-27 APPROVAL_CHANNEL=ALL
+```
+
+Defaults select CMPU vet-diet CUSTOMER_UPLOAD prescriptions created
+August 15–October 14, 2026 UTC. `START_DATE` is inclusive, `END_DATE` exclusive;
+`APPROVAL_CHANNEL=ALL` includes every approval channel. `AS_OF_DATE` defaults to
+today's UTC date at 00:00, and must be at or after `END_DATE` and not in the
+future. Supply it explicitly when reproducing a saved snapshot.
+
+The cohort uses prescription-referenced first-order lines, joined on both
+FIRST_ORDER_ID and numeric FIRST_ORDERITEM_ID. Recorded cancellation reason,
+trimmed and case-normalized, must be Aged Order; a canceled line status alone
+does not establish that reason. An order cancellation is the timestamped event
+for every associated original line. Shipment rows and repeated prescription
+associations are collapsed before counting. All original associations and line
+eligibility states remain available, including non-aged lines and missing keys.
+
+Reorder attempts require the same CUSTOMER_ID and exact PRODUCT_ID on a
+*different* order whose ORDER_PLACED_DTTM lies strictly after cancellation and
+at or before cancellation + 168 hours, and no later than `AS_OF_DATE` at 00:00 UTC.
+No reorder approval-channel, prescription-source or terminal-status filter is
+applied. Later lines are searched in the certified RxP order-line view; this does
+not search purchases outside that view. The line view supplies
+PRODUCT_PART_NUMBER, which maps to PRODUCT_ID through the latest PDM.PRODUCT
+snapshot and last-update timestamp; ambiguous tied mappings stop validation.
+Customer mismatches or product mismatches between a prescription and an aged
+original line also stop validation. Product mismatches outside the aged cohort
+are audited separately, because those lines do not enter reorder rates.
+
+Only cancellations with a complete seven-day follow-up window and usable
+customer/product/cancellation keys enter rate denominators. Incomplete follow-up
+and cancellations after as-of are reported separately. Customers and
+customer/product pairs enter the denominator if they have at least one eligible
+cancellation; only matches from eligible cancellations enter their numerators.
+Repeated cancellations retain their matches in details; customers and
+customer/product pairs each count once in their respective summaries.
+
+Placed attempts include reorders later canceled. The separate shipped result
+requires ORDER_LINE_SHIPPED_DTTM at or before as-of; shipping may occur more than
+seven days after the original cancellation, provided the reorder was placed
+within seven days. This is evidence of some shipment, not proof of delivery or
+full-quantity fulfillment. A separate detail flag records shipment within seven
+days of cancellation. Raw line statuses are current extraction-time snapshots,
+not reconstructed historical as-of statuses. UTC placement and shipment times
+are checked against available Eastern companions; cancellation follows the UTC
+interpretation established in REFNUM 5. Timestamps retain nanosecond precision.
+
+The complete extraction SQL is
+`src/sql/aged_order_same_product_reorders.sql`. Fresh mode uses the read-only
+Snowflake runner and browser SSO. `PRINT_SQL=1` prints without connecting or
+writing; `CACHED=1` verifies SQL, dates, channel and extract fingerprints and
+reruns validation without connecting. Fresh validation must pass before a source
+manifest is written.
+
+Extract, provenance, validated Parquets and fingerprints live under
+`data/aged-order-same-product-reorders/<start>_<exclusive-end>_<channel>_reorders-7d_as-of-<date>/`.
+Rendered SQL/history use the matching variant under
+`src/autogenerated/aged-order-same-product-reorders/`.
+Five descriptive Markdown exports—prescription associations, original line
+eligibility/details, reorder matches, summary and audit—live directly under
+`outputs/tables/<start>_<inclusive-last-day>/`, with filenames identifying channel,
+seven-day window and as-of date. These generated artifacts are ignored by Git.
+
+### Prescription reuse on seven-day reorders (REFNUM 22 follow-up)
+
+```bash
+make aged-order-reorder-prescriptions
+make aged-order-reorder-prescriptions CACHED=1
+make aged-order-reorder-prescriptions PRINT_SQL=1
+```
+
+This command uses the fingerprint-checked REFNUM 22 cache for CUSTOMER_UPLOAD,
+with the same default prescription dates and `AS_OF_DATE=2026-10-27` (explicitly
+configurable). It revalidates the baseline and selects only eligible, complete
+seven-day cancellation/reorder-line matches. It does not refresh the baseline or
+change its customer denominator. SQL-only mode reads that local cache to obtain
+the frozen keys, then prints without connecting or writing files.
+
+The read-only enrichment fetches RX_ID and RX_USAGE_ID for the exact original
+and reorder order/line keys. RX_ID defines prescription identity; different
+RX_USAGE_IDs do not imply different prescriptions. One populated RX_ID on each
+side gives Same prescription or Different prescription. Multiple IDs are a
+separate category; any missing or partially missing ID evidence gives Unknown.
+No arbitrary MIN(RX_ID) or missing-ID fallback is used. The comparison reflects
+line associations at enrichment extraction, not guaranteed historical assignment
+at order placement. Original cohort prescription references and their agreement
+with line RX_ID sets remain visible for auditing.
+
+Customers or reordered lines associated with several cancellations can have
+multiple comparison types. Summary categories are mutually exclusive combinations
+of the observed types. Customer details also provide nonexclusive any-same,
+any-different and unresolved flags. The summary includes all reorder attempts
+and the subset with shipment evidence by the baseline as-of cutoff.
+
+Four descriptive Markdown line-pair/customer/summary/audit tables live directly
+in the dated `outputs/tables/` folder. The matching variant under
+`data/aged-order-reorder-prescriptions/` retains source/derived Parquets and
+baseline, SQL and enrichment fingerprints; generated SQL/history uses
+`src/autogenerated/aged-order-reorder-prescriptions/`. Cached mode verifies the
+frozen baseline and enrichment identity before repeating the comparison.
+
+### Approval channels on reordered prescriptions (REFNUM 22 follow-up)
+
+```bash
+make aged-order-reorder-approval-channels
+make aged-order-reorder-approval-channels CACHED=1
+make aged-order-reorder-approval-channels PRINT_SQL=1
+```
+
+Uses the frozen REFNUM 22 baseline and prescription-ID enrichment caches, with
+the same default dates and `AS_OF_DATE=2026-10-27`. It repeats both source audits,
+then joins the RX_IDs on eligible reordered lines to RXP_PRESCRIPTIONS for
+APPROVAL_CHANNEL, without filtering the reordered prescription's channel. It
+preserves the prior prescription/line/customer populations. Channel values are
+current lookup-time values, not a historical reconstruction at order placement.
+
+The summary distinguishes unique prescriptions, unique reordered order/line
+pairs, mutually exclusive customer channel combinations, and nonexclusive
+customers with any use of each channel. Customers with several channels can
+appear in several any-channel rows; those counts must not be added. All reorder
+attempts and the shipped-by-as-of subset are reported separately. Missing RX_ID,
+unmatched prescriptions and missing approval channels remain separate categories;
+duplicate prescription source rows stop validation.
+
+Four descriptive Markdown line-detail/prescription/summary/audit files are saved
+directly in the dated `outputs/tables/` folder. Lookup/derived Parquets and
+fingerprints use the matching variant under
+`data/aged-order-reorder-approval-channels/`; SQL/history use
+`src/autogenerated/aged-order-reorder-approval-channels/`. The SQL template is
+`src/sql/aged_order_reorder_approval_channels.sql`. SQL-only mode reads the frozen
+local caches but does not connect or write files. Cached mode validates frozen
+prescription evidence, SQL and lookup fingerprints and regenerates the tables.
+
+### Upload entities for different reorder prescriptions (REFNUM 22 follow-up)
+
+```bash
+make aged-order-reorder-uploads
+make aged-order-reorder-uploads CACHED=1
+make aged-order-reorder-uploads PRINT_SQL=1
+```
+
+Uses the frozen reorder, prescription-ID and approval-channel caches with their
+fingerprints and original dates (`AS_OF_DATE=2026-10-27` by default). Selects only
+Different prescription line pairs; a different RX_ID is not necessarily a
+prescription newly created after cancellation. The default population is 2,139
+distinct RX_ID/customer pairs on eligible seven-day reorders; original
+same-prescription reuse is excluded.
+
+The read-only query searches RXP_UPLOAD_ENTITY for DIET_PRESCRIPTION entities
+across all available history through as-of midnight UTC inclusive, with no lower
+upload-date bound. Undated records are retained separately. It expands the
+brace/comma RX_ID list, matches RX_ID and numeric CUSTOMER_ID, and deduplicates
+repeated RX tokens. Repeated uploads do not multiply prescription counts; one
+entity may legitimately reference several prescriptions. Other-customer and
+invalid/missing customer associations are audited. Missing or duplicate related
+upload IDs stop validation. Prescription ownership is checked against the registry.
+
+Matching upload entity presence is separate from HAS_UPLOADED_FILE=true. No
+uploaded-file, association, deletion or order-ID predicate restricts the search.
+The summary reports dated matching uploads by as-of, undated-only evidence, no
+matching upload and the separate recorded-file-upload count, overall and by the
+previously frozen approval channel. All different prescriptions and those linked
+to shipped reorders are reported separately. No matching entity does not establish
+that the customer never uploaded through another record type or after as-of.
+
+Entity links and HAS_UPLOADED_FILE flags reflect lookup-time state; the as-of
+cutoff filters entity creation time and does not reconstruct historical file
+attachment or RX-link changes.
+
+Upload presence does not require a new upload after cancellation. Line-pair
+details retain the original cancellation and prescription creation time, first
+and last upload times, and counts of uploads before/at and after cancellation.
+A different RX_ID may be associated with several cancellations; temporal evidence
+is evaluated against each cancellation independently. Datetimes preserve
+nanosecond precision, and unknown file flags/undated uploads remain audited.
+
+Five descriptive dated Markdown prescription/line-pair/upload-association/summary/
+audit files use `outputs/tables/<start>_<last-day>/`. Extract/derived Parquets and
+all frozen-input/source/export fingerprints use the matching run variant under
+`data/aged-order-reorder-uploads/`. SQL template:
+`src/sql/aged_order_reorder_uploads.sql`; generated SQL/history:
+`src/autogenerated/aged-order-reorder-uploads/`. SQL-only mode reads the frozen
+local caches but does not connect or write; cached mode verifies all inputs and
+regenerates the exports without connecting.
+
+## Seven- and fourteen-day reorder customer populations (REFNUM 23)
+
+```bash
+make aged-order-reorder-windows AS_OF_DATE=2026-10-27
+make aged-order-reorder-windows AS_OF_DATE=2026-10-27 CACHED=1
+make aged-order-reorder-windows AS_OF_DATE=2026-10-27 PRINT_SQL=1
+```
+
+This standalone target calculates both horizons in one source snapshot.
+It now requires the same CUSTOMER_ID, PRODUCT_ID and PET_ID by default.
+Use MATCH_PET=0 to reproduce the earlier customer/product-only definition. The
+original prescription cohort remains CMPU vet diet, CUSTOMER_UPLOAD, created
+August 15–October 14, 2026 UTC, using first-order Aged Order cancellations.
+`START_DATE` and exclusive `END_DATE` are configurable. `AS_OF_DATE` defaults to
+2026-10-27 at 00:00 UTC, preserving the agreed data cutoff; it must be at or after
+`END_DATE` and no later than the current UTC date. The existing seven-day target,
+extracts and subsequent prescription/channel/upload analyses remain separate.
+
+Each horizon uses its own complete-follow-up population:
+
+| Horizon | Latest eligible cancellation with the default cutoff | Reorder placement window |
+| --- | --- | --- |
+| 7 days | October 20, 2026 at 00:00 UTC | Strictly after cancellation through cancellation + 168 hours, inclusive |
+| 14 days | October 13, 2026 at 00:00 UTC | Strictly after cancellation through cancellation + 336 hours, inclusive |
+
+The denominator is distinct customers with at least one eligible cancellation
+and usable customer/product/pet keys. The numerator is customers placing an order
+for the exact same PRODUCT_ID and PET_ID on a different order within that eligible
+cancellation's window. Count customers once per horizon across repeated products,
+orders, prescription associations and cancellations. Fourteen days is cumulative,
+including days 1–7. All placed statuses count, even if the reorder later cancels;
+shipment/approval is not required. Reorders tied to immature cancellations cannot
+enter either numerator, even if that customer has another mature cancellation.
+The populations differ, so the raw 14-day reordered count is not required to
+exceed the 7-day count. Within the common 14-day-mature cancellation population,
+all seven-day evidence must remain present in the fourteen-day result.
+
+Same-pet SQL lives in `src/sql/aged_order_reorder_windows_same_pet.sql`;
+`src/sql/aged_order_reorder_windows.sql` retains the customer/product-only query. It retains the established
+both-key first-order join, certified order-line shipment collapse, latest
+PDM.PRODUCT exact PRODUCT_ID mapping, conflict indicators and UTC timestamps.
+Both horizons are explicit in SQL, including follow-up end/maturity and matching
+boundaries. Python independently validates SQL maturity, source associations,
+matching keys/timestamps, customer aggregation and population containment.
+The shared REFNUM 22 validation function accepts a keyword-only followup_days
+argument of 7 or 14; its default and original target remain seven days.
+
+Fresh mode queries read-only Snowflake via browser SSO. SQL-only mode prints
+without connecting or writing. Cached mode verifies SQL, dates, both horizons and
+extract fingerprints and repeats validation without connecting.
+
+The two-row summary reports horizon, latest eligible cancellation UTC, eligible
+customers, reordered customers and reorder percentage. Customer flags,
+association details, cancellation eligibility/details, reorder matches and audits
+are exported alongside it. All six Markdown files live directly under
+`outputs/tables/<start>_<inclusive-last-day>/`, with analysis/channel/7d-14d/as-of
+filenames. Extract/derived Parquets and fingerprints use the matching variant
+under `data/aged-order-reorder-windows/`; rendered SQL/history use
+`src/autogenerated/aged-order-reorder-windows/`. Generated artifacts remain ignored.
+
+### Customers by reorder day for the fourteen-day population (REFNUM 23)
+
+```bash
+make aged-order-reorder-daily-customers
+```
+
+Reads the fingerprint-checked `aged-order-reorder-windows` source cache and
+repeats its audit without connecting to Snowflake. Supports the same START_DATE,
+exclusive END_DATE and AS_OF_DATE defaults. Run the windows target first if its
+matching source cache is missing.
+
+Each customer is counted exactly once, at their shortest exact elapsed time
+across eligible fourteen-day same-product cancellation/reorder matches. This is
+the customer's minimum observed qualifying delay, rather than necessarily their
+chronologically first order. Equal delays choose the earlier reorder timestamp,
+then reorder/original order-line IDs for deterministic detail exports.
+Day 1 covers (0,24] hours, day 2 (24,48], through day 14 (312,336]. All fourteen
+bins are shown, including zeros. Daily counts sum to the 3,286 same-pet reordered
+customers, drawn from the 17,501-customer fourteen-day complete-follow-up
+population in the default snapshot. MATCH_PET=0 retains the earlier 3,383 count. Customers without reorders are excluded
+from the histogram, and placed attempts do not require shipment/approval.
+
+The transparent PNG and companion notes live directly in the matching dated
+`outputs/charts/` folder with the windows run prefix plus
+`14d-customers-by-reorder-day`. Daily-count and selected-customer Markdown tables
+use the matching flat dated `outputs/tables/` folder. Selected-customer and bin
+Parquets plus source/export/chart fingerprints are saved under
+`data/aged-order-reorder-daily-customers/<windows-run-variant>/`.
+
+
+### Pet-identity rule and preserved comparisons
+
+```bash
+make aged-order-reorder-windows MATCH_PET=1
+make aged-order-reorder-windows MATCH_PET=1 CACHED=1
+make aged-order-reorder-windows MATCH_PET=1 PRINT_SQL=1
+make aged-order-reorder-daily-customers MATCH_PET=1
+# Prior definition and frozen output variant:
+make aged-order-reorder-windows MATCH_PET=0 CACHED=1
+```
+
+MATCH_PET defaults to 1 on these two Make targets. The Python CLI's `--same-pet`
+flag selects the new mode; programmatic defaults remain compatible with existing
+REFNUM 22 callers. The certified order-line view supplies PET_ID directly; no
+pet-name/profile join or fallback to prescription identity is used. Collapse
+shipment rows before comparing known, unambiguous original/reorder PET_IDs.
+Null pet IDs do not equal one another. Missing/ambiguous original pets are
+excluded from population rates and audited; candidate reorder lines with missing
+or ambiguous pets cannot qualify. Candidate-pool pet audit counts cover both
+horizons and are repeated in each horizon's audit, so do not sum them across
+horizons. The pet IDs are current line associations at extraction time.
+
+The same-pet run uses a separate `customer_upload_same-pet_reorders-7d-14d_as-of-...`
+variant across data, generated SQL, Markdown tables and plots. Earlier two-key
+results and the frozen REFNUM 22 prescription/channel/upload follow-ups are
+retained and are not silently reinterpreted as same-pet results. Fresh matching
+validates all three identities independently in Python as well as SQL.
+
+With the October 27 cutoff, the same-pet results are 1,773/19,131 customers at
+seven days (9.27%) and 3,286/17,501 at fourteen days (18.78%). Original eligible
+lines and the shared customer/product candidate reorder pool have no missing or
+ambiguous pet identities in this snapshot. The fourteen-day plot counts each
+customer once at their shortest qualifying same-customer/product/pet delay.
+
+### Twenty-one-day same-customer/product/pet reorders (REFNUM 23)
+
+```bash
+make aged-order-reorder-windows INCLUDE_21_DAYS=1
+make aged-order-reorder-windows INCLUDE_21_DAYS=1 CACHED=1
+make aged-order-reorder-windows INCLUDE_21_DAYS=1 PRINT_SQL=1
+make aged-order-reorder-daily-customers FOLLOWUP_DAYS=21
+```
+
+INCLUDE_21_DAYS=1 adds the cumulative 21-day horizon alongside seven and fourteen
+days in one fresh snapshot. It requires same-pet matching (MATCH_PET=1, the Make
+default). The original prescription cohort, exact customer/product/pet matching,
+different-order rule and cutoff remain unchanged. With AS_OF_DATE=2026-10-27,
+the 21-day population requires cancellation at or before October 6 at 00:00 UTC;
+placements must be strictly after cancellation and at or before cancellation +
+504 hours. Customers count once, and immature cancellations cannot contribute.
+Each horizon uses its own denominator; the 21-day population must be contained
+in the 14-day population, with outcome monotonicity checked only within the
+common mature cancellation population.
+
+This mode uses a separate same-pet `reorders-7d-14d-21d` variant for data, SQL,
+metadata and six dated Markdown exports, preserving previous 7/14-day snapshots.
+The template is `src/sql/aged_order_reorder_windows_same_pet_21_days.sql`; rendered
+SQL/history use the matching `src/autogenerated/aged-order-reorder-windows/`
+variant. The summary has three rows and states each latest eligible cancellation
+time. Fresh, cached and SQL-only controls follow the existing windows target.
+
+FOLLOWUP_DAYS=21 creates the daily plot from that fingerprint-checked local source
+cache without querying Snowflake. Each customer counts once at their shortest
+qualifying same-customer/product/pet delay. Day 1 is (0,24] hours and day 21 is
+(480,504]; all 21 bins are shown. The PNG, companion notes and count/customer
+Markdown tables use the new run variant plus `21d-customers-by-reorder-day`;
+selected-customer/bin Parquets and fingerprints use the corresponding variant
+under `data/aged-order-reorder-daily-customers/`. The fourteen-day plot remains
+available with FOLLOWUP_DAYS=14 and the existing 7/14 source cache.
+
+### Reorder prescription identity and approval-channel Sankeys (REFNUM 24)
+
+```sh
+# Prerequisite: frozen exact-customer/product/pet 7/14/21-day matches.
+make aged-order-reorder-windows INCLUDE_21_DAYS=1
+# Inspect the read-only enrichment SQL without querying or writing outputs.
+make aged-order-reorder-prescription-sankeys PRINT_SQL=1
+# Fresh prescription/channel enrichment and three transparent Mermaid Sankeys.
+make aged-order-reorder-prescription-sankeys
+# Revalidate the frozen cohort and enrichment fingerprints, then regenerate outputs.
+make aged-order-reorder-prescription-sankeys CACHED=1
+```
+
+Optional `START_DATE=2026-08-15 END_DATE=2026-10-15 AS_OF_DATE=2026-10-27` uses an exclusive prescription end and an as-of cutoff at 00:00 UTC. The prerequisite cache must use the same dates and `INCLUDE_21_DAYS=1` with same-pet matching. Docker must already be running for Mermaid rendering.
+
+Each horizon counts a reordered customer once, selecting the cancellation/reorder pair with the shortest exact delay. Ties use earlier reorder placement, reorder order/line IDs, then original order/line IDs. Original and reordered lines must have the same customer, product and populated unambiguous pet. This selection matches the daily plot and is not necessarily the customer's chronologically first reorder. Separate complete-follow-up populations apply to each horizon; placed attempts count regardless of shipment or later status.
+
+The diagrams show reordered customers → prescription identity → approval channel **only for Different prescription**. Compare actual line `RX_ID` evidence; `RX_USAGE_ID` does not define identity. Missing/partial IDs are Unknown, and multiple IDs remain separate. Same prescription and unresolved categories terminate at the identity stage. Diagram percentages use all reordered customers in that horizon; channel tables also show the percentage within Different prescription customers. Customers without reorders remain outside the diagrams. Current line associations and registry approval channels do not establish historical assignment/channel at placement.
+
+Extracts, validated details/distributions/flows/audits and SHA-256 manifests are under `data/aged-order-reorder-prescription-sankeys/<period>/`. SQL and query history are under `src/autogenerated/aged-order-reorder-prescription-sankeys/<period>/aged_order_reorder_prescription_sankeys.sql`. Descriptive Markdown tables are directly under `outputs/tables/<inclusive-date-range>/`; PNG/SVG diagrams and notes are under `outputs/diagrams/<inclusive-date-range>/`, with Mermaid sources under `src/diagrams/<inclusive-date-range>/`. Names retain the horizon, same-pet variant and cutoff. Previous REFNUM 22 enrichments and diagrams are preserved.
+
+### Upload and approval/denial evidence for different reorder prescriptions
+
+```sh
+# Requires the frozen REFNUM 24 prescription/channel enrichment above.
+make aged-order-reorder-upload-approval-evidence PRINT_SQL=1
+make aged-order-reorder-upload-approval-evidence
+make aged-order-reorder-upload-approval-evidence CACHED=1
+```
+
+Supports the same `START_DATE`, exclusive `END_DATE` and `AS_OF_DATE` as the Sankeys. Revalidates the 7/14/21-day same-customer/product/pet cache and REFNUM 24 enrichment, selecting one shortest-delay pair per customer/horizon. Counts **distinct different RX_IDs within each horizon**; the horizons overlap and must not be added together. Approval channel is the frozen REFNUM 24 value.
+
+Entity uploads follow the established REFNUM 22 rules: `DIET_PRESCRIPTION`, expanded RX_ID plus exact numeric customer ID, all history through the as-of date at 00:00 UTC inclusive. The main overlap counts require a dated entity by cutoff; undated entity records and `HAS_UPLOADED_FILE=true` evidence are separate measures. No after-cancellation upload requirement is imposed. An entity record alone does not prove an uploaded file.
+
+The approval/rejection field used is the certified line view's `MIN_APPROVED_DENIED_DATETIME`, interpreted as UTC as in REFNUM 20. Take the earliest populated minimum across shipment rows of each selected reordered line. Check whether any selected line for that prescription **within that horizon** has a non-null minimum. This is current non-null evidence and is not restricted to decision timestamps before cutoff; after-cutoff minima are reported separately. A different line selected for the same prescription in another horizon cannot supply its timestamp. Current line RX_IDs must agree with the frozen selection.
+
+Four mutually exclusive categories are Both upload and decision timestamp, Upload only, Decision timestamp only and Neither. Additional upload, decision and union totals overlap. Summary tables include All channels and individual approval channels. Dated Markdown summary/prescription/customer/upload-association/line-evidence/audit tables are under `outputs/tables/<inclusive-date-range>/`; extracts/Parquets/fingerprints are under `data/aged-order-reorder-upload-approval-evidence/<period>/`; generated SQL/history under `src/autogenerated/aged-order-reorder-upload-approval-evidence/<period>/`.
+
+To add the upload/decision evidence as a fourth stage to all three REFNUM 24 Sankeys:
+
+```sh
+make aged-order-reorder-prescription-sankeys WITH_EVIDENCE=1 CACHED=1
+```
+
+`WITH_EVIDENCE=1` (`--with-evidence`) always reads and revalidates the frozen prescription/channel and upload/decision caches; it runs no Snowflake query. Refresh those prerequisite analyses separately when needed. Each approval-channel node splits into **Both upload and decision time**, **Upload only**, **Decision time only**, or **Neither**, retaining channel-specific terminal nodes. Decision time is the current non-null `MIN_APPROVED_DENIED_DATETIME` check, including after-cutoff minima; uploads retain the existing dated-entity cutoff. Same prescription and unresolved identity categories terminate before the channel stage. Each customer counts once per horizon and all node percentages use the full reordered-customer denominator. These diagrams count customers; the preceding upload/decision analysis counts distinct prescriptions (the counts coincide for the current per-horizon selections).
+
+Four-stage PNG/SVG/Mermaid sources and Markdown tables have `with-upload-decision-evidence` in their filenames; derived Parquets and manifests use a separate `<period>_with-upload-decision-evidence` directory under `data/aged-order-reorder-prescription-sankeys/`. The original three-stage outputs are preserved. Export manifests record both prescription/channel and upload/decision source fingerprints.
+
+Sankey subtitles show the inclusive maximum eligible order-line cancellation timestamp (`AS_OF_DATE` at 00:00 UTC minus the horizon). With the October 27 cutoff, these limits are October 20, October 13 and October 6 at 00:00 UTC for 7, 14 and 21 days. These are eligibility limits, not the latest observed cancellation times.
+
+### WISMO after aged cancellation and before reorder (REFNUM 25)
+
+The user confirmed that `FCT_CONTACTS_BRD.SESSION_START_DTTM` is **UTC** on October 27, 2026. Use `CONTACT_TIMEZONE=UTC` for this analysis. The Snowflake type is `TIMESTAMP_NTZ(9)`, so the workflow still requires an explicit timezone rather than inferring one from the type. `America/New_York` remains available only for a separately confirmed Eastern source.
+
+```sh
+make aged-order-reorder-wismo CONTACT_TIMEZONE=UTC PRINT_SQL=1
+make aged-order-reorder-wismo CONTACT_TIMEZONE=UTC
+make aged-order-reorder-wismo CONTACT_TIMEZONE=UTC CACHED=1
+# Add WISMO as a fifth categorical stage to the active 7/14/21-day Sankeys.
+make aged-order-reorder-prescription-sankeys WITH_WISMO=1 CONTACT_TIMEZONE=UTC CACHED=1
+```
+
+The contact extraction revalidates the frozen REFNUM 24 selection; supports the same `START_DATE`, exclusive `END_DATE` and midnight-UTC `AS_OF_DATE`; and retains all selected reordered customers, including same-prescription reuse. Match `EDLDB.BT_CUSTOMER_CARE.FCT_CONTACTS_BRD.ORDER_ID` to the **original aged order**, never the reordered order. Require both `CATEGORY_WISMO_FLAG=TRUE` and `HANDLED_FLAG=TRUE`, and strictly:
+
+```text
+original cancellation time < contact SESSION_START_DTTM converted to UTC < selected reorder placement
+```
+
+Contacts exactly at cancellation or reorder are excluded, as are missing contact timestamps. An agent leg starting later does not qualify a session that started before cancellation. `wismo_contact_count` follows the supplied `COUNT(*)` over matching contact legs; distinct sessions, earliest/latest qualifying session start, sorted distinct channels, source/interval audits and individual contact/interval associations are also exported. A handled contact can contain several legs; no silent session deduplication changes the requested count. Deduplicate order/time lookup intervals before querying, then map back to the existing one-customer-per-horizon selection. Horizon and interval contact totals can overlap; they are not unique global contacts. Contact evidence is order-level, not proof about a specific item or pet.
+
+WISMO outputs are under `data/aged-order-reorder-wismo/<period>/<timezone>/`, generated SQL/history under `src/autogenerated/aged-order-reorder-wismo/<period>/<timezone>/`, and descriptive Markdown summary/customer/interval/contact/audit tables directly under the dated `outputs/tables/` folder. Timezone, SQL, frozen dependencies and Parquet/export hashes must agree for cached runs.
+
+`WITH_WISMO=1` implies the existing upload/decision evidence stage and reads only validated caches. The final WISMO stage counts **customers**, splitting all previous terminal paths into Handled contact before reorder versus No dated matching contact. Same/unresolved prescription categories also flow into this stage. A no-match label is limited to the strict interval; undated source contacts are audited separately. The diagram is a categorical breakdown, not a chronological ordering of the stages. New diagram/table/data names include `with-wismo-<timezone>` and preserve all previous variants.
+
+To remove the WISMO category restriction while retaining the strict cancellation-to-reorder contact window, use `ALL_CONTACTS=1` on the contact and Sankey targets. To remove the contact time restriction too, use **`ALL_ORDER_HISTORY=1`**, which implies all handled contact categories:
+
+```sh
+make aged-order-reorder-wismo CONTACT_TIMEZONE=UTC ALL_ORDER_HISTORY=1 PRINT_SQL=1
+make aged-order-reorder-wismo CONTACT_TIMEZONE=UTC ALL_ORDER_HISTORY=1
+make aged-order-reorder-wismo CONTACT_TIMEZONE=UTC ALL_ORDER_HISTORY=1 CACHED=1
+make aged-order-reorder-prescription-sankeys CONTACT_TIMEZONE=UTC ALL_ORDER_HISTORY=1 CACHED=1
+```
+
+The all-history mode keeps `HANDLED_FLAG=TRUE` and joins only the original aged order. There is **no `CATEGORY_WISMO_FLAG` predicate and no contact timestamp predicate**. True, false and null categories, contacts before cancellation, exact boundaries, after reorder, after the cohort cutoff and missing contact timestamps are included. The reorder cohort and its 7/14/21-day maturity rules remain unchanged. Contact history reflects the available data at lookup time, not presence as of the cohort cutoff or before reorder. Distinct sessions and earliest/latest populated timestamps remain separate from `COUNT(*)` contact-leg totals; undated contacts count as present.
+
+Each mode has separate SQL/extract/cache/export/diagram variants: WISMO-only strict, all handled categories strict, and all handled order history. All-history source paths append `_all-handled-contacts_all-order-history`; diagram/data variants include `with-all-handled-contacts-all-history-UTC`. Metadata fingerprints bind both category scope and time scope. Neutral exported fields include `contact_count`, `has_handled_contact`, `first_contact_dttm`, `last_contact_dttm`, `customers_with_contact` and `customers_without_contact`. The source's actual `category_wismo_flag` is retained in contact evidence. The all-history Sankey stage is labeled Contacts on aged order / all history; earlier variants are preserved.
+
+For the all-handled-contact diagrams, contact presence appears **immediately after Reordered customers**: Reordered customers → Contacts on aged order → Prescription identity → Approval channel → Upload/decision evidence. Counts and the all-history contact definition are unchanged by this layout. Contact branches merge into prescription identity; subsequent channel/evidence nodes show overall totals.
+
+### Contact timing around aged-order cancellation (REFNUM 26)
+
+```sh
+make aged-order-contact-cancellation-distribution
+# Optional cohort parameters must match the existing all-history contact cache.
+make aged-order-contact-cancellation-distribution START_DATE=2026-08-15 END_DATE=2026-10-15 AS_OF_DATE=2026-10-27
+```
+
+Reads and revalidates the frozen 7/14/21-day same-customer/product/pet reorder sources and the **all-category, all-history handled-contact cache** from REFNUM 25 (`CONTACT_TIMEZONE=UTC ALL_ORDER_HISTORY=1`). No Snowflake query runs. Each customer retains their selected shortest-delay original cancellation/reorder pair, but every handled contact leg on that aged order contributes to the distribution. A customer can contribute several contact legs and several bins. Cohorts overlap, so their contact totals must not be summed as globally unique contacts.
+
+Lag is UTC contact `SESSION_START_DTTM` minus the original aged-order cancellation time. Signed 24-hour bins use exact integer nanosecond floor division and intervals `[day,day+1)`: e.g. `[-2,-1)` is 24–48 hours before cancellation and `[4,5)` is 96–120 hours after. Day 0 covers `[0,24)` hours starting at cancellation. Exact-cancellation contacts are also counted separately in the summary. Missing contact times remain in contact details and summaries and are excluded only from the dated histogram denominator.
+
+Generates three transparent Altair PNG histograms with identical day and percentage axes, a vertical day-0 cancellation marker, before/at-after colors, contact totals and top-bin count labels. Y is share of dated contact legs within each horizon; counts and per-bin distinct customers/sessions are in the exported tables. All zeros and tails are retained. Files are under dated `outputs/charts/` and `outputs/tables/`; bins, summaries, contact details and dependency/source/export/figure fingerprints are under `data/aged-order-contact-cancellation-distribution/<period>_all-handled-contacts_all-order-history_UTC/`. The source SQL remains the REFNUM 25 all-order-history query; no new warehouse SQL is required.
+
+### Markdown export size limit
+
+Every generated `.md` file is limited to **1,000,000 bytes (1 MB)**. Large tables produce an explicitly labeled preview of up to 25 rows; complete records remain in the analysis's `data/` Parquet extracts. A final file-level check also bounds reports containing several tables or long notes. Small Markdown exports and non-Markdown outputs retain their existing contents.
+
+Python generators use `markdown_table(frame)` for bounded table formatting and `write_text(path, text)` from `src.python.markdown_tables` for text exports. The writer applies the size cap only to `.md` files; SQL, JSON, Mermaid, SVG and other text exports pass through unchanged. Keep these helpers when adding generators. Existing large Markdown files were removed; Parquet data, figures and compact summaries are retained. Regenerating an analysis now produces only size-limited Markdown previews and summaries.

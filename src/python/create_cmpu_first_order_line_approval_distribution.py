@@ -13,6 +13,7 @@ import pandas as pd
 
 from src.python.create_cmpu_prescription_first_order_status import ROOT, RUNNER, digest, AUDIT_COLUMNS
 from src.python.markdown_tables import markdown_table
+from src.python.markdown_tables import write_text
 
 NAME = 'cmpu-first-order-line-approval-distribution'
 TEMPLATE = ROOT / 'src/sql/cmpu_first_order_line_approval_distribution.sql'
@@ -260,7 +261,7 @@ def write_outputs(frame, metadata, charts, tables):
     stem = chart_stem(metadata)
     for name, data in [('associations', associations), ('order-lines', lines), ('eligibility', audit),
                        ('statistics', stats), ('hourly-bins', bins)]:
-        (tables / f'{stem}_{name}.md').write_text(f'# {name.title()}\n\n' + note + markdown_table(data) + '\n')
+        write_text(tables / f'{stem}_{name}.md', f'# {name.title()}\n\n' + note + markdown_table(data) + '\n')
     n = int(stats.N.iloc[0])
     histogram = charts / f'{stem}_histogram.png'
     cumulative = charts / f'{stem}_cumulative.png'
@@ -269,14 +270,14 @@ def write_outputs(frame, metadata, charts, tables):
     else:
         histogram.unlink(missing_ok=True)
     cdf = cumulative_distribution(lines)
-    (tables / f'{stem}_cumulative-distribution.md').write_text('# Cumulative distribution\n\n' + note +
+    write_text(tables / f'{stem}_cumulative-distribution.md', '# Cumulative distribution\n\n' + note +
         'Exact empirical CDF: share of eligible lines with duration ≤ the listed hours.\n\n' +
         markdown_table(cdf) + '\n')
     if n:
         cumulative_figure(cdf, n, cumulative, subtitle, endpoint)
     else:
         cumulative.unlink(missing_ok=True)
-    (charts / f'{stem}.md').write_text(f'# First-order-line {endpoint} distribution\n\n' + note + (
+    write_text(charts / f'{stem}.md', f'# First-order-line {endpoint} distribution\n\n' + note + (
         f'![Histogram]({histogram.name})\n\n![Cumulative distribution]({cumulative.name})\n' if n else 'No eligible lines; no figure generated.\n'))
     return audit, stats
 
@@ -305,7 +306,7 @@ def load_source(start_date, end_date, with_upload=False, upload_start_date='2026
         query_name = ('cmpu_upload_to_max_approval_extract.sql' if with_upload
                       else 'cmpu_first_order_line_approval_extract.sql')
         query = sql_directory / query_name
-        query.write_text(sql + '\n')
+        write_text(query, sql + '\n')
         manifest.unlink(missing_ok=True)
         subprocess.run([sys.executable, str(RUNNER), str(query), '--output-parquet', str(parquet.relative_to(ROOT)),
                         '--sql-log-dir', str((sql_directory / 'sql-history').relative_to(ROOT))], cwd=ROOT, check=True)
@@ -322,7 +323,7 @@ def load_source(start_date, end_date, with_upload=False, upload_start_date='2026
             metadata.update(with_upload=True, upload_start_date=upload_start_date,
                             upload_end_date_exclusive=upload_end_exclusive,
                             upload_followup_days=UPLOAD_FOLLOWUP_DAYS)
-        manifest.write_text(json.dumps(metadata, indent=2) + '\n')
+        write_text(manifest, json.dumps(metadata, indent=2) + '\n')
     return frame, metadata, period
 
 

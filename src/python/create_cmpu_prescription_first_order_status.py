@@ -16,6 +16,7 @@ from jinja2 import Environment, StrictUndefined
 import pandas as pd
 
 from src.python.markdown_tables import markdown_table, table_layout
+from src.python.markdown_tables import write_text
 
 ROOT = Path(__file__).resolve().parents[2]
 NAME = 'cmpu-prescription-first-order-status'
@@ -169,7 +170,7 @@ def mermaid_source(flows, title=None):
     return '---\n' + heading + 'config: ' + json.dumps(config) + '\n---\nsankey-beta\n' + buffer.getvalue()
 
 
-def add_title(svg, title, columns=None):
+def add_title(svg, title, columns=None, bottom_padding=0):
     """Mermaid's Sankey renderer ignores visible frontmatter titles."""
     namespace = 'http://www.w3.org/2000/svg'
     ET.register_namespace('', namespace)
@@ -179,8 +180,8 @@ def add_title(svg, title, columns=None):
         raise ValueError('Mermaid produced invalid SVG') from error
     _, _, width, height = map(float, diagram.attrib['viewBox'].split())
     header_height = 96 * TEXT_SCALE + (64 if columns else 0)
-    wrapper = ET.Element(f'{{{namespace}}}svg', width=str(width), height=str(height + header_height),
-                         viewBox=f'0 0 {width} {height + header_height}', role='img',
+    wrapper = ET.Element(f'{{{namespace}}}svg', width=str(width), height=str(height + header_height + bottom_padding),
+                         viewBox=f'0 0 {width} {height + header_height + bottom_padding}', role='img',
                          attrib={'aria-label': title})
     ET.SubElement(wrapper, f'{{{namespace}}}title').text = title
     parts = title.split(' | ', 2)
@@ -241,13 +242,13 @@ def render_sankey(flows, source, png, title):
         png.unlink(missing_ok=True)
         svg.unlink(missing_ok=True)
         return 'Empty prescription cohort; no Sankey generated.'
-    source.write_text(mermaid_source(flows, title))
+    write_text(source, mermaid_source(flows, title))
     # Stage both formats so rendering/conversion errors preserve the prior PNG.
     with TemporaryDirectory(prefix='.title-', dir=source.parent) as directory:
         staged_svg, staged_png = Path(directory) / 'diagram.svg', Path(directory) / 'diagram.png'
         subprocess.run([sys.executable, str(RENDERER), str(source), '-o', str(staged_svg)], cwd=ROOT, check=True)
-        titled_svg = add_title(staged_svg.read_text(), title, flows.attrs.get('columns'))
-        staged_svg.write_text(titled_svg)
+        titled_svg = add_title(staged_svg.read_text(), title, flows.attrs.get('columns'), flows.attrs.get('bottom_padding', 0))
+        write_text(staged_svg, titled_svg)
         subprocess.run([
             'docker', 'run', '--rm', '--user', f'{os.getuid()}:{os.getgid()}',
             '--env', 'HOME=/tmp', '--env', 'XDG_CACHE_HOME=/tmp',
@@ -292,7 +293,7 @@ def write_outputs(frame, metadata, diagram_dir, table_dir, table_prefix=''):
             'Missing/invalid upload-key audits describe the entire upload window.\n\n')
     for name, table in [('distribution', groups), ('flows', flows), ('prescriptions', prescriptions),
                         ('audit', pd.DataFrame(audits.items(), columns=['measure', 'count']))]:
-        (table_dir / (table_prefix + f'{name}.md')).write_text(f'# {name.title()}\n\n' + note + markdown_table(table) + '\n')
+        write_text(table_dir / (table_prefix + f'{name}.md'), f'# {name.title()}\n\n' + note + markdown_table(table) + '\n')
     data_dir = ROOT / 'data' / NAME / period_name(metadata['start_date'], metadata['end_date_exclusive'], upload_start)
     prescriptions.to_parquet(data_dir / 'prescriptions.parquet', index=False)
     period = (f"{metadata['start_date']} through "
@@ -310,17 +311,17 @@ def write_outputs(frame, metadata, diagram_dir, table_dir, table_prefix=''):
     focused_note = render_sankey(focused_flows, diagram_dir / 'sankey-customer-upload.mmd',
                                  diagram_dir / 'sankey-customer-upload.png', focused_title)
     for name, table in [('customer-upload-distribution', focused), ('customer-upload-flows', focused_flows)]:
-        (table_dir / (table_prefix + f'{name}.md')).write_text(f'# {name.title()}\n\n' + note
+        write_text(table_dir / (table_prefix + f'{name}.md'), f'# {name.title()}\n\n' + note
             + 'Approval channel CUSTOMER_UPLOAD only. Percentages use this channel as the denominator.\n\n'
             + markdown_table(table) + '\n')
-    (table_dir / (table_prefix + 'customer-upload-summary.md')).write_text('# CUSTOMER_UPLOAD first-order status\n\n'
+    write_text(table_dir / (table_prefix + 'customer-upload-summary.md'), '# CUSTOMER_UPLOAD first-order status\n\n'
         + note + f'Approval channel CUSTOMER_UPLOAD only: **{focused_total:,} prescriptions**. '
         'Percentages use this channel as the denominator.\n\n' + markdown_table(focused)
         + '\n\n' + focused_note + '\n')
-    (table_dir / (table_prefix + 'summary.md')).write_text('# CMPU prescriptions: first order and uploads\n\n' + note
+    write_text(table_dir / (table_prefix + 'summary.md'), '# CMPU prescriptions: first order and uploads\n\n' + note
         + markdown_table(pd.DataFrame(audits.items(), columns=['measure', 'count']))
         + '\n\n' + markdown_table(groups) + '\n\n' + diagram_note + '\n')
-    (diagram_dir / 'README.md').write_text('# CMPU first-order status\n\n' + note +
+    write_text(diagram_dir / 'README.md', '# CMPU first-order status\n\n' + note +
         f'Full-diagram percentage denominator: **{len(prescriptions):,} prescriptions**.\n\n' +
         ('![Prescription Sankey](sankey.png)\n' if len(flows) else diagram_note + '\n')
         + '\n## CUSTOMER_UPLOAD only\n\n'
@@ -355,7 +356,7 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
         else:
             directory.mkdir(parents=True, exist_ok=True)
             query = directory / 'source.sql'
-            query.write_text(sql + '\n')
+            write_text(query, sql + '\n')
             manifest.unlink(missing_ok=True)
             subprocess.run([sys.executable, str(RUNNER), str(query), '--output-parquet', str(parquet.relative_to(ROOT)),
                             '--sql-log-dir', str((directory / 'sql-history').relative_to(ROOT))], cwd=ROOT, check=True)
@@ -367,7 +368,7 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
                             extracted_at_utc=datetime.now(timezone.utc).isoformat(),
                             source_extracted_at_session_time=frame.extracted_at_session_time.unique().tolist(),
                             warehouse=frame.extraction_warehouse.unique().tolist())
-            manifest.write_text(json.dumps(metadata, indent=2) + '\n')
+            write_text(manifest, json.dumps(metadata, indent=2) + '\n')
         table_dir, table_prefix = table_layout(ROOT, NAME, period)
         audits = write_outputs(frame, metadata, ROOT / 'outputs/diagrams' / NAME / period,
                                table_dir, table_prefix=table_prefix)

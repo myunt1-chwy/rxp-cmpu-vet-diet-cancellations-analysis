@@ -1,47 +1,9 @@
-* DONE [#B] Distribution of VDAM uploaded prescriptions
+* DONE Retired: VDAM upload distribution
   :PROPERTIES:
   :REFNUM:   1.
   :END:
-   - Use the table EDLDB.BT_HCA_HCDM.RXP_UPLOAD_ENTITY.upload_entity
-   - Use the table ecom.orders table to get orders information
-   - The associated_resource_ids  contains the prescription
-   - the field created_ts_utc contains the upload time. This is in utc
-   - filter by upload_type = diet_prescription
-   - the order is created ORDER_PLACED_DTTM in ecom.orders. This is no time zone data
-   - Make sure the order_placed_dttm is converted to utc
-   - We need a bar graph with the distribution of times.
-   - Use 50 buckets
-   - Generate a sql
-   - Geerate a makefile target
-** DONE Implement accepted plan for REFNUM 1 (prescription-grain correction)
-   - Use RXP_UPLOAD_ENTITY.ORDER_ID directly with ECOM.ORDERS.ORDER_ID.
-   - Filter DIET_PRESCRIPTION uploads from 2026-07-30 inclusive to 2026-10-21 exclusive, UTC.
-   - Require ASSOCIATED_RESOURCE_TYPE = DIET_PRESCRIPTION, HAS_ASSOCIATED_RX = TRUE, and HAS_UPLOADED_FILE = TRUE.
-   - Expand brace-delimited RX_ID lists and count distinct prescriptions, not orders or ASSOCIATED_RX_CNT.
-   - Select the first qualifying matched upload per prescription within the window; retain negative durations and outliers.
-   - If a prescription links to multiple orders, use its earliest matched upload's order; break ties by upload ID then order ID.
-   - Interpret ORDER_PLACED_DTTM as UTC based on observed Eastern companion offsets; do not shift twice.
-   - Add SQL, Python, and a Make target requiring start/end dates, with SQL-only and cached modes.
-   - Export 50 equal-width bins to transparent PNG and Markdown; save audit extracts under data/.
-   - Test boundaries, joins, exclusions, first-upload selection, bins, and empty/constant data.
-   - Run the requested cohort, inspect the chart, and stop for review before committing.
-   - Supersedes the initial order-grain chart; regenerate SQL, extract, chart, and table at prescription grain.
-   - Verified: 27 tests pass; live and cached runs agree; 50 bins total 120,773 distinct prescriptions, including 24,536 negative durations.
-   - 147,053 qualifying uploads expand to 152,734 prescription-upload rows; 31,557 lack order IDs and 404 are repeat matched prescription uploads.
-   - PNG visually reviewed; user reviewed and approved committing the changes.
-** DONE Break down REFNUM 1 by order cancellation reason
-   - Read ORDER_CANCEL_REASON from the order on each selected prescription's first qualifying matched upload.
-   - Keep NULL (not cancelled), Aged Order, Customer Initiated Cancellation, and Customer Request separate; bucket all other non-null reasons as Other.
-   - Export a five-panel transparent PNG using 50 shared bin boundaries, with independent count scales and panel totals.
-   - Export group totals and all 250 bins as Markdown; verify group counts sum to the original prescription cohort.
-   - Refresh the source extract, test the mapping and reconciliation, and visually inspect the chart.
-   - Verified: 29 tests pass; all 250 group/bin rows reconcile to the 50 overall bins and 120,773 prescriptions; live and cached rendering succeed.
-   - Group counts: not cancelled 106,628; aged orders 2,220; customer initiated 5,457; customer requested 4,509; other 1,959.
-   - Five-panel PNG visually reviewed; user reviewed and approved committing the changes.
-** DONE Export separate figures for each cancellation group
-   - Export five transparent PNGs from the shared 50-bin data via the existing Make target.
-   - Preserve the combined figure and inspect the separate figures before review.
-   - Generated and visually checked all five PNGs; added export padding to prevent clipped labels. All 29 tests pass on rerun (existing setup test is sensitive to random temporary-directory names).
+  - Retired at user request; standalone target, cohort SQL, module/tests, VDAM cache and HOWTO instructions removed. Shared histogram/palette support retained by the independent order-cancellation analyses.
+
 * TODO [#B] Distribution of other prescriptions
   :PROPERTIES:
   :REFNUM:   2.
@@ -50,75 +12,71 @@
   :PROPERTIES:
   :REFNUM:   3.
   :END:
-* DONE [#B] Aged-order upload distribution stacked by final prescription lifecycle state
+* DONE Retired: Aged-order upload lifecycle distribution
   :PROPERTIES:
   :REFNUM:   4.
   :END:
-   - Focus on the existing aged-orders prescription cohort: ORDER_CANCEL_REASON = 'Aged Order' on the order selected for each prescription's first qualifying matched upload.
-   - Preserve REFNUM 1's upload filters, distinct-prescription grain, UTC date window (2026-07-30 inclusive to 2026-10-21 exclusive), and signed elapsed hours. The current cohort contains 2,220 prescriptions.
-   - Left join the expanded, individual prescription ID to EDLDB.BT_HCA_HCDM.RXP_PRESCRIPTIONS.RX_ID and retrieve RX_LIFECYCLE_STATE. Verify the identifier match and one-row-per-prescription grain before aggregating; do not multiply observations or silently drop unmatched IDs.
-   - Interpret final state as the latest available RX_LIFECYCLE_STATE at extraction time, not the state at upload or cancellation time. Record extraction time and retain nonterminal states as returned by the source.
-   - Create a stacked-bar histogram: x = hours from order placement to upload; y = number of distinct prescriptions; stack/color = RX_LIFECYCLE_STATE. Use counts, not a 100-percent-normalized chart.
-   - Keep the existing 50 shared bin boundaries so each stacked bar sums to the corresponding bar in the aged-orders figure. Retain negative durations and outliers.
-   - Show every observed lifecycle state separately with a legend. Keep unmatched prescriptions and matched prescriptions with null lifecycle state in separate labeled categories.
-   - Export a transparent PNG under outputs/charts/vdam-upload-distribution/, and Markdown tables of state totals and bin-by-state counts under outputs/tables/vdam-upload-distribution/. Save downloaded data and executed SQL under data/.
-   - Add a reproducible Make target and document it in HOWTO.md, including date parameters and cached rendering.
-   - Validate join coverage, duplicate source IDs, missing states, bin boundaries, and conservation of prescription counts across states and bins. Preserve the existing 2,220-prescription cohort while refreshing lifecycle states only.
-   - Visually inspect the stacked chart and stop for user review before committing.
-** DONE Implement accepted REFNUM 4 plan using the frozen cohort
-   - Preserve the exact existing 2,220 aged prescriptions and global bin boundaries; refresh lifecycle states only.
-   - Add a dedicated entrypoint and Make target with SQL-only and cached modes. Validate upload-cache provenance and fingerprint the cohort, selected upload/order IDs, delays, and bin edges.
-   - Store state extract, SQL, snapshot time, and cohort fingerprint under the dated data directory; reject stale cached states and duplicate source IDs.
-   - Export stacked counts and state/bin Markdown tables, validate conservation of all counts, inspect the PNG, and stop for review.
-   - Verified: 40 tests pass; all 2,220 prescriptions match uniquely with no null states; 300 state/bin rows reconcile exactly to the existing 50 aged bins.
-   - Latest states: CUSTOMER CANCELED 1,824; SYSTEM_CLOSED 209; VET APPROVED 112; VET_REVIEW 67; VET APPROVED - CLOSED 7; DENIED 1.
-   - Live lookup and cached rendering succeed; transparent PNG visually reviewed. User reviewed and approved committing the changes.
+  - Retired at user request; standalone target, cohort SQL, module/tests, VDAM cache and HOWTO instructions removed. Shared histogram/palette support retained by the independent order-cancellation analyses.
 
-* DONE Count CMPU vet-diet prescriptions matching upload events
+* DONE Retired: Aged-order cancellation distributions
+  :PROPERTIES:
+  :REFNUM:   5.
+  :END:
+  - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
+
+* DONE Remove uploaded-file constraint and refresh all analyses
+  :PROPERTIES:
+  :REFNUM:   6.
+  :END:
+   - Include qualifying uploads regardless of HAS_UPLOADED_FILE; retain all other filters and UTC date bounds.
+   - Refresh base extracts, cancellation/state/reason distributions at both grains, quantiles, long-delay details, and upload STATE_ID tables.
+   - Update regression fixtures to include false and NULL flags, reconcile new cohort totals and review generated figures.
+   - Removed the predicate from both cohort SQL templates; refreshed all five analysis targets and supplemental quantiles, over-200-hour/top-five details, and upload STATE_ID tables.
+   - Remaining filters select 147,053 uploads, all currently HAS_UPLOADED_FILE = TRUE; totals remain 120,773 eligible prescriptions, 2,220 aged prescriptions and 1,617 aged orders. The predicate is no longer applied.
+   - All 66 tests pass, including false/NULL flag fixture coverage; all cached targets succeed and 29 PNGs regenerated. Historical SQL audit files remain unchanged. Awaiting user review before commit.
+
+* DONE Retired: Order Rx association analysis
+  :PROPERTIES:
+  :REFNUM:   7.
+  :END:
+  - Retired at user request; Make target, dedicated code/SQL/tests, caches and HOWTO instructions removed.
+
+* DONE Retired: Missing-order upload cancellation analysis
+  :PROPERTIES:
+  :REFNUM:   8.
+  :END:
+  - Retired at user request; Make target, dedicated code/SQL/tests, caches and HOWTO instructions removed.
+
+* DONE Retired: CMPU upload-event matching
   :PROPERTIES:
   :REFNUM:   9.
   :END:
-   - Accepted plan: preserve src/ignore/rxp event filters and calendar-date lower bound of CURRENT_DATE minus 14 days; remove undefined c reference.
-   - Select CMPU vet-diet prescriptions created in the same window. Match customer_id and product_id without timestamp ordering, counting distinct RX_ID once.
-   - Report matched/unmatched totals and percentage; audit missing keys, duplicate RX_IDs and repeated customer/product pairs. Save SQL and a Markdown count table; stop for review before committing.
-   - Added src/sql/cmpu_upload_event_matches.sql and HOWTO instructions. Removed the trailing semicolon for compatibility with the runner's schema probe.
-   - October 23 live query (UTC session, October 9 lower bound): 23,612 CMPU vet-diet prescriptions, 685 matched (2.90%), 22,927 unmatched. No missing matching keys or duplicate/missing RX_IDs; matched plus unmatched and percentage reconcile.
-   - 5,532 deduplicated events; 123 matched prescriptions have multiple events, and 28 matched customer/product pairs have multiple prescriptions. Candidate associations only; no timestamp-order restriction.
-   - Saved summary.parquet under data/cmpu-upload-event-matches and summary.md under outputs/tables/cmpu-upload-event-matches. Read-only validation and git diff --check pass. User approved committing on 2026-10-26.
-   - User requested changing the event source to EDLDB.SEGMENT.SEGMENT_HITS_PRODUCTS_UNION. Updated SQL and HOWTO and preserved the original source's summary as summary-segment-hits-products.
-   - Reconnected after warehouse change; verified CHEWY_ETL_2XL and UTC. Union rerun completed October 23 at 17:35 UTC: 57,542 deduplicated events, 52,010 missing customer/product keys, leaving 5,532 usable events. Counts unchanged: 685/23,612 prescriptions matched (2.90%); 22,927 unmatched. Refreshed Parquet and Markdown summary; reconciliation and duplicate/missing RX_ID checks passed. User approved committing on 2026-10-26.
+  - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
 
-* DONE Analyze CMPU upload event matches for September 1–15, 2026
+* DONE Retired: September CMPU upload-event matching
   :PROPERTIES:
   :REFNUM:   10.
   :END:
-   - Apply September 1 inclusive through September 16 exclusive to both event session dates and prescription creation timestamps. Retain union source, event filters, distinct RX_ID grain and customer/product match without timestamp ordering.
-   - Save dated extracts and Markdown summary, preserve October results, validate reconciliation and missing/duplicate keys, and stop for user review.
-   - Completed on CHEWY_ETL_2XL with UTC session: 28,536 prescriptions, 951 matched (3.33%), 27,585 unmatched. Of 49,406 deduplicated events, 47,011 lack customer/product matching keys and 2,395 have both. No missing/duplicate RX_IDs or missing prescription matching keys; count and percentage checks passed.
-   - Saved dated summary.parquet and summary.md under the September analysis directories. Query 01c7ed47-081f-fc1b-00a0-2d0623b71b6b. git diff --check passed. User approved committing on 2026-10-26.
-* DONE Match September upload events using prescription IDs in PROPERTIES
+  - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
+
+* DONE Retired: Segment prescription-ID matching
   :PROPERTIES:
   :REFNUM:   11.
   :END:
-   - Retain September 1–15 inclusive, union source and original upload-event filters. Extract nested and root prescriptionId, prefer nested when present, audit conflicts, and join directly to CMPU vet-diet RX_IDs created in the same window.
-   - Preserve the customer/product result; export direct-match coverage, per-event-type field completeness, conflicts and comparison with the previous association method. Stop for review before committing.
-   - Direct RX_ID join matched 860/28,536 prescriptions (3.01%); 27,676 unmatched. All 860 are included in the 951 customer/product associations; 91 associations have no direct-ID confirmation. Both ID paths are filled and agree on all 2,950 auth-file-submit event/product rows; neither is filled on 18,736 upload-preview-upload or 27,720 upload-success rows.
-   - Saved full outer join extract, reproducible summarizer, source/SQL SHA-256 metadata, summary and field coverage. 1,888 event/product rows directly match the cohort; 1,062 rows with IDs do not match that cohort; 944 direct-match rows lack customer/product matching keys. Synthetic edge cases, live reconciliation/uniqueness/coverage checks and git diff --check passed. User approved committing on 2026-10-26.
-* DONE Count September CMPU vet-diet prescriptions with later canceled orders
+  - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
+
+* DONE Retired: September CMPU later canceled orders
   :PROPERTIES:
   :REFNUM:   12.
   :END:
-   - Use prescriptions created September 1–15 inclusive, link via FIRST_ORDER_ID and all available usage-action ORDER_ID history, deduplicate RX_ID/order pairs, and require order placement strictly after prescription creation. Include all available subsequent order dates; use latest canceled status and retain missing reasons.
-   - Audit source duplicates, missing/invalid links, order timestamps and UTC/Eastern consistency. Export count and reason tables under outputs/tables; retain extracts and SQL under data. Stop for review before committing.
-   - October 23 snapshot: 233/28,536 prescriptions (0.82%) have later-placed canceled orders, representing 244 distinct canceled orders and 246 prescription/order pairs. 4,499 cohort prescriptions have any later-placed order. All 233 qualify via usage links; 4 also qualify via FIRST_ORDER_ID.
-   - Order reasons: Customer Initiated Cancellation 149, Customer Request 48, Payment Declined 34, missing 6, No Response 4, Other 2, Duplicate Order 1. No missing placement/status/cancellation timestamps or unmatched/invalid order IDs; UTC/Eastern checks and reason/pair reconciliations passed. Source SQL, summarizer, data/metadata and Markdown tables saved; user approved committing on 2026-10-26.
-* DONE Check actual shipments for September CMPU vet-diet prescriptions
+  - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
+
+* DONE Retired: September prescription-item shipments
   :PROPERTIES:
   :REFNUM:   13.
   :END:
-   - Use prescription order-line shipped timestamps as evidence; report all 28,536 cohort prescriptions and the 233 previously identified with later canceled orders. Separate any linked shipped order, later-placed shipped orders, and shipping on the same canceled order. Deduplicate prescription/order/shipment rows and retain missing-date audits.
-   - October 23 shipment extract: 8,856 prescriptions shipped on any order, 4,325 shipped on a later-placed order (6,016 orders). Of the 233 canceled-order prescriptions, 228 have any shipped order and 145 a later-placed shipped order; no prescription-item shipment timestamp on any of the 244 canceled orders. All 246 canceled prescription/order pairs have order-line coverage.
-   - 2,311 cohort prescriptions have no order-line record; zero delivered rows lack shipping timestamps. Source uniqueness, cohort equality, UTC/Eastern and shipment/placement checks passed. SQL, cached summarizer, SHA-256 metadata and shipments.md saved; user approved committing on 2026-10-26.
+  - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
+
 * DONE For the time frame August 15 2026 to October 14 2026, generate the Sankey chart using Mermaid for CMPU vet-diet prescriptions
   :PROPERTIES:
   :REFNUM:   14.
@@ -193,6 +151,9 @@
   - Saved src/sql/cmpu_first_order_comparison.sql, dated query/extract/fingerprint metadata under data/cmpu-first-order-comparison and Markdown summary under outputs/tables. Repeated actions and uploads cannot multiply prescription counts; cohort IDs and FIRST_ORDER_ID values reconcile exactly to the current Sankey extract, and same/different classifications reconcile. User approved committing on 2026-10-26.
 
 * DONE Compare first-order to first-usage approval durations by upload presence
+  :PROPERTIES:
+  :REFNUM:   15.
+  :END:
   - Accepted plan: CMPU vet-diet CUSTOMER_UPLOAD prescriptions created August 15–October 14, 2026 UTC; DIET_PRESCRIPTION uploads August 1–October 14 matched by expanded RX_ID and numeric CUSTOMER_ID.
   - Use FIRST_ORDER_ID and current known non-X order status. Calculate FIRST_USAGE_APPROVED_DATETIME minus ORDER_PLACED_DTTM in hours, one observation per prescription with both timestamps. Preserve negative durations and outliers; audit excluded prescriptions and UTC/Eastern order timestamps.
   - Deliver two vertically stacked count histograms with shared axes and integer-aligned one-hour bins, orange/light-blue palette, plus a separate percentile-table PNG (N, min, 25th, median, 75th, 95th; linear quantiles). Export Markdown details, bins, eligibility and statistics; retain SQL, extract and fingerprints.
@@ -215,6 +176,9 @@
   - User approved committing on 2026-10-27.
 
 * DONE Update Sankey generation for the extended upload window
+  :PROPERTIES:
+  :REFNUM:   17.
+  :END:
   - Accepted request: prescriptions before October 15 and uploads before October 26 UTC. Generated Mermaid sources live in src/diagrams/<inclusive-prescription-date-range>/; PNG/SVG figures use the matching outputs/diagrams date folder and descriptive basenames. Rendered SQL/history use src/autogenerated; data and tables retain their existing roots.
   - Added make cmpu-first-order-line-status; existing cmpu-prescription-first-order-status remains an alias. Updated SQL, metadata/cache identity, timestamp validation, titles, paths and HOWTO. Generated all-channel, CUSTOMER_UPLOAD and non-D CUSTOMER_UPLOAD views.
   - Refreshed 113,608 prescriptions and 103,514 matched distinct lines, including 95,071 CUSTOMER_UPLOAD lines and 24,944 CUSTOMER_UPLOAD D-status lines with uploads, exactly reconciling to the timing extract. Fresh/cached/SQL-only and alias checks, fingerprints, flow conservation and visual checks passed. All 180 working-tree tests plus 22 subtests passed; git diff --check passed.
@@ -233,6 +197,90 @@
   - User accepted the work and approved committing on 2026-10-27.
 
 * DONE Flatten table outputs into dated folders
+  :PROPERTIES:
+  :REFNUM:   19.
+  :END:
   - User requested outputs/tables to match the flat date-folder chart layout with meaningful filenames. Move existing saved tables without changing data; use inclusive date ranges and filenames identifying analysis, upload window/filter/run variant and table kind. Update all table-producing commands to preserve the layout.
   - Implemented current CMPU timing/ratio prefixes, a shared dated layout helper for other table writers, and default dated output for September summaries (explicit output-dir overrides retained). Migrated all 207 Markdown tables with content-hash checks; old analysis/variant folders removed. Two historical unbounded rolling-window summaries use 2026-10-09_onward with snapshot date in filenames. SQL/data/figures unchanged.
   - Verified all 207 tables reside directly in dated folders with no nested analysis directories. Content hashes passed for all moves; 152 legacy-table hashes remain unchanged after cached current-analysis regeneration. Updated default output for all Python table-producing entrypoints, retained explicit custom output-dir behavior, updated HOWTO paths and added layout/boundary/collision and current CLI checks. Ratio/upload targets regenerate directly into the new folder and print it. All 208 tests plus 22 subtests and git diff --check pass. User approved committing on 2026-10-27.
+  -
+  -
+
+* TODO Survival Curve Analysis
+  :PROPERTIES:
+  :REFNUM:   20.
+  :END:
+  - We are going to consider all the prescriptions in the time range August 15 - October 15 for vet diet with prescription source=CMPU, approval = channel customer upload
+    - We are going to use all the first order lines
+  - For each order line create a sql that collects the following
+    - order line id
+    - order id
+    - order line status
+    -
+       is_deleted
+    - is_refill
+    - order line creation time in utc
+    - order cancel time in utc
+    - entity upload time in utc if it exists
+    - MIN_APPROVED_DENIED_DATETIME in utc
+    - if min_approved_denied_datetime is not null then (min_approved_denied_datetime - order line creation time) * 0.96 + order line creation time  as estimated entity upload time
+    - Compute event time as
+      - if entity upload time is not null then entity upload time
+      - if entity upload time is null but min_approved_denied_datetime is not null then estimated entity upload time
+      - if entity upload time is null and min_approved_denied_datetime is null  then order cancel time
+  - Use the EDLDB.BT_HCA_HCDM.ORDER_LINE_COST_MEASURES_RXP table.
+
+* DONE Remove and prevent Markdown files larger than 1 MB
+  :PROPERTIES:
+  :REFNUM:   27.
+  :END:
+  - User requested removing every repo Markdown file over 1 MB and never generating such files again. Use a strict 1,000,000-byte file limit, preserving detailed data in Parquet and bounded, explicitly labeled Markdown previews/summaries.
+  - Removed 86 oversized generated Markdown files totaling 1,467,798,359 bytes (all ignored/untracked output tables); preserved raw/derived data and figures. Updated 10 derived export manifests to omit deleted Markdown paths. Removal inventory retained outside the repo under /private/tmp/rxp-removed-large-markdown.json.
+  - Add bounded shared table rendering and a complete-file Markdown size guard. Route all active Python generators through that guard; non-Markdown text exports pass through unchanged. Consolidate the legacy duplicate table formatter. Record the persistent limit in AGENTS.md and HOWTO; verify UTF-8 byte boundaries, exact limits, large/multiple tables, unchanged small/non-Markdown outputs, all writer entrypoints and existing regressions. Leave uncommitted for review.
+  - Implemented a strict 1,000,000-byte complete-file Markdown guard in the shared text writer, including UTF-8 size accounting and newline translation. Bounded table rendering stops once its size budget is reached and returns an explicitly labeled preview of up to 25 rows; composite/long documents receive a bounded preview as a final safeguard. Routed 128 text writes in 27 active generators through the shared writer; SQL/JSON/Mermaid/SVG/other text outputs pass through unchanged. Consolidated the duplicate legacy table formatter and recorded the persistent policy in AGENTS.md/HOWTO.
+  - Verification: 15 new checks cover unchanged small tables/files, exact 1-MB and uppercase-extension boundaries, multibyte Unicode, large/huge-cell/huge-heading tables, bounded iteration, multiple-table documents, unchanged non-Markdown exports, newline expansion and static enforcement of the shared writer/formatter across active generators. Full suite: 432 tests and 22 subtests pass; git diff --check passes.
+  - Regenerated the contact-cancellation distribution from cached data as a real integration check: the formerly 4.9-MB contact-details Markdown is now an explicitly labeled 11,023-byte preview, while all 13,916 full contact records remain in Parquet with unchanged fingerprints. Final repo scan finds zero Markdown files over 1,000,000 bytes outside dependency/Git directories. All changes remain uncommitted for review; log.org unchanged.
+
+* DONE Remove three retired analysis targets and their artifacts
+  :PROPERTIES:
+  :REFNUM:   28.
+  :END:
+  - User retired analyze-missing-order-uploads, create-order-rx-association-analysis and create-aged-prescription-cancellation-distribution. Remove their Make targets, Python modules, SQL templates, tests, isolated data/generated outputs and HOWTO descriptions. Mark historical task entries retired, preserve shared dependencies and verify no active references remain. Leave uncommitted for review.
+  - Removed the three Make rules, three Python modules, three SQL templates and three dedicated test modules. Deleted their isolated data/query-history directories and obsolete bytecode; 36 source/test/cache/data files totaling 28,321,383 bytes removed. No matching generated charts/tables/diagram directories remained. Pruned 28 retired entries from the shared table-layout migration inventory.
+  - Removed all three HOWTO sections and compacted historical REFNUM 5.4/7/8 entries into retirement records. No active code, SQL, tests, Make/HOWTO documentation or generated artifact metadata references the retired analyses. Shared upload/cancellation helpers and analyses remain available.
+  - Verification: all three removed Make targets correctly report no rule; retained cancellation/lifecycle/contact-distribution/Sankey targets pass dry runs. All 400 unrelated/shared cached data files retain their exact sizes and modification timestamps. Remaining suite: 406 tests and 22 subtests pass; git diff --check passes. Changes remain uncommitted for review; log.org unchanged.
+
+* DONE Consolidate first-order Sankey documentation and clean superseded window artifacts
+  :PROPERTIES:
+  :REFNUM:   29.
+  :END:
+  - User deprecated the shorter-window CMPU first-order-line Sankey HOWTO section. Merge its necessary source/join/grain/status/block/upload/denominator/validation guidance into the canonical extended-window instructions; retain both Make aliases on the existing default extended run. Remove superseded diagrams/Mermaid/related Markdown outputs while preserving current extended-window figures, tables and source extracts. Verify links, artifact identity, default extended SQL and relevant regression tests; leave uncommitted for review.
+  - Removed the deprecated shorter-window HOWTO section and made the extended-window section self-contained: canonical/default/alias commands; UTC prescription/upload dates and 11-day extension; certified source/two-key join; distinct-line/shipment deduplication; exclusions/conflicts; full/CUSTOMER_UPLOAD/non-D stages; missing values; block/status path identity; entity matching; denominators/flow conservation; current output/source/cache/SQL locations and reproducibility rules. Removed the stale dependence on rules above.
+  - Removed 41 shorter-window/prescription-count Markdown tables totaling 365,552 bytes and pruned 59 obsolete historical migration pointers. Older diagram images/Mermaid sources were already absent. All 20 current extended-window assets (three PNGs, three SVGs, three Mermaid sources, notes and ten tables) remain byte-for-byte unchanged; source extracts/code and active Make aliases retained.
+  - Validation: both Make names in SQL-only mode produce identical extended queries with October 26 exclusive upload end; the sole authoritative section contains all essential definitions, and no obsolete-window table Markdown remains. Current artifact fingerprints and git diff --check pass. Full suite: 405 tests and 22 subtests passed; the existing setup-test temporary-directory-name/input flake failed once and passed on isolated retry. All changes remain uncommitted for review; log.org unchanged.
+
+* DONE Remove VDAM upload and dependent lifecycle targets
+  :PROPERTIES:
+  :REFNUM:   30.
+  :END:
+  - User retired the VDAM upload distribution and explicitly approved removing its dependent aged-order upload lifecycle target too. Remove both Make targets, modules, SQL templates, tests, dedicated data/generated artifacts and HOWTO sections. Move the still-used histogram/ROOT/RUNNER/palette definitions into the retained order-cancellation modules; preserve their behavior and data. Verify no retired imports/commands remain and run remaining regressions. Leave uncommitted for review.
+  - Removed both Make targets, their two Python entrypoints, two SQL templates, two dedicated test modules and both HOWTO sections. Deleted the VDAM data tree including its dependent aged-lifecycle extracts/query history, obsolete bytecode and seven migration pointers: 37 files totaling 10,321,144 bytes. No dedicated rendered output files remained. Compacted historical REFNUM 1/4 entries into retirement records.
+  - Preserved the exact shared 50-bin histogram implementation and ROOT/RUNNER definitions in the retained order-cancellation module, and moved the lifecycle palette unchanged into the retained cancellation-lifecycle module. Updated remaining imports and relocated the generic negative/boundary/maximum-bin regression into the retained cancellation tests. The independent cancellation/lifecycle analyses retain their source data and behavior without importing retired modules.
+  - Verification: both retired Make targets correctly have no rule; retained cancellation/lifecycle/contact/Sankey Make targets pass dry runs. No retired module/SQL/command/cache references remain in active code, tests, HOWTO or generated metadata. All 375 other cached data files retain exact size and modification time. Focused retained suites: 21 tests pass. Full remaining suite: 385 tests and 16 subtests pass; git diff --check passes. Changes remain uncommitted for review; log.org unchanged.
+
+* DONE Contact timing for all aged orders and their customers
+  :PROPERTIES:
+  :REFNUM:   32.
+  :END:
+  - Accepted plan: retain CMPU vet-diet CUSTOMER_UPLOAD prescriptions created August 15–October 14 inclusive, match both first-order keys and collapse shipment rows/associations. Include every distinct Aged Order cancellation through October 27 00:00 UTC, without reorder or maturity requirements. Every qualifying order contributes; retain zero-contact orders and missing customer identifiers.
+  - Count all handled contact rows linked to those aged orders, all categories and all available history, UTC. Export signed one-day contact bins, order/customer/session counts, before/exact/after/undated totals and complete Parquet details. Reject conflicting order source values. Add fresh/cached/SQL-only target, fingerprints, bounded Markdown tables, transparent chart and HOWTO documentation. Preserve existing reorder plots; stop uncommitted for review.
+  - Implemented the independent all-aged SQL/Python target and HOWTO documentation. Live extract: 24,408 distinct aged orders, 20,587 known customers, 31,477 dated handled contact legs; 31,206 before cancellation, zero exactly at cancellation and 271 after. 24,298 orders have contacts and 110 have none; 20,513 customers have contacts and 74 have none. No missing customer IDs or contact timestamps. Association audit retains all 104,307 qualifying prescriptions (26,443 aged associations, 68,627 matched outside the aged population, 9,237 missing order IDs).
+  - Verified fresh extraction, cached rendering and SQL-only behavior; fingerprint rejection, exact nanosecond boundaries, shipment/association collapse, both join keys, multiple orders per customer, source conflicts, empty populations and undated contacts. Independently reconciled live orders, contacts and daily bins; checked every export hash and Markdown size cap. Visually inspected the corrected transparent chart on a white review background. Full suite: 378 tests and 16 subtests passed before the final added boundary test; final focused verification: 43 tests pass. Changes remain uncommitted for review.
+
+* DONE Remove aged cancellation distributions and Segment-based analyses
+  :PROPERTIES:
+  :REFNUM:   31.
+  :END:
+  - Accepted scope: retire both aged-upload cancellation targets, all Segment-schema analysis work, and the listed September cancellation/shipment workflows, including code, SQL, tests, caches, outputs and HOWTO descriptions. Preserve current first-order and reorder analyses.
+  - Removed both cancellation Make targets, five Python entrypoints, six SQL files, two test modules and the listed HOWTO sections. Deleted 90 owned source/cache/output files totaling 19,009,916 bytes and pruned 18 obsolete table-migration entries. Historical REFNUM 5/9–13 entries are marked retired.
+  - Validation: 364 tests and 16 subtests pass; git diff --check passes; retired targets are unavailable and retained first-order/reorder/contact targets resolve. All 318 unrelated data files retain their original sizes and modification times. No active Segment-schema references remain. Changes left uncommitted for review.

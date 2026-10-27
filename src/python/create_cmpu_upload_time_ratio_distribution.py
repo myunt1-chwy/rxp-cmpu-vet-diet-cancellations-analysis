@@ -11,6 +11,7 @@ import pandas as pd
 
 from src.python import create_cmpu_first_order_line_approval_distribution as timing
 from src.python.markdown_tables import markdown_table
+from src.python.markdown_tables import write_text
 
 ROOT = timing.ROOT
 NAME = 'cmpu-upload-time-ratio-distribution'
@@ -222,13 +223,13 @@ def write_outputs(frame, metadata, charts, tables):
     log_fit = fit_times(lines, log=True)
     for name, data in [('associations', associations), ('order-lines', lines), ('eligibility', audit),
                        ('statistics', stats), ('ratio-bins', bins), ('cumulative-distribution', cdf)]:
-        (tables / f'{stem}_{name}.md').write_text(f'# {name.title()}\n\n' + note + markdown_table(data) + '\n')
+        write_text(tables / f'{stem}_{name}.md', f'# {name.title()}\n\n' + note + markdown_table(data) + '\n')
     fit_note = ('Unweighted ordinary least squares with a fitted intercept: '
         'upload_duration_hours = intercept_hours + slope × approval_duration_hours. '
         'Both intervals start at line creation. The scatter and fit use the same eligible unique lines '
         'as the ratio charts, including all outliers. R² describes this sample; '
         'these related intervals share a start time and the association does not establish causation.\n\n')
-    (tables / (stem.replace('upload-time-share', 'upload-vs-approval-times') + '_linear-fit.md')).write_text('# Elapsed-time linear fit\n\n' + note + fit_note + markdown_table(fit) + '\n')
+    write_text(tables / (stem.replace('upload-time-share', 'upload-vs-approval-times') + '_linear-fit.md'), '# Elapsed-time linear fit\n\n' + note + fit_note + markdown_table(fit) + '\n')
     log_note = ('Unweighted OLS with an intercept on natural logs of both elapsed times, measured in hours: '
         'ln(upload_hours) = intercept_log_hours + slope × ln(approval_hours). '
         'The equivalent fitted curve is upload_hours = power_multiplier × approval_hours^slope, '
@@ -236,7 +237,7 @@ def write_outputs(frame, metadata, charts, tables):
         'a mean-response bias correction. R² is calculated in log space. Only strictly positive '
         'elapsed-time pairs from the ratio-eligible population enter this fit; no pseudocount is added. '
         'All positive outliers are retained. The original ratio and linear-fit populations are unchanged.\n\n')
-    (tables / (stem.replace('upload-time-share', 'upload-vs-approval-times') + '_log-log-fit.md')).write_text('# Elapsed-time log–log fit\n\n' + note + log_note + markdown_table(log_fit) + '\n')
+    write_text(tables / (stem.replace('upload-time-share', 'upload-vs-approval-times') + '_log-log-fit.md'), '# Elapsed-time log–log fit\n\n' + note + log_note + markdown_table(log_fit) + '\n')
     n = int(stats.N.iloc[0])
     if n:
         figures(bins, cdf, n, charts, stem, subtitle)
@@ -250,7 +251,7 @@ def write_outputs(frame, metadata, charts, tables):
     else:
         log_scatter.unlink(missing_ok=True)
     notes = charts / f'{stem}.md'
-    notes.write_text('# Upload time as a share of approval time\n\n' + note +
+    write_text(notes, '# Upload time as a share of approval time\n\n' + note +
         (f'![Histogram]({stem}_histogram.png)\n\n![Cumulative distribution]({stem}_cumulative.png)\n\n'
          f'![Upload versus approval elapsed times]({scatter.name})\n\n' + fit_note + markdown_table(fit) + '\n'
          if n else 'No eligible lines; no figures generated.\n') + '\n\n' +
@@ -277,7 +278,7 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
                                            ROOT/'outputs/tables'/f'{start_date}_{last}')
         directory = ROOT/'data'/NAME/period
         directory.mkdir(parents=True, exist_ok=True)
-        (directory/'analysis.json').write_text(json.dumps(dict(
+        write_text(directory/'analysis.json', json.dumps(dict(
             formula='(first_upload_at_utc - line_created_utc) / (max_approved_datetime - line_created_utc)',
             time_fit='upload_duration_hours = intercept_hours + slope * approval_duration_hours; unweighted OLS',
             log_time_fit='ln(upload_duration_hours) = intercept_log_hours + slope * ln(approval_duration_hours); unweighted OLS',

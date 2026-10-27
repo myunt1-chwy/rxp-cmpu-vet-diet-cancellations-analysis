@@ -16,6 +16,7 @@ from src.python.create_cmpu_prescription_first_order_status import (
     AUDIT_COLUMNS, ROOT, RUNNER, digest, period_name,
 )
 from src.python.markdown_tables import markdown_table, table_layout
+from src.python.markdown_tables import write_text
 
 NAME = 'cmpu-order-to-approval-distributions'
 TEMPLATE = ROOT / 'src/sql/cmpu_order_to_approval_distributions.sql'
@@ -177,9 +178,9 @@ def write_outputs(frame, metadata, charts, tables, table_prefix=''):
         if name == 'statistics':
             for col in display.columns[2:]:
                 display[col] = display[col].map(lambda x: '—' if pd.isna(x) else f'{x:.2f}')
-        (tables / (table_prefix + f'{name}.md')).write_text(f'# {name.title()}\n\n' + note + markdown_table(display) + '\n')
+        write_text(tables / (table_prefix + f'{name}.md'), f'# {name.title()}\n\n' + note + markdown_table(display) + '\n')
     source_audit = {col: int(frame[col].iloc[0]) if len(frame) else None for col in AUDIT_COLUMNS}
-    (tables / (table_prefix + 'source-audit.md')).write_text('# Upload source audit\n\n' + note + markdown_table(
+    write_text(tables / (table_prefix + 'source-audit.md'), '# Upload source audit\n\n' + note + markdown_table(
         pd.DataFrame(source_audit.items(), columns=['measure', 'count'])) + '\n')
     if stats.N.sum():
         figures(stats, bins, charts, subtitle)
@@ -187,7 +188,7 @@ def write_outputs(frame, metadata, charts, tables, table_prefix=''):
         charts.mkdir(parents=True, exist_ok=True)
         for name in ['distributions.png', 'statistics.png']:
             (charts / name).unlink(missing_ok=True)
-    (charts / 'README.md').write_text('# Order to first-usage approval\n\n' + note + (
+    write_text(charts / 'README.md', '# Order to first-usage approval\n\n' + note + (
         '![Distributions](distributions.png)\n\n![Percentiles](statistics.png)\n' if stats.N.sum()
         else 'No eligible prescriptions; no figures generated.\n'))
     return audit, stats
@@ -218,7 +219,7 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
         else:
             directory.mkdir(parents=True, exist_ok=True)
             query = directory / 'source.sql'
-            query.write_text(sql + '\n')
+            write_text(query, sql + '\n')
             manifest.unlink(missing_ok=True)
             subprocess.run([sys.executable, str(RUNNER), str(query), '--output-parquet', str(parquet.relative_to(ROOT)),
                             '--sql-log-dir', str((directory / 'sql-history').relative_to(ROOT))], cwd=ROOT, check=True)
@@ -229,7 +230,7 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
                             upload_start_date=upload_start_date, extracted_at_utc=datetime.now(timezone.utc).isoformat(),
                             source_extracted_at=frame.extracted_at_session_time.unique().tolist(),
                             warehouse=frame.extraction_warehouse.unique().tolist())
-            manifest.write_text(json.dumps(metadata, indent=2) + '\n')
+            write_text(manifest, json.dumps(metadata, indent=2) + '\n')
         table_dir, table_prefix = table_layout(ROOT, NAME, period)
         audit, stats = write_outputs(frame, metadata, ROOT / 'outputs/charts' / NAME / period,
                                      table_dir, table_prefix=table_prefix)

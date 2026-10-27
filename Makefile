@@ -26,16 +26,6 @@ cmpu-prescription-first-order-status: cmpu-first-order-line-status
 cmpu-first-order-line-status:
 	.venv/bin/python -m src.python.create_cmpu_first_order_line_status --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
 
-.PHONY: create-aged-upload-lifecycle-distribution
-create-aged-upload-lifecycle-distribution:
-	@test -n "$(START_DATE)" -a -n "$(END_DATE)" || { echo 'START_DATE and END_DATE are required (end exclusive).' >&2; exit 1; }
-	.venv/bin/python -m src.python.create_aged_upload_lifecycle_distribution --start-date "$(START_DATE)" --end-date "$(END_DATE)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
-
-.PHONY: create-vdam-upload-distribution
-create-vdam-upload-distribution:
-	@test -n "$(START_DATE)" -a -n "$(END_DATE)" || { echo 'START_DATE and END_DATE are required (end exclusive).' >&2; exit 1; }
-	.venv/bin/python src/python/create_vdam_upload_distribution.py --start-date "$(START_DATE)" --end-date "$(END_DATE)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
-
 .PHONY: setup init bootstrap setup-mattpocock-skills uninstall-mattpocock-skills
 
 bootstrap:
@@ -56,3 +46,58 @@ setup-mattpocock-skills:
 uninstall-mattpocock-skills:
 	@command -v node >/dev/null 2>&1 && command -v npx >/dev/null 2>&1 || { echo 'Error: Node.js and npx are required. Install Node.js with npm and rerun make uninstall-mattpocock-skills.' >&2; exit 1; }
 	node scripts/uninstall_mattpocock_skills.mjs
+
+.PHONY: cmpu-first-order-line-event-times
+cmpu-first-order-line-event-times:
+	.venv/bin/python -m src.python.create_cmpu_first_order_line_event_times --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: cmpu-first-order-line-survival
+cmpu-first-order-line-survival:
+	.venv/bin/python -m src.python.create_cmpu_first_order_line_survival --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)"
+
+.PHONY: aged-order-same-product-reorders
+aged-order-same-product-reorders:
+	.venv/bin/python -m src.python.create_aged_order_same_product_reorders --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" $(if $(AS_OF_DATE),--as-of-date "$(AS_OF_DATE)") --approval-channel "$(or $(APPROVAL_CHANNEL),CUSTOMER_UPLOAD)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: aged-order-reorder-prescriptions
+aged-order-reorder-prescriptions:
+	.venv/bin/python -m src.python.create_aged_order_reorder_prescriptions --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: aged-order-reorder-approval-channels
+aged-order-reorder-approval-channels:
+	.venv/bin/python -m src.python.create_aged_order_reorder_approval_channels --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: aged-order-reorder-uploads
+aged-order-reorder-uploads:
+	.venv/bin/python -m src.python.create_aged_order_reorder_uploads --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: aged-order-reorder-windows
+aged-order-reorder-windows:
+	.venv/bin/python -m src.python.create_aged_order_reorder_windows --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(MATCH_PET)),--same-pet) $(if $(filter 1,$(INCLUDE_21_DAYS)),--include-21-days)
+
+.PHONY: aged-order-reorder-daily-customers
+aged-order-reorder-daily-customers:
+	.venv/bin/python -m src.python.create_aged_order_reorder_daily_customers --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(MATCH_PET)),--same-pet) --followup-days "$(or $(FOLLOWUP_DAYS),14)"
+
+# Current reorder definition: match customer, product and pet; 0 reproduces the prior two-key analysis.
+aged-order-reorder-windows aged-order-reorder-daily-customers: MATCH_PET ?= 1
+
+.PHONY: aged-order-reorder-prescription-sankeys
+aged-order-reorder-prescription-sankeys:
+	.venv/bin/python -m src.python.create_aged_order_reorder_prescription_sankeys --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(WITH_EVIDENCE)),--with-evidence) $(if $(filter 1,$(WITH_WISMO)),--with-wismo) $(if $(CONTACT_TIMEZONE),--contact-timezone "$(CONTACT_TIMEZONE)") $(if $(filter 1,$(ALL_CONTACTS)),--all-contacts) $(if $(filter 1,$(ALL_ORDER_HISTORY)),--all-order-history)
+
+.PHONY: aged-order-reorder-upload-approval-evidence
+aged-order-reorder-upload-approval-evidence:
+	.venv/bin/python -m src.python.create_aged_order_reorder_upload_approval_evidence --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: aged-order-reorder-wismo
+aged-order-reorder-wismo:
+	.venv/bin/python -m src.python.create_aged_order_reorder_wismo --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(CONTACT_TIMEZONE),--contact-timezone "$(CONTACT_TIMEZONE)") $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(ALL_CONTACTS)),--all-contacts) $(if $(filter 1,$(ALL_ORDER_HISTORY)),--all-order-history)
+
+.PHONY: aged-order-contact-cancellation-distribution
+aged-order-contact-cancellation-distribution:
+	.venv/bin/python -m src.python.create_aged_order_contact_cancellation_distribution --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)"
+
+.PHONY: aged-order-all-contact-cancellation-distribution
+aged-order-all-contact-cancellation-distribution:
+	.venv/bin/python -m src.python.create_aged_order_all_contact_cancellation_distribution --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
