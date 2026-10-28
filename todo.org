@@ -335,9 +335,49 @@
   - User clarified that a prior shipped order must differ from the aged-cancelled order. Existing results already had no eligible shipment evidence on any qualifying aged-cancelled order. Strengthened the explicit guard from earliest/tied reference orders to every qualifying aged-cancelled ORDER_ID in the cohort, covering all lines and later aged cancellations for customers with multiple orders. Retained the reference-order flag and added is_aged_cancelled_order plus a distinct exclusion reason for other aged-cancelled orders.
   - Added a regression with an early partial shipment on a different line of a later aged-cancelled order; neither that order nor tied reference orders may establish prior experience. A genuinely different earlier shipped order still qualifies. Ten focused tests pass; cached target and 21-day derivation regenerated successfully; independent order-ID intersection confirms no eligible aged-cancelled order evidence. Both full-cohort and 21-day counts are unchanged (CMPU vet diet: 7,942 and 2,401 respectively). Updated HOWTO/output notes; source extract unchanged. Changes remain uncommitted for review.
 
+* DONE Retired: Prescription-vet history analysis
+  :PROPERTIES:
+  :REFNUM:   40.
+  :END:
+  - Removed at user request; vet-specific code, SQL, target, tests, data, generated artifacts and HOWTO section retired. Required calculation and regression coverage retained directly in the clinic analysis.
+
+* DONE Retired: Order-line vet history analysis
+  :PROPERTIES:
+  :REFNUM:   41.
+  :END:
+  - Removed at user request; vet-specific code, SQL, target, tests, data, generated artifacts and HOWTO section retired. Required calculation and regression coverage retained directly in the clinic analysis.
+
+* DONE Prior same-clinic shipment experience among aged customers
+  :PROPERTIES:
+  :REFNUM:   42.
+  :END:
+  - User steering: try CLINIC_ID with the same aged cohort, customer counting, prior-shipment cutoff and order exclusions. Use order-line CLINIC_ID on both aged and historical lines; prescription clinic IDs are comparison data only. Keep clinic and vet analyses/caches/exports separate, reuse the tested relationship calculation, expose clinic labels/schema/quality flags, and document the distinct clinic metric. Live coverage: 26,443/26,443 aged lines and all 20,587 customers, without populated clinic conflicts. Add a separate Make target, fresh/cached/SQL-only modes, fingerprints and bounded exports; run and reconcile before leaving uncommitted for review.
+
+  - Added make aged-customer-prior-same-clinic-shipments with dedicated clinic SQL/schema/provenance and a boundary adapter sharing the tested relationship calculation. No matching-rule, timestamp, identity or order-exclusion changes; prescription clinic IDs do not override line clinics. All 26,443 aged lines have CLINIC_ID across 20,587 customers and 6,436 recorded clinics; populated-variant conflicts are zero.
+  - Fresh/cached results: same-clinic history 15,974 (77.59% all / 77.69% assessable); other-clinic-only 1,335 (6.48% / 6.49%); no qualifying prior prescription shipments 3,253 (15.80% / 15.82%); Unknown 25 (0.12%). Assessable denominator: 20,562. Unknown causes: 24 historical RX/customer mismatches and one missing historical clinic ID. Historical populated line/prescription clinic disagreements: 3,712 records; matching uses line clinic throughout. Cohort membership is identical to the frozen reference.
+  - Verification: independent local SQL using exact integer nanosecond cutoffs reproduces every customer classification and all four totals; all excluded aged order IDs stay outside eligible history. Full suite: 442 tests and 16 subtests pass; final focused suites: 46 pass. Fresh/cached/SQL-only behavior, source fingerprint rejection, deliberate source-field disagreements, clinic-specific labels/schema, historical vet-diet field preservation and no prescription fallback tested. Source/export hashes and Markdown limits pass (clinic maximum 14,501 bytes; vet maximum 14,307). HOWTO updated; git diff --check passes. Changes remain uncommitted for review; log.org unchanged.
+
+* DONE Clinic-history distribution among 21-day reordered customers
+  :PROPERTIES:
+  :REFNUM:   43.
+  :END:
+  - User requests a target for the clinic distribution among customers who reordered within 21 days after an aged cancellation. Use same customer/product/pet keys, complete follow-up, unique-customer counting and unchanged REFNUM 42 customer classifications. Keep all qualifying aged-order clinic references, not only the representative reorder anchor. Add a cached-input derivation target with date options, dependency SQL-only inspection, source/export fingerprints, bounded Markdown/complete Parquet summaries/customer details/audits and HOWTO documentation. Run, reconcile and leave uncommitted for review.
+  - Added make aged-customer-21d-reorder-clinic-history. Normal/CACHED modes derive the subgroup from validated frozen inputs without warehouse calls; PRINT_SQL prints prerequisite extraction queries. Source SQL/date/options, raw Parquet and exported customer/match fingerprints are checked before combining. Clinic flags remain unchanged, with deterministic representative reorder details and all-customer comparison percentages exported alongside the subgroup distribution.
+  - Results: 5,382 reordered customers from 15,544 eligible complete-follow-up customers. Same clinic: 4,244 (78.86%); other clinics only: 306 (5.69%); no qualifying prior prescription shipments: 829 (15.40%); Unknown: 3 (0.06%). Assessable denominator: 5,379. Exact unique customer counts and existing clinic classifications reconcile.
+  - Verification: 14 dedicated tests cover duplicate associations/customer counting, all matching keys, exact 21-day bounds, other-horizon exclusion, missing/duplicate clinic customers, Unknown denominators, empty populations, CLI modes, input fingerprint rejection and bounded exports. Full suite: 456 tests and 16 subtests pass. Live normal/cached runs, manifest hashes, unchanged source classifications, exact timing and Markdown caps verified (largest output 8,396 bytes). HOWTO updated; git diff --check passes. Changes remain uncommitted for review.
+
 * DONE Correct generated-code directory
   :PROPERTIES:
   :REFNUM:   39.
   :END:
   - User correction: use src/autogenerated/ for temporary/generated code. Moved generated files into the canonical ignored directory, preserving an existing editor-lock symlink, and corrected generator/test/documentation/AGENTS paths and generated SQL source pointers. Remove obsolete ignore entry; verify cache fingerprints and datasets remain valid. Leave uncommitted for review.
   - Verification: 28 focused tests pass, including fresh/cached/SQL-only entrypoints and canonical generated-path assertions for both targets. All six generated files preserved (only three SQL-history source pointers updated); existing editor-lock symlink retained. Both analyses retain their original SQL/source fingerprints and unchanged data extracts. Obsolete directory removed; git diff --check passes. Changes remain uncommitted for review.
+
+* DONE Remove vet-ID analysis and preserve clinic targets
+  :PROPERTIES:
+  :REFNUM:   44.
+  :END:
+  - User retires the vet-ID analysis. Move its still-used calculation and regression coverage into the clinic module/tests with native clinic fields; remove the vet target, Python/SQL/tests, generated artifacts, data and HOWTO entry. Preserve full-cohort and 21-day clinic results and cache compatibility; leave uncommitted for review.
+  - Retained the full calculation and regression coverage directly in the clinic module/tests, removed the adapter and all vet-analysis imports, and made the clinic HOWTO section self-contained. Removed the vet Python/SQL/test files, Make target, generated code, data and rendered tables; retired historical REFNUM 40/41 entries. Removal inventory: 68 files, 207,923,203 bytes. Clinic profiling scratch based on the former vet-query skeleton was removed too.
+  - Verification: 45 focused tests and the full 456-test suite plus 16 subtests pass. Both retained clinic targets regenerate from cache; all 16 retained clinic Parquet files remain byte-identical, with original 15,974/20,587 full-cohort and 4,244/5,382 reordered same-clinic counts. The retired Make target has no rule, active vet-analysis references are absent, and git diff --check passes.
+  - User approved committing and merging to main. Generated outputs are ignored, preserving already tracked artifacts; code, tests and documentation are included in the approved commit.
