@@ -1,3 +1,24 @@
+* Clinic shipment history and vet-analysis retirement
+  - User approved committing and merging to main. Implementation committed as
+    63e62cb (feat: add prior clinic history and 21-day reorder distribution).
+  - Added aged-customer-prior-same-clinic-shipments using order-line CLINIC_ID,
+    strict shipment-before-aged-order-placement cutoffs, distinct customers and
+    explicit unknown classifications. All 26,443 aged lines have clinic IDs.
+  - Of 20,587 aged customers: 15,974 prior same-clinic, 1,335 other-clinic-only,
+    3,253 without qualifying prior shipments and 25 unknown.
+  - Added aged-customer-21d-reorder-clinic-history using verified frozen inputs,
+    complete follow-up and same customer/product/pet reorder keys. Of 5,382
+    reordered customers: 4,244 same-clinic, 306 other-clinic-only, 829 without
+    qualifying prior shipments and three unknown. Each customer counts once.
+  - Removed the superseded vet-ID analysis, target, SQL, tests, data and generated
+    artifacts. Retained its required calculation and edge-case coverage directly
+    in the clinic module/tests, without vet-code dependencies or adapters.
+  - Both clinic targets regenerate successfully from cache; all 16 clinic
+    Parquet files stayed byte-identical during the retirement. Verified 456
+    tests and 16 subtests, source/export fingerprints and Markdown size caps.
+    Generated outputs remain outside the commit; existing tracked artifacts
+    are preserved. git diff --check passes.
+
 * Accepted analysis updates and verification, October 27, 2026
   - User requested merging the completed analysis branch into main. Their
     committed work is preserved, including commits 5915ed9, 89f7f9a and 5c4dce0.
