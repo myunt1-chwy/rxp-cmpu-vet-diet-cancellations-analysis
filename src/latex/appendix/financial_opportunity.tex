@@ -1,59 +1,77 @@
 \clearpage
 \subsection{Financial Opportunity Analysis}\label{subsec:financial-opportunity-analysis}
-Table~\ref{tab:financial-opportunity-cancellations} reports order counts,
+Table~\ref{tab:financial-opportunity-cancellations} reports distinct customer and order counts,
 qualifying order-line counts and recorded net sales by cancellation reason
-for orders placed from June 1, 2026 through August 31, 2026, inclusive, UTC
-(\texttt{[2026-06-01, 2026-09-01)}, with an exclusive end date).
+for orders shipped or cancelled from May 1, 2026 through July 31, 2026, inclusive, UTC
+(\texttt{[2026-05-01, 2026-08-01)}, with an exclusive end date).
 The population requires vet-diet lines matched by prescription ID and numeric
 customer ID to vet-diet prescriptions with
 \texttt{PRESCRIPTION\_SOURCE = CMPU} and
 \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD}.
 
+\subsubsection{Orders by cancellation reason}
 \begin{table}[htbp]
 \centering
-\caption{Financial opportunity baseline: cancellation reasons, orders, qualifying order lines and net sales for CMPU vet-diet customer-upload orders placed June 1, 2026 through August 31, 2026, inclusive, UTC.}
+\caption{Financial opportunity baseline: cancellation reasons, customers, orders, qualifying order lines and net sales for CMPU vet-diet customer-upload orders shipped or cancelled May 1, 2026 through July 31, 2026, inclusive, UTC.}
 \label{tab:financial-opportunity-cancellations}
 \small
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.44\linewidth}rrr@{}}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.40\linewidth}rrrr@{}}
 \toprule
-Cancellation reason & Orders & Order lines & Net sales \\
+Cancellation reason & Customers & Orders & Order lines & Net sales \\
 \midrule
-{[No recorded cancellation reason]} & 411,662 & 461,994 & 38,023,065.81 \\
-{Aged order} & 40,014 & 43,660 & 3,633,444.49 \\
-{Customer initiated cancellation} & 31,623 & 36,479 & 2,836,231.85 \\
-{Customer request} & 11,348 & 12,959 & 991,671.52 \\
-{Duplicate order} & 160 & 181 & 14,510.73 \\
-{Fraud} & 30 & 36 & 3,159.43 \\
-{Inventory issue} & 7 & 7 & 555.37 \\
-{No response} & 1,145 & 1,220 & 105,609.39 \\
-{Other} & 736 & 859 & 65,953.25 \\
-{Payment declined} & 6,075 & 6,694 & 565,729.28 \\
-{Payment issue} & 43 & 51 & 3,960.32 \\
-{Pharmacy rejection} & 348 & 399 & 32,960.80 \\
-{Prescription issue} & 4,883 & 5,332 & 442,468.05 \\
-{Restricted availability} & 1 & 1 & 25.64 \\
+{[No recorded cancellation reason]} & 172,878 & 387,707 & 433,051 & 35,821,384.85 \\
+{Aged order} & 30,382 & 38,314 & 41,713 & \textcolor{gray}{3,470,380.19} \\
+{Customer initiated cancellation} & 29,455 & 32,939 & 37,959 & \textcolor{gray}{2,945,818.13} \\
+{Customer request} & 11,382 & 11,948 & 13,662 & \textcolor{gray}{1,042,195.19} \\
+{Duplicate order} & 161 & 165 & 188 & \textcolor{gray}{14,763.64} \\
+{Fraud} & 36 & 38 & 45 & \textcolor{gray}{4,339.97} \\
+{Inventory issue} & 5 & 5 & 5 & \textcolor{gray}{583.24} \\
+{No response} & 1,035 & 1,229 & 1,329 & \textcolor{gray}{111,509.37} \\
+{Other} & 784 & 809 & 940 & \textcolor{gray}{71,158.59} \\
+{Payment declined} & 4,242 & 5,533 & 6,067 & \textcolor{gray}{523,931.07} \\
+{Payment issue} & 46 & 47 & 57 & \textcolor{gray}{4,207.82} \\
+{Pharmacy rejection} & 278 & 310 & 351 & \textcolor{gray}{29,055.56} \\
+{Prescription issue} & 5,051 & 5,329 & 5,822 & \textcolor{gray}{480,281.17} \\
+{Restricted availability} & 1 & 1 & 1 & \textcolor{gray}{25.64} \\
 \midrule
-{TOTAL} & 508,075 & 569,872 & 46,719,345.94 \\
+{TOTAL} & 225,434 & 484,374 & 541,190 & 44,519,634.43 \\
 \bottomrule
 \end{tabular}
 
 \begin{minipage}{\linewidth}
 \footnotesize
 \textit{Notes:} Includes all qualifying orders, including subsequent orders;
-there is no prescription-creation, order-status or cancellation-date cutoff.
+shipment or cancellation records must fall in the reporting window. There is no order-placement or prescription-creation restriction.
 This differs from the prescription-creation cohort and aged-cancellation cutoff
-used in Table~\ref{tab:first-all-order-cancellations}.
-Counts are distinct orders and physical order lines. Sales include only
+used in Table~\ref{tab:study-population-counts}.
+Counts are distinct customers, orders and physical order lines. Customers may
+appear in multiple reason rows; TOTAL counts each customer once. Sales include only
 qualifying lines, summed from \texttt{ORDER\_LINE\_NET\_SALES} in
 \texttt{EDLDB.BT\_HCA\_HCDM.ORDER\_LINE\_COST\_MEASURES\_RXP},
-once per shipment-and-line record. Zero and negative sales remain included;
+once per shipment-and-line record with a shipment or cancellation timestamp in the window. Split-shipment sales outside the window are excluded; records meeting both dates count once. Zero and negative sales remain included;
 any missing sales make the group total incomplete. Display rounds to two
 decimals; exports retain five. Current cancellation reasons are grouped
 case-insensitively; a missing reason does not establish an uncancelled order.
 Orders can appear in multiple reason rows if their lines have different
 reasons; TOTAL counts each order once. Line counts and sales are additive.
+Gray net-sales amounts have a recorded cancellation reason and represent
+unrealized sales, not realized revenue. TOTAL includes these gray amounts.
 Recorded net sales are a baseline for opportunity sizing, not an estimate of
 recoverable revenue from cancelled orders.
 \end{minipage}
 \end{table}
+
+\input{appendix/financial_opportunity_follow_up_same_part_pet}
+\input{appendix/financial_opportunity_new_upload_follow_up_same_part_pet}
+\input{appendix/financial_opportunity_new_vet_diet_follow_up_same_part_pet}
+\input{appendix/financial_opportunity_follow_up_same_pet_different_part}
+\input{appendix/financial_opportunity_new_upload_follow_up_same_pet_different_part}
+\input{appendix/financial_opportunity_new_vet_diet_follow_up_same_pet_different_part}
+\input{appendix/financial_opportunity_follow_up_any_vet_diet}
+\input{appendix/financial_opportunity_new_upload_follow_up_any_vet_diet}
+\input{appendix/financial_opportunity_new_vet_diet_follow_up_any_vet_diet}
+\input{appendix/financial_opportunity_chewy_follow_up}
+\input{appendix/financial_opportunity_new_upload_chewy_follow_up}
+\input{appendix/financial_opportunity_new_vet_diet_chewy_follow_up}
+\input{appendix/financial_opportunity_customer_order_frequency}

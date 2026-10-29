@@ -1,0 +1,52 @@
+\clearpage
+\subsubsection{Follow-up for first CUSTOMER\_UPLOAD vet-diet customers}
+Table~\ref{tab:financial-opportunity-new-upload-follow-up} follows the
+11,550 customers whose first observed vet-diet
+\texttt{CUSTOMER\_UPLOAD} order was an aged order. Original CMPU vet-diet
+\texttt{CUSTOMER\_UPLOAD} aged cancellations occurred from
+May 1, 2026 through July 31, 2026, inclusive, UTC.
+
+\begin{table}[!htbp]
+\centering
+\caption{Same-pet, same-product non-cancelled reorders after cancellation of a first CUSTOMER\_UPLOAD vet-diet aged order: cumulative customers, percentage of the fixed cohort, orders and matching-line net sales through 70 days.}
+\label{tab:financial-opportunity-new-upload-follow-up}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+Follow-up (days) & Customers & Cohort (\%) & Orders & Net sales \\
+\midrule
+7 & 833 & 7.21\% & 855 & 72,184.56 \\
+14 & 1,281 & 11.09\% & 1,365 & 116,938.34 \\
+21 & 1,633 & 14.14\% & 1,840 & 159,141.20 \\
+28 & 1,846 & 15.98\% & 2,256 & 193,780.75 \\
+35 & 2,026 & 17.54\% & 2,698 & 234,112.61 \\
+42 & 2,149 & 18.61\% & 3,113 & 272,143.01 \\
+49 & 2,297 & 19.89\% & 3,641 & 322,633.43 \\
+56 & 2,372 & 20.54\% & 3,995 & 354,230.43 \\
+63 & 2,450 & 21.21\% & 4,425 & 393,797.77 \\
+70 & 2,509 & 21.72\% & 4,801 & 427,522.19 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Each customer's first qualifying aged order is the sole anchor;
+later aged orders do not reset follow-up. Follow-up begins strictly after that
+order's cancellation and includes the indicated day limit. Require the same
+numeric customer ID, exact \texttt{PRODUCT\_PART\_NUMBER} and non-null
+\texttt{PET\_ID}. Later orders may use any approval channel or prescription
+source. Exclude the whole later order if any line is cancelled or has unknown
+status. Count each customer, order and physical line once within each window,
+regardless of multiple original lines or shipments. Every percentage uses the
+same fixed denominator of 11,550 customers, including those with no
+qualifying reorder. All windows require complete follow-up through
+2026-10-28 00:00 UTC; windows and studies overlap and should not be added.
+The cohort uses exact earliest observed order IDs in linked prescription and
+ECOM history, across all historical prescription sources, with current
+prescription approval-channel snapshots. Original eligibility is CMPU,
+vet diet and \texttt{CUSTOMER\_UPLOAD}. Current extraction statuses determine
+non-cancellation. Net sales sum \texttt{ORDER\_LINE\_NET\_SALES} on matching
+lines, once per shipment/line contribution; missing sales make totals incomplete.
+Sales are recorded matching-line amounts, not proof of recovered revenue.
+Amounts display two decimals; exports retain five.
+\end{minipage}
+\end{table}

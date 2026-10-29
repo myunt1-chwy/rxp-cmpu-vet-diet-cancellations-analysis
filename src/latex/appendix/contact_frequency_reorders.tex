@@ -1,0 +1,38 @@
+
+\subsubsection{Reorders by contact-day frequency}
+Table~\ref{tab:contact-frequency-same-pet-part-reorders} applies the contact-day
+frequency segments in Table~\ref{tab:aged-customer-contact-day-frequency}
+to same-pet, same-product reorders.
+
+\begin{table}[!htbp]
+\centering
+\caption{Same-pet, same-product-part-number reorders within 14 days after aged cancellation, by customer contact-day frequency. Original CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} orders were cancelled from May 1, 2026 through July 31, 2026, inclusive, UTC.}
+\label{tab:contact-frequency-same-pet-part-reorders}
+\begin{tabular}{@{}rrrr@{}}
+\toprule
+Days contacted & Segment customers & Customers reordered & Segment reordered (\%) \\
+\midrule
+1 & 27,265 & 3,376 & 12.38\% \\
+2 & 2,808 & 396 & 14.10\% \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Segments count distinct relative 24-hour contact-day bins from
+$-13$ through $+3$, pooled across each customer's qualifying aged orders.
+Multiple contacts on the same relative day count as one day. Match inbound
+contacts to the original aged order and its customer, across all categories.
+Include handled, unhandled and unknown-handled inbound attempts. Reorders must match the customer, non-null \texttt{PET\_ID} and nonblank
+\texttt{PRODUCT\_PART\_NUMBER}, on a different order placed strictly after
+its matched aged cancellation through 14 days inclusive. Apply the established
+non-cancelled-order rules: exclude an entire reorder order if any line has
+cancellation evidence or unknown status. Reorders may use any approval channel
+or prescription source. Count each customer once in their segment if any
+qualifying aged order has a matching reorder in its own follow-up window.
+Percentages use all customers in the contact segment, including those missing
+matching keys or without reorders; N/A denotes an empty segment. Contact-day
+segments include post-cancellation contacts through day $+3$.
+Observation cutoff: 2026-10-28 00:00 UTC.
+\end{minipage}
+\end{table}

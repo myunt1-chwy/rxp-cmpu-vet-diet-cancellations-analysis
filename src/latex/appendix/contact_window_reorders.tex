@@ -1,0 +1,41 @@
+\clearpage
+\subsubsection{Reorders by contact timing}
+Table~\ref{tab:contact-window-same-pet-part-reorders} compares customers with a
+qualifying contact on days $-7$ through $+3$ relative to aged cancellation
+against the rest of the aged-order cohort. The contacting group's 14-day reorder
+rate is 7.70 percentage points higher.
+
+\begin{table}[!htbp]
+\centering
+\caption{Same-pet, same-product-part-number reorders within 14 days after aged cancellation: customers contacting on days $-7$ through $+3$ versus the rest of the cohort. Original CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} orders were cancelled May 1--July 31, 2026, inclusive, UTC.}
+\label{tab:contact-window-same-pet-part-reorders}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Customer group & Customers & Customers reordered & Reorder rate (\%) \\
+\midrule
+Contacted on days $-7$ through $+3$ & 1,184 & 237 & 20.02\% \\
+Rest of aged cohort & 29,198 & 3,595 & 12.31\% \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} A customer belongs to the contacting group if any qualifying
+inbound contact is linked to one of their original aged orders and the contact
+customer ID matches the order's customer. Include all contact categories and
+handled states. Days are elapsed 24-hour bins: the window starts exactly seven
+days before cancellation and ends just before four days after cancellation,
+covering all of day $+3$. The complementary group includes customers contacting
+only outside this window and customers with no qualifying contacts. Each
+customer belongs to exactly one group; the groups sum to 30,382 customers and
+3,832 returning customers. Use the same non-cancelled same-customer,
+\texttt{PET\_ID} and \texttt{PRODUCT\_PART\_NUMBER} reorder endpoint as
+Table~\ref{tab:contact-frequency-same-pet-part-reorders}: a different order
+placed strictly after its matched aged cancellation through 14 days inclusive.
+Count a customer once if any qualifying aged order has a matching reorder in
+its own window; the contact need not concern that same aged order. Percentages
+use all customers in each group. Observation cutoff: October 28, 2026 at 00:00
+UTC. Contacts after cancellation contribute to group membership; this is a
+descriptive comparison and does not establish a causal effect of contact.
+\end{minipage}
+\end{table}

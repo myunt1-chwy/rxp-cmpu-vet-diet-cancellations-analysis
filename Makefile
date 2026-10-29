@@ -138,8 +138,59 @@ cmpu-upload-entity-order-creation-distributions:
 
 .PHONY: opportunity-order-cancellation-summary
 opportunity-order-cancellation-summary:
-	.venv/bin/python -m src.python.create_opportunity_order_cancellation_summary --start-date "$(or $(START_DATE),2026-06-01)" --end-date "$(or $(END_DATE),2026-09-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(WRITE_LATEX)),--write-latex)
+	.venv/bin/python -m src.python.create_opportunity_order_cancellation_summary --date-basis "$(or $(DATE_BASIS),placed)" --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(WRITE_LATEX)),--write-latex)
 
 .PHONY: prescription-cohort-order-comparison
 prescription-cohort-order-comparison:
 	.venv/bin/python scripts/summarize_prescription_cohort_order_comparison.py $(if $(filter 1,$(CACHED)),,--refresh) --write-latex
+
+.PHONY: opportunity-aged-reorders
+opportunity-aged-reorders:
+	.venv/bin/python -m src.python.create_opportunity_aged_reorders --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" --followup-days "$(or $(FOLLOWUP_DAYS),7)" $(if $(filter 1,$(ALL_WINDOWS)),--all-windows) $(if $(filter 1,$(ALL_STUDIES)),--all-studies) $(if $(filter 1,$(WRITE_LATEX)),--write-latex) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-follow-up-sales
+opportunity-follow-up-sales:
+	$(MAKE) --no-print-directory opportunity-aged-reorders ALL_WINDOWS=1 ALL_STUDIES=1 WRITE_LATEX=1
+	$(MAKE) --no-print-directory opportunity-chewy-follow-up WRITE_LATEX=1
+
+.PHONY: opportunity-chewy-follow-up
+opportunity-chewy-follow-up:
+	.venv/bin/python -m src.python.create_opportunity_aged_reorders --all-chewy --all-windows --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(WRITE_LATEX)),--write-latex) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-aged-new-customers
+opportunity-aged-new-customers:
+	.venv/bin/python -m $(if $(filter same-day,$(METHOD)),src.python.create_opportunity_aged_new_customers,src.python.create_opportunity_aged_first_order_customers) --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-aged-new-vet-diet-customers
+opportunity-aged-new-vet-diet-customers:
+	.venv/bin/python -m src.python.create_opportunity_aged_first_order_customers --scope vet-diet --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-aged-new-customer-upload-vet-diet-customers
+opportunity-aged-new-customer-upload-vet-diet-customers:
+	.venv/bin/python -m src.python.create_opportunity_aged_first_order_customers --scope vet-diet-customer-upload --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-new-upload-customer-follow-up
+opportunity-new-upload-customer-follow-up:
+	.venv/bin/python -m src.python.create_opportunity_new_upload_customer_follow_up --all-studies --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+	$(MAKE) --no-print-directory opportunity-new-upload-customer-chewy-follow-up
+
+.PHONY: opportunity-new-upload-customer-chewy-follow-up
+opportunity-new-upload-customer-chewy-follow-up:
+	.venv/bin/python -m src.python.create_opportunity_new_upload_customer_follow_up --study any-chewy --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-new-vet-diet-customer-follow-up
+opportunity-new-vet-diet-customer-follow-up:
+	.venv/bin/python -m src.python.create_opportunity_new_upload_customer_follow_up --cohort first-vet-diet --all-studies --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+	$(MAKE) --no-print-directory opportunity-new-vet-diet-customer-chewy-follow-up
+
+.PHONY: opportunity-new-vet-diet-customer-chewy-follow-up
+opportunity-new-vet-diet-customer-chewy-follow-up:
+	.venv/bin/python -m src.python.create_opportunity_new_upload_customer_follow_up --cohort first-vet-diet --study any-chewy --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-aged-customer-contacts
+opportunity-aged-customer-contacts:
+	.venv/bin/python -m src.python.create_opportunity_aged_customer_contacts --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(HANDLED_ONLY)),--handled-only) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-contact-frequency-reorders
+opportunity-contact-frequency-reorders:
+	.venv/bin/python -m src.python.create_opportunity_contact_frequency_reorders --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" --followup-days "$(or $(FOLLOWUP_DAYS),14)" $(if $(filter 1,$(HANDLED_ONLY)),--handled-only) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)

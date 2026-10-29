@@ -1,0 +1,49 @@
+\clearpage
+\subsubsection{Same-pet, same-product orders per returning customer}
+Table~\ref{tab:financial-opportunity-customer-order-frequency} shows the
+percentage distribution of distinct orders per returning customer for the
+same-pet, same-product follow-up in Table~\ref{tab:financial-opportunity-reorder-windows}.
+The original CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged cancellations occurred
+from May 1, 2026 through July 31, 2026, inclusive, UTC.
+
+\begin{table}[!htbp]
+\centering
+\caption{Same-pet, same-product follow-up: percentage of final 70-day returning customers by number of distinct non-cancelled orders.}
+\label{tab:financial-opportunity-customer-order-frequency}
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}rrrrrrrrrrrrr@{}}
+\toprule
+Follow-up (days) & \multicolumn{12}{c}{Number of orders per customer} \\
+ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 \\
+\midrule
+7 & 28.03\% & 1.10\% & 0.03\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+14 & 44.60\% & 3.37\% & 0.25\% & 0.01\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+21 & 55.63\% & 7.85\% & 0.97\% & 0.15\% & 0.01\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+28 & 58.74\% & 12.39\% & 1.94\% & 0.47\% & 0.11\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+35 & 57.74\% & 18.09\% & 4.29\% & 0.82\% & 0.31\% & 0.08\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+42 & 54.83\% & 23.31\% & 5.82\% & 1.18\% & 0.43\% & 0.19\% & 0.05\% & 0.01\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+49 & 50.23\% & 30.38\% & 7.20\% & 2.68\% & 0.74\% & 0.20\% & 0.18\% & 0.03\% & 0.01\% & 0.00\% & 0.00\% & 0.00\% \\
+56 & 47.28\% & 31.72\% & 10.45\% & 3.26\% & 1.07\% & 0.38\% & 0.23\% & 0.13\% & 0.01\% & 0.01\% & 0.00\% & 0.00\% \\
+63 & 43.61\% & 34.05\% & 13.03\% & 3.69\% & 2.09\% & 0.63\% & 0.21\% & 0.20\% & 0.10\% & 0.01\% & 0.01\% & 0.00\% \\
+70 & 41.10\% & 34.59\% & 15.70\% & 4.66\% & 2.34\% & 0.81\% & 0.37\% & 0.21\% & 0.13\% & 0.08\% & 0.01\% & 0.01\% \\
+\bottomrule
+\end{tabular}}
+\endgroup
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} For each follow-up window, divide the customers with the indicated
+number of distinct qualifying orders by the same final 70-day total of 7,944 returning
+customers in Table~\ref{tab:financial-opportunity-reorder-windows}, then multiply by 100.
+No zero-order column is shown. Match exact customer,
+\texttt{PET\_ID} and \texttt{PRODUCT\_PART\_NUMBER}; use the same non-cancelled-order
+rules and complete follow-up through 2026-10-28 00:00 UTC.
+Count each order once per customer, regardless of lines, shipments or repeated
+original cancellations. Pool all qualifying matching pets/products and
+cancellation windows per customer. Earlier rows sum to the percentage of final-window customers who have reordered by that day; only the final row totals 100\% before rounding.
+N/A denotes a zero final-window customer count. Windows overlap.
+\end{minipage}
+\end{table}

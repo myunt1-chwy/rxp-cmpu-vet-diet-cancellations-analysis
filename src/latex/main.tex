@@ -105,62 +105,81 @@
 \noindent\textbf{Date:} \today\par\medskip
 \section{Executive Summary}\label{abstract}
 
-%%%Mehmet Yunt
 
+In CMPU (Customer Must Upload) vet diet orders shipped or canceled
+between May 1, 2026 and July 31, 2026, 38,314 orders were canceled due
+to aging. In this context, aging means the time between order creation
+and order shipment or cancellation exceeded 11 days. CMPU orders are
+particular in  that the customers must upload the
+prescription documents themselves for approval.
 
+The number of aging orders was  about 10\% of the orders that were
+actually shipped with an estimated loss of 3,5 million, again about
+10\% of the net sales of the actually shipped orders (Table
+\ref{tab:financial-opportunity-cancellations}).
 
+In the following seven days after a cancellation, 2,316 out of 30,382
+customers return to shop the same part number for the same pet and
+successfully reorder for a total net sales of 221 thousand (Table
+\ref{tab:financial-opportunity-reorder-windows}) recovering 7.6\% of
+the loss. After 28 days, Chewy recovers only about 20\% of the
+estimated net sales. By 70 days, we have only 26\% of the customers
+shopping the same product for the same pet. The attrition is worse for
+customers whose first CMPU order was the aged order; retention is
+7.2\% and 21.72\% respectively for 7 and 70 days (11,500 customers,
+see Table \ref{tab:financial-opportunity-new-upload-follow-up}).  The
+worst segment is the new to vet diet customers; and their 70 day
+reorder rate is only 15\% (5K customers, see Table
+\ref{tab:financial-opportunity-new-vet-diet-follow-up}). The rate of
+reorder in Chewy of these cohorts follows the same order 61\%, 58\%
+and 50\%. A subsequent study will analyze longer time frames.
 
+All of the customers seem to have contacted Chewy, most of them at the
+creation of the order (Table
+\ref{tab:aged-customer-contacts-by-cancellation-day}). Some of them
+have contacted Chewy on multiple days (Table
+\ref{tab:aged-customer-contact-day-frequency}). People who
+contacted closer to the aged order cancellation date have a higher
+reorder rate (Table \ref{tab:contact-window-same-pet-part-reorders}).
 
-In CMPU (Customer Must Upload) vet diet orders 68\% of the line items
-never get shipped; with 28\% line items, aged orders constituting the
-largest subset of non-shipping line items. These are orders that have
-been canceled automatically when the time between order creation and
-time of shipment or any other cancellation exceeds 11 days. A detailed
-breakdown of cancellation reasons can be found in Figure
-\ref{fig:first-order-lines-customer-upload}.
+The study analyzes first orders and order lines associated with CMPU
+prescriptions. Details can be found in Section
+\ref{app:aged-order-analysis}.  The main findings are that highly
+likely aged orders are caused by customers not uploading their
+prescription documents; and that after 3 days there is 50\%+ chance
+that a CMPU order becomes an aged order.
 
-For this analysis; 95,073 vet diet prescriptions created between
-August 15, 2026 and October 15, 2026 were used with
-\verb|CUSTOMER_UPLOAD| as the approval channel. This corresponds to
-87,724 distinct orders and 95,073 order lines. The 24,408 orders
-described in \verb|OMS| with the cancellation reason
-\verb|AGED_ORDER| constitute the  aged orders leading to 26,443 line
-items, 26,443 corresponding prescriptions and 20,587 customers.
+That the attrition rate is higher for customers who encounter this
+first time hints that uploading the prescription is an onus on the
+customer. The customer might not be uploading the prescription because
+it might be hard to obtain from the vet in person, it might be hard to
+upload for some reason ( the Chewy web site or Chewy app not working for the customer),
+or once the customer goes to the vet, they have the ability procure the
+product on site or nearby.
 
-Factors that might be contributing to an order aging are: delay in
-prescription upload by the customer, delay in processing the upload,
-and delay in approving the prescription after the uploaded
-prescription document is accepted.
+One suggestion to increase the upload rate (communication with
+Courtney Gleede) is to send reminder emails to customer. At this
+point, Chewy does not contact customers if there is a chance that
+their order might become aged. There is no Chewy relevant outbound contact data for a
+comparative/causal analysis. The only contact happens when the
+customer is notified that their order has been canceled.  Assuming
+that people who receive an email before cancellation, react similarly
+to the cohort that reorders within 7 days after cancellation, we
+expect that out of 30K people considered in the opportunity study with
+aged cancellations, 2.3K would react before order cancellation
+corresponding to 221K sales. The best effort guess is that Chewy
+prevents people from skipping one reorder for this cohort for an
+additional gain of 221K net sales.  The upper bound on the best effort
+estimate is 390K corresponding to the 14 day cohort. This represents
+about 1\% increase net sales for CMPU vet diet orders.
 
-The data for uploaded documents/entities does not cover all the
-prescriptions, the coverage is about 31\% in this study. The number of
-prescription documents uploaded for 26,443 aged order prescriptions is
-782 (~3\%) compared to 33,336 uploads for 95,073 prescriptions overall
-(~35\%) pointing to a severe non-response by the customers. See Table
-\ref{tab:study-population-counts}.
+The effect of reminder emails on long term retention is an open
+question. Uploading a prescription is still an onus with or without
+a reminder.
 
-Only 6 aged order related prescription were approved out of 52
-accepted/782 uploaded (See Table
-\ref{tab:study-population-prescription-decisions} for comparison with
-the rest of the order line population.) The median time for these
-prescriptions to become accepted was 10 days after upload, as a result
-missing the aged order cancellation deadline (Figure
-\ref{fig:entity-upload-state-time-aged}).  For comparison, the
-distributions of the time difference between upload of the documents
-and their final states are in Figure
-\ref{fig:entity-upload-state-time-overall} for all entities.
-Customers seem to upload at similar delays after order creation for
-overall and aged order prescriptions (Figure
-\ref{fig:entity-upload-vs-order-creation}).
-
-From the available entity upload data, it takes less than a minute to
-approve an accepted prescription document see Figure
-\ref{fig:accepted-upload-to-approval-cumulative}.
-
-For the main issue of  non-response by the customers;
-the suggested remedy is to contact the customers in the
-first 10 days and to remind them to upload their prescription
-documents.
+A controlled experiment where Chewy sends reminder emails to get a
+better understanding of the entitlement regarding short term gain is
+suggested as next steps.
 
 
 
@@ -170,14 +189,12 @@ documents.
 \localtableofcontents
 \input{appendix/reproducing_results}
 \input{appendix/financial_opportunity}
+\input{appendix/contact_analysis}
 \input{appendix/study_population_analysis}
-\input{appendix/entity_upload_analysis}
-\input{appendix/approval_analysis}
 
 \Needspace{8\baselineskip}
 \section{References}\label{references}
 \begin{enumerate}[label={[\arabic*]},leftmargin=*]
 \item \label{ref:analysis-repository}\emph{RXP CMPU Vet Diet Cancellations Analysis}. GitHub repository. \url{https://github.com/myunt1-chwy/rxp-cmpu-vet-diet-cancellations-analysis}.
-\item   https://chewyinc.atlassian.net/wiki/x/PoB-WAE
 \end{enumerate}
 \end{document}

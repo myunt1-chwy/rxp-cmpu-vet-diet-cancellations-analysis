@@ -1,0 +1,44 @@
+\clearpage
+\subsubsection{Non-cancelled follow-up purchases: all Chewy}
+Table~\ref{tab:financial-opportunity-reorder-all-chewy} summarizes cumulative
+follow-up windows after CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged cancellations
+from May 1, 2026 through July 31, 2026, inclusive, UTC.
+
+\begin{table}[!htbp]
+\centering
+\caption{All-Chewy follow-up purchases: customers, cohort percentages, non-cancelled orders and net sales within 7, 14, 21, 28, 35, 42, 49, 56, 63 and 70 days after aged cancellation.}
+\label{tab:financial-opportunity-reorder-all-chewy}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+Follow-up (days) & Customers & Cohort (\%) & Orders & Net sales \\
+\midrule
+7 & 6,477 & 21.32\% & 8,512 & 702,794.12 \\
+14 & 10,265 & 33.79\% & 15,918 & 1,307,265.44 \\
+21 & 13,193 & 43.42\% & 23,645 & 1,912,710.30 \\
+28 & 14,804 & 48.73\% & 30,064 & 2,440,684.77 \\
+35 & 15,917 & 52.39\% & 36,535 & 2,971,072.85 \\
+42 & 16,689 & 54.93\% & 42,616 & 3,471,768.55 \\
+49 & 17,370 & 57.17\% & 49,096 & 4,009,870.68 \\
+56 & 17,837 & 58.71\% & 55,126 & 4,500,734.83 \\
+63 & 18,249 & 60.07\% & 61,158 & 4,996,504.86 \\
+70 & 18,569 & 61.12\% & 66,946 & 5,473,570.84 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Use a different order placed strictly after cancellation through the indicated day limit, inclusive. Match customer ID only; include all Chewy product categories and all pets. Original eligibility is selected by
+cancellation date, with no prescription-creation or first-order restriction.
+All windows use the same source snapshot and require complete follow-up through
+2026-10-28 00:00 UTC. Follow-up orders come from \texttt{EDLDB.ECOM.ORDER\_LINE}; no prescription, vet-diet, product or pet restriction applies. Exclude orders if any line has
+status X, a recorded cancellation reason or cancellation timestamp; also exclude
+orders with unknown line status. Statuses reflect the extraction snapshot.
+Each customer and reorder order counts once within a window, even when linked
+to several original cancellations. Windows and studies overlap; do not add their counts.
+Net sales sum \texttt{NET\_SALES} on all qualifying ECOM order lines,
+once per physical order line, preserving zero and negative amounts. Exact source duplicates collapse and conflicting line values fail validation.
+Sales may be recorded after the placement window; this is recorded matching-line
+sales, not proof of recovered revenue. Missing sales make the total incomplete.
+Every cohort percentage divides returning customers by the same full aged-customer cohort of 30,382, including customers with no qualifying reorder or unusable matching keys. A zero cohort is shown as N/A. Amounts display two decimals; ECOM supplies four-decimal amounts, retained exactly in five-decimal exports.
+\end{minipage}
+\end{table}

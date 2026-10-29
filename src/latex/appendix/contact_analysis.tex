@@ -1,0 +1,113 @@
+\clearpage
+\subsection{Contact Analysis}\label{subsec:contact-analysis}
+\subsubsection{Contacts by day relative to cancellation}
+Table~\ref{tab:aged-customer-contacts-by-cancellation-day} summarizes inbound
+contacts linked to CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged orders cancelled
+from May 1, 2026 through July 31, 2026, inclusive, UTC.
+The full cohort contains 30,382 customers and 38,314 aged orders.
+
+\begin{table}[!htbp]
+\centering
+\caption{Customer-initiated inbound contacts by day relative to aged-order cancellation: distinct customers contacting and distinct aged order IDs, from 13 days before through day 3 after cancellation. A total of 30,299 distinct customers contacted across this window.}
+\label{tab:aged-customer-contacts-by-cancellation-day}
+\begin{tabular}{@{}rrr@{}}
+\toprule
+Days relative to cancellation & Customers contacting & Aged order IDs \\
+\midrule
+-13 & 38 & 38 \\
+-12 & 858 & 861 \\
+-11 & 19,267 & 23,158 \\
+-10 & 11,364 & 13,530 \\
+-9 & 571 & 575 \\
+-8 & 215 & 215 \\
+-7 & 143 & 143 \\
+-6 & 123 & 123 \\
+-5 & 106 & 106 \\
+-4 & 99 & 99 \\
+-3 & 128 & 128 \\
+-2 & 251 & 256 \\
+-1 & 248 & 248 \\
+0 & 71 & 71 \\
+1 & 53 & 53 \\
+2 & 28 & 28 \\
+3 & 22 & 23 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Customer-initiated is defined by
+\texttt{SESSION\_INITIAL\_DIRECTION=inbound} in
+\texttt{EDLDB.BT\_CUSTOMER\_CARE.FCT\_CONTACTS\_BRD}, across all contact
+categories. Include handled, unhandled and unknown-handled inbound attempts. Match the original aged \texttt{ORDER\_ID} and require
+the contact's numeric \texttt{CUSTOMER\_ID} to match the order's customer.
+Use UTC \texttt{SESSION\_START\_DTTM}. Day $n$ is the elapsed 24-hour interval
+$[n,n+1)$ days relative to cancellation: day $-1$ is the preceding 24 hours,
+and day $0$ starts exactly at cancellation. These are elapsed bins rather
+than calendar-date differences. All seventeen rows from $-13$ through $+3$
+are retained, with zero for missing days. Count each customer and aged order
+once per day, regardless of repeat contact legs, sessions or qualifying order
+lines. Counts may overlap across days and should not be added as global unique
+totals. Missing timestamps or customer IDs, mismatching customer IDs, unknown
+directions and outbound contacts remain audited and are excluded from this
+table. Email contacts with Other ingress are included; inbound direction is
+a source proxy and does not establish human initiation. Full channel/ingress
+audits are exported with the data. Original eligibility uses cancellation
+dates and all qualifying orders, without a first-order or prescription-creation
+restriction. Observation cutoff: 2026-10-28 00:00 UTC, allowing the full positive-day window.
+\end{minipage}
+\end{table}
+
+\clearpage
+\subsubsection{Customer contact-day frequency}
+Table~\ref{tab:aged-customer-contact-day-frequency} groups customers by the
+number of distinct relative days on which they contacted during the same
+$-13$ through $+3$ window.
+\begin{table}[!htbp]
+\centering
+\caption{Frequency of customer contact days around aged-order cancellation: number of distinct relative days contacted versus number of customers. Of 30,382 cohort customers, 30,299 contacted on at least one day.}
+\label{tab:aged-customer-contact-day-frequency}
+\begin{tabular}{@{}rr@{}}
+\toprule
+Number of days contacted & Number of customers \\
+\midrule
+0 & 83 \\
+1 & 27,265 \\
+2 & 2,808 \\
+3 & 201 \\
+4 & 24 \\
+5 & 1 \\
+6 & 0 \\
+7 & 0 \\
+8 & 0 \\
+9 & 0 \\
+10 & 0 \\
+11 & 0 \\
+12 & 0 \\
+13 & 0 \\
+14 & 0 \\
+15 & 0 \\
+16 & 0 \\
+17 & 0 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Same CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged cohort,
+cancellation dates, observation cutoff and inbound contact rules as
+Table~\ref{tab:aged-customer-contacts-by-cancellation-day}.
+Count each distinct relative 24-hour day bin from $-13$ through $+3$ once
+per customer across all qualifying aged orders. Multiple contacts, sessions,
+legs or orders on the same relative day do not increase the day count.
+These are relative cancellation-day bins, rather than distinct calendar dates.
+Each customer appears in exactly one frequency row; zero includes cohort
+customers with no qualifying contact in this window. All frequencies from
+0 through 17 are retained, including zero-count rows. Customer counts sum to
+the full cohort; positive-day rows sum to the distinct contacting customers.
+\end{minipage}
+\end{table}
+
+\input{appendix/contact_frequency_reorders}
+
+\input{appendix/contact_window_reorders}

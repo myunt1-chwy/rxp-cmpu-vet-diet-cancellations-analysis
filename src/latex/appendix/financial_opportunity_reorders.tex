@@ -1,0 +1,189 @@
+\clearpage
+\subsubsection{Non-cancelled reorders after aged cancellation}
+Table~\ref{tab:financial-opportunity-reorder-windows} summarizes cumulative
+follow-up windows after CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged cancellations
+from May 1, 2026 through July 31, 2026, inclusive, UTC.
+
+\begin{table}[!htbp]
+\centering
+\caption{Customers, cohort percentages, non-cancelled reorder orders and matching-line net sales within 7, 14, 21, 28, 35, 42, 49, 56, 63 and 70 days after aged cancellation.}
+\label{tab:financial-opportunity-reorder-windows}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+Follow-up (days) & Customers & Cohort (\%) & Orders & Net sales \\
+\midrule
+7 & 2,316 & 7.62\% & 2,407 & 221,122.35 \\
+14 & 3,832 & 12.61\% & 4,143 & 386,124.68 \\
+21 & 5,133 & 16.89\% & 5,951 & 558,914.70 \\
+28 & 5,850 & 19.25\% & 7,289 & 685,719.76 \\
+35 & 6,461 & 21.27\% & 8,905 & 841,298.69 \\
+42 & 6,818 & 22.44\% & 10,118 & 958,671.19 \\
+49 & 7,280 & 23.96\% & 11,898 & 1,131,240.46 \\
+56 & 7,510 & 24.72\% & 13,152 & 1,252,558.38 \\
+63 & 7,756 & 25.53\% & 14,621 & 1,393,281.96 \\
+70 & 7,944 & 26.15\% & 15,808 & 1,507,063.94 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Match exact customer ID, \texttt{PRODUCT\_PART\_NUMBER} and non-null
+\texttt{PET\_ID} on a different order, placed strictly after cancellation through
+the indicated number of days, inclusive. Original eligibility is selected by
+cancellation date, with no prescription-creation or first-order restriction.
+All windows use the same source snapshot and require complete follow-up through
+2026-10-28 00:00 UTC. Reorders may use any approval channel or prescription
+source within the certified RxP order-line view. Exclude orders if any line has
+status X, a recorded cancellation reason or cancellation timestamp; also exclude
+orders with unknown line status. Statuses reflect the extraction snapshot.
+Each customer and reorder order counts once within a window, even when linked
+to several original cancellations. Windows and studies overlap; do not add their counts.
+Net sales sum \texttt{ORDER\_LINE\_NET\_SALES} on matching reorder lines only,
+once per shipment/line contribution, preserving zero and negative amounts.
+Sales may be recorded after the placement window; this is recorded matching-line
+sales, not proof of recovered revenue. Missing sales make the total incomplete.
+Every cohort percentage divides returning customers by the same full aged-customer cohort of 30,382, including customers with no qualifying reorder or unusable matching keys. A zero cohort is shown as N/A. Amounts display two decimals; exports retain five.
+\end{minipage}
+\end{table}
+
+\clearpage
+\subsubsection{Non-cancelled vet-diet reorders: same pet, different product}
+Table~\ref{tab:financial-opportunity-reorder-same-pet-different-part} summarizes cumulative
+follow-up windows after CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged cancellations
+from May 1, 2026 through July 31, 2026, inclusive, UTC.
+
+\begin{table}[!htbp]
+\centering
+\caption{Same-pet, different-product vet-diet reorders: customers, cohort percentages, orders and net sales within 7, 14, 21, 28, 35, 42, 49, 56, 63 and 70 days after aged cancellation.}
+\label{tab:financial-opportunity-reorder-same-pet-different-part}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+Follow-up (days) & Customers & Cohort (\%) & Orders & Net sales \\
+\midrule
+7 & 1,332 & 4.38\% & 1,457 & 132,081.20 \\
+14 & 2,182 & 7.18\% & 2,553 & 230,877.67 \\
+21 & 2,890 & 9.51\% & 3,677 & 331,564.87 \\
+28 & 3,413 & 11.23\% & 4,690 & 423,982.81 \\
+35 & 3,814 & 12.55\% & 5,711 & 517,496.22 \\
+42 & 4,138 & 13.62\% & 6,656 & 602,901.60 \\
+49 & 4,421 & 14.55\% & 7,662 & 698,059.40 \\
+56 & 4,651 & 15.31\% & 8,624 & 784,739.53 \\
+63 & 4,856 & 15.98\% & 9,594 & 871,819.44 \\
+70 & 5,010 & 16.49\% & 10,552 & 959,049.10 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Use a different order placed strictly after cancellation through the indicated day limit, inclusive. Match exact customer ID and non-null \texttt{PET\_ID}; require vet-diet lines with a nonblank \texttt{PRODUCT\_PART\_NUMBER} different from the original. Original eligibility is selected by
+cancellation date, with no prescription-creation or first-order restriction.
+All windows use the same source snapshot and require complete follow-up through
+2026-10-28 00:00 UTC. Reorders may use any approval channel or prescription
+source within the certified RxP order-line view. Exclude orders if any line has
+status X, a recorded cancellation reason or cancellation timestamp; also exclude
+orders with unknown line status. Statuses reflect the extraction snapshot.
+Each customer and reorder order counts once within a window, even when linked
+to several original cancellations. Windows and studies overlap; do not add their counts.
+Net sales sum \texttt{ORDER\_LINE\_NET\_SALES} on matching reorder lines only,
+once per shipment/line contribution, preserving zero and negative amounts.
+Sales may be recorded after the placement window; this is recorded matching-line
+sales, not proof of recovered revenue. Missing sales make the total incomplete.
+Every cohort percentage divides returning customers by the same full aged-customer cohort of 30,382, including customers with no qualifying reorder or unusable matching keys. A zero cohort is shown as N/A. Amounts display two decimals; exports retain five.
+\end{minipage}
+\end{table}
+
+\clearpage
+\subsubsection{Non-cancelled vet-diet reorders: any pet or product}
+Table~\ref{tab:financial-opportunity-reorder-any-vet-diet} summarizes cumulative
+follow-up windows after CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged cancellations
+from May 1, 2026 through July 31, 2026, inclusive, UTC.
+
+\begin{table}[!htbp]
+\centering
+\caption{Any vet-diet reorders: customers, cohort percentages, orders and net sales within 7, 14, 21, 28, 35, 42, 49, 56, 63 and 70 days after aged cancellation.}
+\label{tab:financial-opportunity-reorder-any-vet-diet}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+Follow-up (days) & Customers & Cohort (\%) & Orders & Net sales \\
+\midrule
+7 & 3,594 & 11.83\% & 4,020 & 376,580.78 \\
+14 & 5,824 & 19.17\% & 7,052 & 666,449.99 \\
+21 & 7,637 & 25.14\% & 10,163 & 960,248.17 \\
+28 & 8,713 & 28.68\% & 12,680 & 1,202,863.81 \\
+35 & 9,555 & 31.45\% & 15,448 & 1,470,197.68 \\
+42 & 10,075 & 33.16\% & 17,772 & 1,694,190.10 \\
+49 & 10,631 & 34.99\% & 20,632 & 1,969,933.29 \\
+56 & 10,976 & 36.13\% & 23,017 & 2,198,639.92 \\
+63 & 11,314 & 37.24\% & 25,580 & 2,445,610.75 \\
+70 & 11,567 & 38.07\% & 27,878 & 2,665,884.12 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Use a different order placed strictly after cancellation through the indicated day limit, inclusive. Match exact customer ID and require vet-diet lines; purchases may be for any pet and any product part number. Original eligibility is selected by
+cancellation date, with no prescription-creation or first-order restriction.
+All windows use the same source snapshot and require complete follow-up through
+2026-10-28 00:00 UTC. Reorders may use any approval channel or prescription
+source within the certified RxP order-line view. Exclude orders if any line has
+status X, a recorded cancellation reason or cancellation timestamp; also exclude
+orders with unknown line status. Statuses reflect the extraction snapshot.
+Each customer and reorder order counts once within a window, even when linked
+to several original cancellations. Windows and studies overlap; do not add their counts.
+Net sales sum \texttt{ORDER\_LINE\_NET\_SALES} on matching reorder lines only,
+once per shipment/line contribution, preserving zero and negative amounts.
+Sales may be recorded after the placement window; this is recorded matching-line
+sales, not proof of recovered revenue. Missing sales make the total incomplete.
+Every cohort percentage divides returning customers by the same full aged-customer cohort of 30,382, including customers with no qualifying reorder or unusable matching keys. A zero cohort is shown as N/A. Amounts display two decimals; exports retain five.
+\end{minipage}
+\end{table}
+
+\clearpage
+\subsubsection{Same-pet, same-product orders per returning customer}
+Table~\ref{tab:financial-opportunity-customer-order-frequency} shows the
+percentage distribution of distinct orders per returning customer for the
+same-pet, same-product follow-up in Table~\ref{tab:financial-opportunity-reorder-windows}.
+The original CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged cancellations occurred
+from May 1, 2026 through July 31, 2026, inclusive, UTC.
+
+\begin{table}[!htbp]
+\centering
+\caption{Same-pet, same-product follow-up: percentage of final 70-day returning customers by number of distinct non-cancelled orders.}
+\label{tab:financial-opportunity-customer-order-frequency}
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}rrrrrrrrrrrrr@{}}
+\toprule
+Follow-up (days) & \multicolumn{12}{c}{Number of orders per customer} \\
+ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 \\
+\midrule
+7 & 28.03\% & 1.10\% & 0.03\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+14 & 44.60\% & 3.37\% & 0.25\% & 0.01\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+21 & 55.63\% & 7.85\% & 0.97\% & 0.15\% & 0.01\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+28 & 58.74\% & 12.39\% & 1.94\% & 0.47\% & 0.11\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+35 & 57.74\% & 18.09\% & 4.29\% & 0.82\% & 0.31\% & 0.08\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+42 & 54.83\% & 23.31\% & 5.82\% & 1.18\% & 0.43\% & 0.19\% & 0.05\% & 0.01\% & 0.00\% & 0.00\% & 0.00\% & 0.00\% \\
+49 & 50.23\% & 30.38\% & 7.20\% & 2.68\% & 0.74\% & 0.20\% & 0.18\% & 0.03\% & 0.01\% & 0.00\% & 0.00\% & 0.00\% \\
+56 & 47.28\% & 31.72\% & 10.45\% & 3.26\% & 1.07\% & 0.38\% & 0.23\% & 0.13\% & 0.01\% & 0.01\% & 0.00\% & 0.00\% \\
+63 & 43.61\% & 34.05\% & 13.03\% & 3.69\% & 2.09\% & 0.63\% & 0.21\% & 0.20\% & 0.10\% & 0.01\% & 0.01\% & 0.00\% \\
+70 & 41.10\% & 34.59\% & 15.70\% & 4.66\% & 2.34\% & 0.81\% & 0.37\% & 0.21\% & 0.13\% & 0.08\% & 0.01\% & 0.01\% \\
+\bottomrule
+\end{tabular}}
+\endgroup
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} For each follow-up window, divide the customers with the indicated
+number of distinct qualifying orders by the same final 70-day total of 7,944 returning
+customers in Table~\ref{tab:financial-opportunity-reorder-windows}, then multiply by 100.
+No zero-order column is shown. Match exact customer,
+\texttt{PET\_ID} and \texttt{PRODUCT\_PART\_NUMBER}; use the same non-cancelled-order
+rules and complete follow-up through 2026-10-28 00:00 UTC.
+Count each order once per customer, regardless of lines, shipments or repeated
+original cancellations. Pool all qualifying matching pets/products and
+cancellation windows per customer. Earlier rows sum to the percentage of final-window customers who have reordered by that day; only the final row totals 100\% before rounding.
+N/A denotes a zero final-window customer count. Windows overlap.
+\end{minipage}
+\end{table}

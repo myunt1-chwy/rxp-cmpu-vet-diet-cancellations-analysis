@@ -1207,6 +1207,22 @@ The same appendix file also includes the REFNUM 52 overall/aged-order comparison
 
 ## Oppurtunity Analysis
 
+### Current report: May–July 2026 shipments/cancellations
+
+Use UTC May 1 through July 31 inclusive (`END_DATE=2026-08-01` is exclusive). These are now the financial command date defaults. The baseline still requires `DATE_BASIS=shipped-or-cancelled`; placement mode remains available explicitly. Preserve CMPU prescription source, CUSTOMER_UPLOAD approval channel, vet-diet eligibility and exact customer/RX matching.
+
+```bash
+make opportunity-order-cancellation-summary DATE_BASIS=shipped-or-cancelled START_DATE=2026-05-01 END_DATE=2026-08-01 WRITE_LATEX=1
+make opportunity-follow-up-sales START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
+make report
+# Run tests last, after all analyses and report checks:
+.venv/bin/python -m pytest -q -p no:cacheprovider
+```
+
+Add `CACHED=1` to either analysis command to verify/reuse its saved extract. Follow-up sales summarize 7/14/21/28/35/42/49/56/63/70 days; the three RxP studies share one extract and all-Chewy uses a separate ECOM extract, preserving the October 28 as-of cutoff with complete follow-up. The report retains distinct customers, gray net sales for recorded cancellation reasons, exact part-number/pet matching, whole-order cancellation exclusions and SQL at the end of the financial subsection. Previous June–August exports are retained separately as historical snapshots.
+
+May–July baseline: 225,434 distinct customers, 484,374 orders, 541,190 qualifying lines and 44,519,634.43 net sales. Aged order: 30,382 customers, 38,314 orders, 41,713 lines and 3,470,380.19 net sales. Source, exact-decimal exports, SQL and fingerprints are under `data/opportunity/order-cancellation-summary/2026-05-01_2026-08-01/shipped-or-cancelled/`. The original aged order/line/customer/cancellation-timestamp membership reconciles exactly to the follow-up extract; all matching keys and all 70-day follow-ups are complete. The reconciliation audit is beside the new follow-up exports.
+
 ### Orders, line items and actual revenue by cancellation reason
 
 ```bash
@@ -1220,9 +1236,9 @@ make opportunity-order-cancellation-summary START_DATE=2026-06-01 END_DATE=2026-
 make opportunity-order-cancellation-summary PRINT_SQL=1
 ```
 
-The defaults include orders placed June 1 through August 31, 2026. Select every physical vet-diet order line with any RX_ID and numeric-customer-ID match to a vet-diet RXP_PRESCRIPTIONS record whose approval channel is CUSTOMER_UPLOAD and prescription source is CMPU. The registry supplies the eligibility fields; line-view channel/status and source-match evidence are retained for audit. Include subsequent orders and prescriptions created outside the placement window. Order status, prescription creation, and cancellation dates impose no additional filter. Only qualifying lines contribute revenue, including on orders containing other products. Other-channel, other-source, unmatched-prescription and customer-mismatched lines remain in the raw extract/audit, outside qualifying totals.
+The defaults include orders placed May 1 through July 31, 2026. Select every physical vet-diet order line with any RX_ID and numeric-customer-ID match to a vet-diet RXP_PRESCRIPTIONS record whose approval channel is CUSTOMER_UPLOAD and prescription source is CMPU. The registry supplies the eligibility fields; line-view channel/status and source-match evidence are retained for audit. Include subsequent orders and prescriptions created outside the placement window. Order status, prescription creation, and cancellation dates impose no additional filter. Only qualifying lines contribute revenue, including on orders containing other products. Other-channel, other-source, unmatched-prescription and customer-mismatched lines remain in the raw extract/audit, outside qualifying totals.
 
-The summary contains Order cancellation reason, distinct Orders, distinct physical Line items, and Net sales, plus a global TOTAL. Reasons are trimmed and grouped case-insensitively. Blank/null reasons form [No recorded cancellation reason], which does not by itself establish an uncancelled order. An order can appear in several reason rows if its qualifying lines have different reasons; group order counts can then overlap, while TOTAL always counts the order once. Each physical line belongs to one reason, so line and revenue totals remain additive. Conflicting reasons, customer IDs or placement timestamps within a physical line fail validation.
+The summary contains Order cancellation reason, distinct Customers, distinct Orders, distinct physical Line items, and Net sales, plus a global TOTAL. Reasons are trimmed and grouped case-insensitively. Blank/null reasons form [No recorded cancellation reason], which does not by itself establish an uncancelled order. An order can appear in several reason rows if its qualifying lines have different reasons; group order counts can then overlap, while TOTAL always counts the order once. Each physical line belongs to one reason, so line and revenue totals remain additive. Conflicting reasons, customer IDs or placement timestamps within a physical line fail validation.
 
 **Revenue grain:** sum ORDER_LINE_NET_SALES once per shipment/order-line source record. A split shipment carries a separate contribution, even when two shipment amounts are equal. Repeated financial keys with identical amounts collapse; conflicting amounts for the same key fail validation. Prescription joins cannot multiply money. The source field is NUMBER(28,5); extraction preserves its exact decimal representation and exported monetary columns use DECIMAL(38,5). Only display is rounded to two decimal places. Net sales are reported as supplied, without an assumed currency symbol. Site, legal-company and transaction context are retained in the source and a site-context audit. Negative/refund and zero amounts remain included. A missing sales amount makes the affected line, reason subtotal and global revenue total incomplete; exact known subtotals and missing counts remain exported. This table is the actual-sales baseline for later financial opportunity sizing.
 
@@ -1245,7 +1261,7 @@ Verification:
 
 Every fresh or cached run independently recomputes distinct counts and exact revenue from the raw extract in DuckDB before publishing the table. Tests cover date boundaries, all-order membership, eligibility and customer matching, split shipments with equal/unequal amounts, duplicate registry/association/source records, null shipment keys, missing/negative/zero revenue, decimal precision, blank/case-varied/conflicting reasons, mixed-reason order totals, empty cohorts, stable exports, cache rejection and SQL-only mode.
 
-Default June–August 2026 snapshot: 508,075 distinct orders, 569,872 qualifying line items and 46,719,345.94 in net sales. The Aged order row contains 40,014 orders, 43,660 lines and 3,633,444.49. All 15 reason/total rows reconcile independently; no missing sales or overlapping reason-group orders were found in this snapshot. Negative and zero sales remain included.
+Historical June–August 2026 snapshot: 508,075 distinct orders, 569,872 qualifying line items and 46,719,345.94 in net sales. The Aged order row contains 40,014 orders, 43,660 lines and 3,633,444.49. All 15 reason/total rows reconcile independently; no missing sales or overlapping reason-group orders were found in this snapshot. Negative and zero sales remain included.
 
 For the all-orders comparison using prescriptions created August 15–October 14, retain the original inclusive aged-cancellation cutoff of October 27, 2026, 00:00 UTC. The saved comparison is `outputs/tables/opportunity/2026-08-15_2026-10-14/prescription-cohort-order-cancellations.md`, with source, line details, cutoff membership and fingerprints under `data/opportunity/prescription-cohort-orders/2026-08-15_2026-10-15/`. Qualifying aged counts are 24,409 orders and 26,445 lines (21.18%). Current aged reasons outside the cutoff remain a separate audit row and are excluded from qualifying aged counts. All-order totals remain 111,137 orders and 124,886 lines; this is an aged-membership cutoff, not a historical-status reconstruction or order-placement cutoff. Compared with first orders at the same cutoff, the increase is one aged order and two aged lines.
 
@@ -1267,4 +1283,393 @@ make opportunity-order-cancellation-summary CACHED=1 WRITE_LATEX=1
 make report
 ```
 
-Omit `CACHED=1` to refresh data first. `START_DATE` and exclusive `END_DATE` control the UTC order-placement window (defaults June 1–August 31, 2026 inclusive). `WRITE_LATEX=1` overwrites `src/latex/appendix/financial_opportunity.tex` from the verified summary, including the dates, CMPU prescription source, CUSTOMER_UPLOAD approval channel, vet-diet criteria, caption and label `tab:financial-opportunity-cancellations`. The file is included in the report. This all-orders baseline has no prescription-creation or cancellation-date cutoff; its population differs from the August–October prescription cohort. Sales use `ORDER_LINE_NET_SALES`, preserving the shipment-and-line financial grain.
+Omit `CACHED=1` to refresh data first. `START_DATE` and exclusive `END_DATE` control the UTC order-placement window (defaults May 1–July 31, 2026 inclusive). `WRITE_LATEX=1` overwrites `src/latex/appendix/financial_opportunity.tex` from the verified summary, including the dates, CMPU prescription source, CUSTOMER_UPLOAD approval channel, vet-diet criteria, caption and label `tab:financial-opportunity-cancellations`. The file is included in the report. This all-orders baseline has no prescription-creation or cancellation-date cutoff; its population differs from the August–October prescription cohort. Sales use `ORDER_LINE_NET_SALES`, preserving the shipment-and-line financial grain.
+
+For the financial analysis by **shipment or cancellation date**, use:
+
+```bash
+make opportunity-order-cancellation-summary DATE_BASIS=shipped-or-cancelled WRITE_LATEX=1
+make report
+# Reuse the separately fingerprint-verified event-window extract:
+make opportunity-order-cancellation-summary DATE_BASIS=shipped-or-cancelled CACHED=1 WRITE_LATEX=1
+# Inspect SQL without querying or writing:
+make opportunity-order-cancellation-summary DATE_BASIS=shipped-or-cancelled PRINT_SQL=1
+```
+
+`START_DATE=2026-05-01 END_DATE=2026-08-01` selects May 1–July 31 inclusive in UTC. In this mode, a qualifying shipment/order-line contribution is included if `ORDER_LINE_SHIPPED_DTTM` or `ORDER_CANCEL_DTTM` falls in `[START_DATE, END_DATE)`. Records meeting both conditions count once, and separate shipments count separately in the sales sum. Only contributions with an event in the window enter sales; split-shipment contributions outside the window remain in association audits and are excluded from the financial sum. Null event dates do not qualify and order-placement dates impose no restriction. Count distinct qualifying physical lines and orders; an order with several qualifying lines still counts once in TOTAL. Keep CMPU prescription source, CUSTOMER_UPLOAD approval channel, vet-diet and RX_ID/numeric-customer matching rules; sum `ORDER_LINE_NET_SALES`. Cancellation reasons reflect the current source snapshot.
+
+Historical June–August event-window source, exact-decimal exports and cache metadata remain under `data/opportunity/order-cancellation-summary/2026-06-01_2026-09-01/shipped-or-cancelled/`; Markdown tables and audits are under `outputs/tables/opportunity/2026-06-01_2026-08-31/shipped-or-cancelled/`. `DATE_BASIS=placed` remains the default for the original order-placement analysis. `WRITE_LATEX=1` explicitly replaces the financial appendix table with the selected mode, including its date definition and financial scope.
+
+Historical June–August shipment/cancellation-window snapshot: 494,268 distinct orders, 552,083 qualifying physical lines and 45,417,291.82 net sales. Aged order: 40,481 orders, 44,133 lines and 3,664,067.96 net sales. These are event-window counts, not the counts for orders placed within the same dates. Raw five-decimal amounts remain in Parquet.
+
+Financial LaTeX tables render net sales in gray for every recorded cancellation reason (no line-status condition), to mark unrealized amounts. The missing-reason row and TOTAL remain black. Notes explicitly state that TOTAL includes the gray amounts. Numeric exports and sums are unchanged.
+
+The three study-population tables (population/upload counts, prescription decisions, and first/all-order cancellation comparison) are in `src/latex/appendix/study_population_analysis.tex`, before the population Sankey. The comparison Make target updates its marked table in that file. Reproducing the Numerical Results contains reproduction instructions only. Captions, labels, figures and numeric values are preserved when moving the tables.
+
+The financial appendix contains tables and notes without SQL listings. The executable Snowflake summary query is exported as `summary-report.sql` beside the source data under the selected opportunity cache directory. The query binds the recorded dates, applies eligibility and event-window filters, deduplicates shipment/line contributions and computes cancellation-reason groups plus TOTAL. Re-running it uses the current source snapshot; existing data-quality validations still run in the analysis command before publishing.
+
+To count non-cancelled same-part-number/same-pet reorders after aged cancellations in the financial population:
+
+```bash
+make opportunity-follow-up-sales
+make opportunity-follow-up-sales CACHED=1
+make opportunity-follow-up-sales PRINT_SQL=1
+make report
+# A single horizon remains supported:
+make opportunity-aged-reorders FOLLOWUP_DAYS=7
+```
+
+Defaults: `START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28`. The standalone SQL selects original physical lines by Aged order cancellation timestamp within the UTC date window and RX_ID/numeric-customer matches to CMPU/vet-diet/CUSTOMER_UPLOAD prescriptions. Orders are not hard coded. No prescription-creation or first-order restriction applies. All original cancellations must have a complete maximum follow-up window.
+
+Match exact customer ID, `PRODUCT_PART_NUMBER` and non-null `PET_ID` on a different order, placed strictly after cancellation through each day limit inclusive. Later orders may use any channel/source within the certified RxP view. Exclude an order if any line has status X, a nonblank cancellation reason or cancellation timestamp; exclude/audit unknown status. Statuses reflect the extraction snapshot. Customers, orders, physical lines and matching-line `ORDER_LINE_NET_SALES` are deduplicated within each cumulative window, including repeated original associations and split shipments. Windows overlap and must not be added. Missing sales make totals incomplete; zero/negative amounts remain included.
+
+Historical exact-match-only source/query fingerprints, per-window data and audits are under `data/opportunity/aged-reorder-windows/2026-05-01_2026-08-01_7d-14d-21d-28d-35d-42d-49d-56d-63d_as-of-2026-10-28/`. Summary Markdown: `outputs/tables/opportunity/2026-05-01_2026-07-31/aged-7d-14d-21d-28d-35d-42d-49d-same-part-pet-non-cancelled-reorders.md`. Earlier June–August data remain historical audits.
+
+| Days | Customers | Orders | Matching-line net sales |
+| ---: | ---: | ---: | ---: |
+| 7 | 2,316 | 2,407 | 221,122.35 |
+| 14 | 3,832 | 4,143 | 386,124.68 |
+| 21 | 5,133 | 5,951 | 558,914.70 |
+| 28 | 5,850 | 7,289 | 685,719.76 |
+| 35 | 6,461 | 8,905 | 841,298.69 |
+| 42 | 6,818 | 10,118 | 958,671.19 |
+| 49 | 7,280 | 11,898 | 1,131,240.46 |
+| 56 | 7,510 | 13,152 | 1,252,558.38 |
+| 63 | 7,756 | 14,621 | 1,393,281.96 |
+
+All ten windows use one source snapshot. Independent DuckDB counts and exact-decimal sums reconcile, and customer/order/line sets nest across windows. `WRITE_LATEX=1` creates `src/latex/appendix/financial_opportunity_reorders.tex` with caption/label `tab:financial-opportunity-reorder-windows`. The dedicated target enables this automatically and now generates all three follow-up studies. Both financial generators preserve the reorder table at subsection end. Source SQL: `src/sql/opportunity_aged_reorders.sql`. Monetary Parquet retains five decimals. Recorded matching-line sales do not establish realized/recovered revenue.
+
+The initial financial opportunity cancellation table includes distinct numeric customer IDs per reason and a global distinct-customer TOTAL. Customer counts across reason rows overlap and must not be summed. The June–August shipment/cancellation snapshot contains 227,519 customers overall and 31,630 in Aged order. The cached regeneration command updates the LaTeX table, Markdown/Parquet summaries and embedded SQL with this customer count while preserving the reorder-window table.
+
+Dedicated target for the cumulative 7/14/21/28/35/42/49/56/63/70-day follow-up sales table:
+
+```bash
+make opportunity-follow-up-sales           # Fresh query, exports and LaTeX table
+make opportunity-follow-up-sales CACHED=1  # Verified cached data
+make opportunity-follow-up-sales PRINT_SQL=1
+make report                               # Rebuild PDF afterward
+```
+
+This runs `opportunity-aged-reorders ALL_WINDOWS=1 ALL_STUDIES=1 WRITE_LATEX=1` and `opportunity-chewy-follow-up WRITE_LATEX=1`, preserving the existing matching rules, ten windows and SQL-at-end report ordering. `START_DATE`, exclusive `END_DATE`, and `AS_OF_DATE` pass through with the existing defaults. The target updates the data/Markdown exports and Financial Opportunity Analysis follow-up table. SQL-only mode prints the standalone query without querying or writing.
+
+To inspect the historical June–August 42-day customer-order distribution:
+
+```bash
+.venv/bin/python scripts/summarize_opportunity_reorder_customer_counts.py
+```
+
+Verifies input fingerprints and reconciles per-customer distinct orders against the follow-up summary. Exports customer details, original-cancellation/customer/part/pet window counts, pooled customer/part/pet counts and distributions to the selected opportunity data directory. The bounded Markdown summary is `outputs/tables/opportunity/2026-06-01_2026-08-31/aged-42d-reorder-customer-frequency.md`. Pandas and independent DuckDB calculations agree for every customer. To answer repeat purchases for the same part/pet within one follow-up, count each original cancellation window separately and take each customer's largest count; do not pool separate cancellation windows. Verified: 580 customers had at least three matching orders in one such window, with a maximum of seven. All-products/pets/windows combined: 646 customers had at least three orders.
+
+### Three vet-diet follow-up studies from one RxP extract
+
+```bash
+make opportunity-follow-up-sales
+make opportunity-follow-up-sales CACHED=1
+make opportunity-follow-up-sales PRINT_SQL=1
+make report
+```
+
+The RxP step of the same target runs all ten 7–70-day windows for these three studies; its all-Chewy step is documented below. Original aged cancellations retain the May 1–July 31, 2026 window, CMPU/vet-diet/CUSTOMER_UPLOAD eligibility and October 28 cutoff. The later-order studies are:
+
+- `same-part-pet`: exact customer, product part number and non-null pet, preserving the prior study.
+- `same-pet-different-part`: exact customer and non-null pet, a different nonblank product part number, and `IS_VET_DIET_FLAG = TRUE` on the purchased line.
+- `any-vet-diet`: exact customer and `IS_VET_DIET_FLAG = TRUE`, for any pet/product, including missing pet/part identifiers.
+
+Reorders may use any prescription source or approval channel. Keep the same placement window, different original order, whole-order cancellation/unknown-status exclusions and matching-line `ORDER_LINE_NET_SALES` rules. A line/order/customer can appear in multiple studies and follow-up windows; totals must not be added. Counts and money are deduplicated separately within each study/window. The broad extract retains historical exact matches and all candidate vet-diet lines; each scope is applied and independently checked in Python and DuckDB. The prior exact-match study reconciles identically, and its matched lines are all vet-diet in this snapshot. Both narrower matching-line populations are subsets of `any-vet-diet` at every window.
+
+The new shared cache is versioned by dates, horizons, study definitions, SQL and source fingerprint under `data/opportunity/aged-reorder-studies/2026-05-01_2026-08-01_7d-14d-21d-28d-35d-42d-49d-56d-63d-70d_as-of-2026-10-28/`. Earlier narrow-study caches remain historical. First run the target fresh once for this new scope; subsequent `CACHED=1` runs verify/reuse the shared extract. Full per-study/window matches, original cohorts, distinct reorders and audits are Parquet with study-prefixed filenames. Combined summary has 30 rows and exact five-decimal money; bounded Markdown is `outputs/tables/opportunity/2026-05-01_2026-07-31/aged-7d-14d-21d-28d-35d-42d-49d-56d-63d-70d-all-studies-non-cancelled-reorders.md`.
+
+63-day results:
+
+| Study | Customers | Orders | Matching-line net sales |
+| --- | ---: | ---: | ---: |
+| same-part-pet | 7,756 | 14,621 | 1,393,281.96 |
+| same-pet-different-part | 4,856 | 9,594 | 871,819.44 |
+| any-vet-diet | 11,314 | 25,580 | 2,445,610.75 |
+
+Financial Opportunity Analysis includes all three tables in `src/latex/appendix/financial_opportunity_reorders.tex`. Labels are `tab:financial-opportunity-reorder-windows`, `tab:financial-opportunity-reorder-same-pet-different-part`, and `tab:financial-opportunity-reorder-any-vet-diet`. Both generators preserve their include in the subsection. To run just the historical exact-match model use `make opportunity-aged-reorders ALL_WINDOWS=1`; to request all studies directly add `ALL_STUDIES=1`. Source SQL remains `src/sql/opportunity_aged_reorders.sql`; printed SQL has no embedded order IDs.
+
+### All-Chewy customer follow-up (fourth study)
+
+The shared target now runs all four studies and updates all four report tables:
+
+```bash
+make opportunity-follow-up-sales
+make opportunity-follow-up-sales CACHED=1
+make opportunity-follow-up-sales PRINT_SQL=1
+make report
+# Run only the ECOM step:
+make opportunity-chewy-follow-up WRITE_LATEX=1
+make opportunity-chewy-follow-up CACHED=1 WRITE_LATEX=1
+```
+
+Date parameters/defaults remain May 1–July 31, 2026 cancellations (exclusive Aug 1), with `AS_OF_DATE=2026-10-28`. Retain the original CMPU/vet-diet/CUSTOMER_UPLOAD aged-cancellation cohort. Later orders come from `EDLDB.ECOM.ORDER_LINE`, matching customer ID only on a different order, placed strictly after cancellation through each 7–70-day limit inclusive. There is no later prescription, vet-diet, pet, part-number, channel or category filter. Exclude an order if any line/order has status X, a recorded cancellation reason/timestamp, or any line has unknown status. These are current snapshot statuses; the as-of cutoff bounds eligible placement/follow-up, not historical status reconstruction.
+
+ECOM.ORDER_LINE is a view directly over `ECOM.ORDER_LINE_BASE`. Its UTC timestamps and the definition of `NET_SALES` were checked via GET_DDL and archived under `data/opportunity/ecom-schema/`. The published NET_SALES includes line price, shipping charge, adjustments, refund/appeasement credits, less delivery-return sales fees. Use this non-local field once per physical `(ORDER_ID, ORDER_LINE_ID)`; do not sum it per shipment. Exact source duplicates collapse; conflicting customer/date/currency/amount values and missing line keys fail validation. Four-decimal source values remain exact in five-decimal Parquet. Missing sales make totals incomplete; zeros and negatives remain included. The prior RxP studies continue to use `ORDER_LINE_NET_SALES` per shipment/line contribution.
+
+ECOM source/query/fingerprints, full per-window details, audits and exact-decimal summary are under `data/opportunity/aged-chewy-follow-up/2026-05-01_2026-08-01_7d-14d-21d-28d-35d-42d-49d-56d-63d-70d_as-of-2026-10-28/`. The generated standalone query is `query.sql`; its template is `src/sql/opportunity_chewy_follow_up.sql`. No order IDs are embedded. Combined-target SQL-only mode prints both the RxP and ECOM queries. Markdown summary is `outputs/tables/opportunity/2026-05-01_2026-07-31/aged-7d-14d-21d-28d-35d-42d-49d-56d-63d-70d-all-chewy-non-cancelled-reorders.md`. Separate source caches prevent mixing financial grains.
+
+| Days | Customers | Orders | All-Chewy net sales |
+| ---: | ---: | ---: | ---: |
+| 7 | 6,477 | 8,512 | 702,794.12 |
+| 14 | 10,265 | 15,918 | 1,307,265.44 |
+| 21 | 13,193 | 23,645 | 1,912,710.30 |
+| 28 | 14,804 | 30,064 | 2,440,684.77 |
+| 35 | 15,917 | 36,535 | 2,971,072.85 |
+| 42 | 16,689 | 42,616 | 3,471,768.55 |
+| 49 | 17,370 | 49,096 | 4,009,870.68 |
+| 56 | 17,837 | 55,126 | 4,500,734.83 |
+| 63 | 18,249 | 61,158 | 4,996,504.86 |
+| 70 | 18,569 | 66,946 | 5,473,570.84 |
+
+The all-Chewy original cohort reconciles exactly to the earlier studies. All matched vet-diet physical lines are present in ECOM in every window. Across 28,169 common lines at 63 days, 28,164 line sales match exactly; five differ only below 0.0001, with aggregate ECOM minus RxP 0.00007, consistent with source precision. There are zero duplicate ECOM source lines or missing sales in the selected 63-day population; its source currencies are USD. Stored reconciliation and financial-comparison audits retain this evidence.
+
+The fourth table is `src/latex/appendix/financial_opportunity_chewy_follow_up.tex`, labelled `tab:financial-opportunity-reorder-all-chewy`. Both report generators preserve the three RxP tables, then all-Chewy at Financial Opportunity Analysis subsection end. Counts and sales overlap across windows/studies and must not be added. Recorded net sales do not establish incremental or recovered revenue.
+
+### Observed 70-day follow-up for all four studies
+
+`make opportunity-follow-up-sales` now includes ten cumulative windows through 70 days, with complete observation for the May–July cancellation cohort at the unchanged October 28 cutoff. No extrapolation or fitted curve is used. The shared RxP summary has 30 rows and the ECOM summary has 10; use `CACHED=1` to verify/reuse them or `PRINT_SQL=1` to inspect both standalone queries.
+
+| Study | Customers | Orders | Matching-line net sales |
+| --- | ---: | ---: | ---: |
+| Same product part number and pet | 7,944 | 15,808 | 1,507,063.94 |
+| Same pet, different product part number | 5,010 | 10,552 | 959,049.10 |
+| Any vet diet | 11,567 | 27,878 | 2,665,884.12 |
+| Anything at Chewy | 18,569 | 66,946 | 5,473,570.84 |
+
+All earlier customer/order/line counts and the original aged cohort are unchanged. Earlier RxP sales are unchanged. On this ECOM refresh three existing physical lines changed from 58.88, 118.33 and 55.09 to zero NET_SALES, reducing the earlier 63-day total by 232.30 to 4,996,504.86. This is a current-source financial change, not an effect of extending the window. Exact changed-line records are in `prior-source-sales-changes.parquet` beside the 70-day ECOM exports; both source directories include `70-day-reconciliation.json`. All 70-day RxP matched-line keys are included in the all-Chewy population. Captions and tables in Financial Opportunity Analysis now include 70 days.
+
+### Same-pet, same-product customer order-frequency percentages
+
+`make opportunity-follow-up-sales` also creates a table of follow-up days (7 through 70) against the exact number of qualifying orders per returning customer (1, 2, 3, and so on, without grouping the tail). Run `make opportunity-follow-up-sales CACHED=1` to generate it from the existing verified snapshots. It appears at the end of Financial Opportunity Analysis immediately before the SQL, with label `tab:financial-opportunity-customer-order-frequency`.
+
+Each cell is `100 × customers with exactly N distinct qualifying orders ÷ final 70-day returning customers (7,944)`. Every row uses the same final 70-day Customers value from the original same-part/pet follow-up table. No zero-order column is shown. Orders match the original customer, pet ID and product part number, using the same non-cancellation rules. Counts pool all qualifying matching pairs and cancellation windows per customer; each order counts once despite multiple matching lines, shipments or aged associations. Earlier rows total the percentage of the final 70-day customers who had reordered by that day; only the final row totals 100% before rounding. N/A means the final customer count is zero. If running a different set of follow-up windows, the last configured window supplies the fixed denominator.
+
+Full per-customer order counts, cell counts/denominators and unrounded percentages are `same-part-pet-customer-order-counts.parquet` and `same-part-pet-customer-order-frequency.parquet` beside the shared RxP follow-up exports. DuckDB independently verifies every customer's distinct-order count; customer counts and weighted order counts reconcile to the existing follow-up summary for every window. Export fingerprints remain in source.json. Bounded Markdown: `outputs/tables/opportunity/2026-05-01_2026-07-31/same-part-pet-customer-order-frequency.md`. The generated LaTeX is included in `src/latex/appendix/financial_opportunity_reorders.tex`; standalone SQL remains with the exported data.
+
+### Aged-order customers new to Chewy on placement day
+
+```bash
+make opportunity-aged-new-customers METHOD=same-day
+make opportunity-aged-new-customers METHOD=same-day CACHED=1
+make opportunity-aged-new-customers METHOD=same-day PRINT_SQL=1
+make opportunity-aged-new-customers METHOD=same-day START_DATE=2026-05-01 END_DATE=2026-08-01
+```
+
+Dates select aged cancellations, with exclusive END_DATE; defaults retain May 1–July 31, 2026. Original eligibility is CMPU, vet diet and CUSTOMER_UPLOAD, using all qualifying aged orders without a prescription-creation or first-order restriction. Join numeric customer ID to `EDLDB.CDM.CUSTOMER` and use `ORDER_FIRST_PLACED_DTTM` (not its RX or NETWORK variants). Compare its calendar date with the aged order’s `ORDER_PLACED_DTTM` date, using UTC date extraction on the source timestamps without an additional local-time shift. This implements the requested same-day rule; it does not prove that the particular aged order ID was the customer's first order.
+
+Count each order and customer once despite multiple lines or shipments. A customer is new on aged-order day if any qualifying aged order matches the first-order date; otherwise the customer is unknown if any aged order has missing timestamps or a first-order date later than placement; otherwise the customer is existing. Unknowns remain in the total denominator. Separate order-level counts classify individual aged orders. Identical source duplicates collapse; conflicting prescription/customer/order source values fail validation. Customer first dates sometimes occur after aged-order placement, so those records are retained as unknown rather than labeled existing.
+
+Current May–July result: **31 of 30,382 aged-order customers (0.1020%)** meet the same-day definition; 28,430 are existing and 1,921 unknown. At order grain, 31 of 38,314 aged orders match, 36,052 are existing and 2,231 unknown. There are no missing customer records or placement timestamps; 1,582 aged orders have no customer first-order timestamp and 649 have a first-order day after placement. The original 41,713 order-line keys, customers and cancellation timestamps reconcile exactly to the existing 70-day follow-up cohort.
+
+Source SQL template: `src/sql/opportunity_aged_new_customers.sql`. Standalone rendered SQL, source, per-order/per-customer classifications, summaries, verification SQL and audits are under `data/opportunity/aged-new-customers/2026-05-01_2026-08-01/`. Cache identity includes dates, SQL and source fingerprint. The bounded Markdown summary is `outputs/tables/opportunity/2026-05-01_2026-07-31/aged-new-customers.md`. Schema and first-date checks are archived under `data/opportunity/customer-schema/`; the first-order field is a date-like timestamp in the inspected sample, so this analysis compares days rather than exact instants. DuckDB independently verifies every order and customer classification with an explicit UTC session timezone.
+
+### Exact first ECOM order ID for aged customers
+
+```bash
+make opportunity-aged-new-customers
+make opportunity-aged-new-customers CACHED=1
+make opportunity-aged-new-customers PRINT_SQL=1
+make opportunity-aged-new-customers START_DATE=2026-05-01 END_DATE=2026-08-01
+# Preserve the earlier CDM date-based proxy:
+make opportunity-aged-new-customers METHOD=same-day CACHED=1
+```
+
+The default target now reads full customer history from `EDLDB.ECOM.ORDERS` and compares the aged order ID with the unique earliest order by `ORDER_PLACED_DTTM`. Original eligibility retains CMPU, vet diet and CUSTOMER_UPLOAD, with aged cancellations May 1–July 31 inclusive by default. The history has no placement-window, prescription, product, channel or status restrictions: cancelled orders are included. A numerically smaller order ID is not assumed earlier; unresolved earliest-timestamp ties are unknown. Missing historical timestamps prevent an earliest-order match from establishing first status, but an observed earlier order is sufficient to establish that an aged order was not first. Missing aged ECOM records remain unknown. Identical duplicates collapse; conflicting source values fail validation. Customers count once, even with several aged orders.
+
+Current result: **1,413 of 30,382 customers (4.6508%)** have an aged order as their first order in observed ECOM history. The other 28,969 customers have earlier ECOM orders. At aged-order grain, 1,413 of 38,314 are first observed orders; 36,901 have earlier orders. All 41,713 cohort lines are retained; no missing aged ECOM records/placement timestamps, missing historical placement timestamps or earliest-time ties were found. The RxP and ECOM aged-order placement timestamps agree exactly.
+
+These are earliest **observed** ECOM IDs, not unqualified proof that every matching customer was new to Chewy. **63 of the 1,413 matches have an older first-order date in CDM.CUSTOMER**, sometimes years earlier, so the two sources conflict for those customers. Full customer-level conflicts are exported for investigation. Of the previous 31 same-day matches, only 17 also match the earliest observed ECOM order ID; 14 have earlier ECOM orders. Among the additional ID matches, 63 were previously classified existing and 1,333 unknown by the date proxy.
+
+The `ORDER_FIRST_ORDER_PLACED_FLAG` is retained as an independent warehouse comparison, not used to choose chronological first IDs. None of the aged orders has that flag set, including the 1,413 earliest-observed matches. Eight cohort customers have multiple flagged first orders in their history. These findings are stored in the audit rather than silently treating the flag as a unique all-status first-order key.
+
+Template: `src/sql/opportunity_aged_first_order_customers.sql`. Standalone `query.sql`, source, complete line/order/customer classifications, CDM comparison, `history-conflicts.parquet`, verification SQL, fingerprints and audits are under `data/opportunity/aged-first-order-customers/2026-05-01_2026-08-01/`. The bounded report is `outputs/tables/opportunity/2026-05-01_2026-07-31/aged-first-order-customers.md`. The previous same-day data and report remain in their separate paths. Dates, method SQL and source fingerprint version the cache.
+
+### New-to-vet-diet customers in the aged cohort
+
+```bash
+make opportunity-aged-new-vet-diet-customers
+make opportunity-aged-new-vet-diet-customers CACHED=1
+make opportunity-aged-new-vet-diet-customers PRINT_SQL=1
+make opportunity-aged-new-vet-diet-customers START_DATE=2026-05-01 END_DATE=2026-08-01
+```
+
+The original customer cohort is unchanged: CMPU vet-diet CUSTOMER_UPLOAD aged cancellations May 1–July 31, 2026 by default (exclusive END_DATE). A customer matches if an aged order ID equals the unique earliest observed **vet-diet** order ID. Identify historical vet-diet orders using `IS_VET_DIET_FLAG=TRUE` lines in `EDLDB.BT_HCA_HCDM.ORDER_LINE_COST_MEASURES_RXP`; then rank their `EDLDB.ECOM.ORDERS.ORDER_PLACED_DTTM` timestamps. History includes all prescription sources, approval channels and dates, including cancelled orders. Earlier non-vet-diet purchases do not prevent new-to-vet-diet status. This is category-first order history, not first purchase of a particular product or pet.
+
+Current result: **5,097 / 30,382 customers (16.7764%)** have an aged order as their first observed vet-diet order; 25,285 have earlier vet-diet orders. At order grain, 5,097 / 38,314 aged orders are first observed vet-diet orders and 33,217 have earlier vet-diet orders. Every original order/line/customer/cancellation-timestamp identity reconciles to the existing follow-up cohort. All 1,413 first-observed-Chewy customers are within the 5,097 first-observed-vet-diet customers; 3,684 have first-vet-diet aged orders but earlier non-vet-diet orders. No missing vet-diet ECOM headers, missing history placement timestamps or earliest-time ties were found in this run.
+
+Chronology uses exact order IDs and placement timestamps, not numeric order ID order or a same-day proxy. Deduplicate order lines, shipments and repeated aged associations before counting customers/orders. Missing headers/timestamps or unresolved earliest-time ties remain unknown unless an observed earlier vet-diet order establishes existing category history. Conflicting source values fail validation. History coverage is limited to the available RxP vet-diet line and ECOM order records, so results are explicitly labeled first **observed** vet-diet orders. The all-category warehouse first-order flag does not define new-to-vet-diet status.
+
+Template: `src/sql/opportunity_aged_first_vet_diet_order_customers.sql`. Complete source, query, classifications, summaries, verification SQL, fingerprints and audits live under `data/opportunity/aged-first-vet-diet-order-customers/2026-05-01_2026-08-01/`; this is separate from all-Chewy order history and the CDM same-day proxy. Markdown summary: `outputs/tables/opportunity/2026-05-01_2026-07-31/aged-first-vet-diet-order-customers.md`. Cached and SQL-only modes work independently of the other analyses.
+
+### First CUSTOMER_UPLOAD vet-diet order for aged customers
+
+```bash
+make opportunity-aged-new-customer-upload-vet-diet-customers
+make opportunity-aged-new-customer-upload-vet-diet-customers CACHED=1
+make opportunity-aged-new-customer-upload-vet-diet-customers PRINT_SQL=1
+make opportunity-aged-new-customer-upload-vet-diet-customers START_DATE=2026-05-01 END_DATE=2026-08-01
+```
+
+Original eligibility and dates remain CMPU vet-diet CUSTOMER_UPLOAD aged cancellations May 1–July 31, 2026 (exclusive END_DATE). Compare each aged order ID with the customer's unique earliest observed **vet-diet CUSTOMER_UPLOAD order ID**. Historical orders may come from any prescription source, and all placement dates/statuses are included, including cancelled orders. Prior orders in other categories or approval channels do not prevent a match. Historical CMPU eligibility is not required.
+
+Find history orders through `ORDER_LINE_COST_MEASURES_RXP` joined to `RXP_PRESCRIPTIONS` on trimmed RX_ID and numeric customer ID. Require vet-diet TRUE on both the line and matched prescription, and prescription `APPROVAL_CHANNEL='CUSTOMER_UPLOAD'`. An order qualifies if any matching line satisfies these conditions. Use `ECOM.ORDERS.ORDER_PLACED_DTTM` for chronology and compare exact order IDs, deduplicating customers/orders across matching lines and shipments. Channel is from the current prescription snapshot, not a reconstruction of its historical state; history coverage depends on the available linked prescription/line and ECOM records.
+
+Current result: **11,550 / 30,382 customers (38.0159%)** have an aged order as their first observed CUSTOMER_UPLOAD vet-diet order; 18,832 had earlier qualifying orders. At order grain, 11,550 / 38,314 aged orders are first qualifying orders and 26,764 have earlier qualifying orders. The complete aged cohort is unchanged. All 5,097 first-observed-vet-diet customers are included in this group; 6,453 additional customers had earlier observed vet-diet orders, but no earlier linked order qualifying as CUSTOMER_UPLOAD under this definition. No missing ECOM headers/history placement timestamps or earliest-time ties were found in this run. Missing history or unresolved ties remain unknown unless an earlier qualifying order establishes prior experience; conflicting source or prescription channel values fail validation.
+
+Template: `src/sql/opportunity_aged_first_customer_upload_vet_diet_order_customers.sql`. Source, standalone `query.sql`, complete classifications, summaries, verification SQL, source fingerprints and audits live under `data/opportunity/aged-first-customer-upload-vet-diet-order-customers/2026-05-01_2026-08-01/`. Summary: `outputs/tables/opportunity/2026-05-01_2026-07-31/aged-first-customer-upload-vet-diet-order-customers.md`. Existing Chewy-first and all-channel vet-diet-first targets remain available.
+
+### Same-pet/product follow-up for first CUSTOMER_UPLOAD vet-diet customers
+
+```bash
+make opportunity-new-upload-customer-follow-up
+make opportunity-new-upload-customer-follow-up CACHED=1
+make opportunity-new-upload-customer-follow-up PRINT_SQL=1
+make opportunity-new-upload-customer-follow-up START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
+```
+
+This separate target follows the verified **11,550** customers whose aged order was their first observed CUSTOMER_UPLOAD vet-diet order. The original cohort retains May–July 2026 CMPU vet-diet CUSTOMER_UPLOAD aged cancellations. Only that first qualifying aged order anchors each customer; all qualifying lines on it are considered. Later aged orders do not reset the window or introduce new pet/product anchors. If the first-customer cohort does not exist, a fresh run generates it automatically; otherwise its source, SQL and export fingerprints are verified. The new standalone query derives the same first-order membership dynamically and must reconcile to the frozen cohort.
+
+Follow-up starts **strictly after cancellation**, using cumulative 7/14/21/28/35/42/49/56/63/70-day limits inclusive and the existing October 28 cutoff. A reorder must be a different order matching the same numeric customer, non-null PET_ID and exact PRODUCT_PART_NUMBER. Later prescriptions can have any source or approval channel. Exclude the whole later order if any line is cancelled or has unknown status, using current extraction statuses. Counts and matching-line money are deduplicated across original lines and shipment joins. Percentages always divide by the full fixed first-customer cohort (11,550 in this run); missing match keys remain in this denominator and are audited separately. Zero-return customer outcomes are exported for every window.
+
+At 70 days, **2,509 customers (21.7229%)** placed **4,801** qualifying orders on **5,063** matching lines; **9,041** had no qualifying reorder. Matching-line ORDER_LINE_NET_SALES totals 427,522.18520 (display 427,522.19), with no missing sales. All 11,550 customers have usable matching keys and complete follow-up. Every horizon's matched physical-line keys is a subset of the existing overall same-part/pet follow-up study. Existing DuckDB validation independently reconciles distinct customers/orders/lines and exact-decimal sales for every horizon; customer-level zero-inclusive outcomes and nested populations reconcile separately.
+
+Source template: `src/sql/opportunity_new_upload_customer_follow_up.sql`. Data, SQL, per-window original/match/reorder/outcome details, summaries, source and cohort fingerprints and audits are under `data/opportunity/new-upload-customer-follow-up/2026-05-01_2026-08-01_7d-70d_as-of-2026-10-28/`. Summary Markdown: `outputs/tables/opportunity/2026-05-01_2026-07-31/new-upload-customers-same-part-pet-follow-up.md`. First-customer status remains based on observed linked prescription and ECOM history, using current approval-channel snapshots. Sales are recorded matching-line sales, not proof of recovered revenue. This target updates its dedicated LaTeX table in `src/latex/appendix/financial_opportunity_new_upload_follow_up.tex`, with label `tab:financial-opportunity-new-upload-follow-up`, and includes it in Financial Opportunity Analysis. Existing financial generators preserve the inclusion on rerun. Run `make report` to rebuild the PDF. The command-line module supports `--write-latex`; the Make target enables it automatically.
+
+### Expanded follow-up studies for the first CUSTOMER_UPLOAD cohort
+
+`make opportunity-new-upload-customer-follow-up` now runs all three RxP follow-up scopes from one broad extract, then an all-Chewy ECOM extraction. Keep `START_DATE`, exclusive `END_DATE`, `AS_OF_DATE`, `CACHED=1` and `PRINT_SQL=1`. A fresh run is required once for the new source scopes; subsequent cached runs validate source/cohort fingerprints. `make opportunity-new-upload-customer-chewy-follow-up` runs only the ECOM step.
+
+All four studies retain the verified 11,550 customers, the sole first qualifying aged-order cancellation anchor, cumulative 7–70-day windows and October 28 cutoff. Percentages use all 11,550 customers, with zero-return customer outcomes exported at every horizon. Studies overlap, so their counts and money must not be added:
+
+- `same-part-pet`: same customer, exact product part number and non-null pet ID, retaining the original study.
+- `same-pet-different-part`: same customer and non-null pet ID, a different nonblank product part number from the anchor line, and TRUE vet-diet flag on the later line.
+- `any-vet-diet`: same customer and TRUE vet-diet flag, for any pet/product, including missing pet or part identifiers.
+- `any-chewy`: same customer across all Chewy categories and all pets/products, using `EDLDB.ECOM.ORDER_LINE` with no later prescription/channel/source/category requirement.
+
+Later orders must be placed strictly after cancellation through each horizon inclusive; no later prescription source/channel restriction applies. Whole-order cancellation and unknown-status exclusions remain unchanged. RxP sales sum `ORDER_LINE_NET_SALES` once per distinct shipment/line contribution on matching lines; ECOM sales use `NET_SALES` once per physical order/line, retaining its native four-decimal precision in five-decimal exports. Zero/negative amounts remain; missing amounts make totals incomplete. Source statuses are current snapshots.
+
+The shared RxP cache is under `data/opportunity/new-upload-customer-follow-up-studies/2026-05-01_2026-08-01_7d-70d_as-of-2026-10-28/` with 30 summary rows and study-prefixed per-window detail/outcome files. ECOM is separate under `data/opportunity/new-upload-customer-follow-up-chewy/2026-05-01_2026-08-01_7d-70d_as-of-2026-10-28/` with 10 rows. The original exact-only snapshot is retained. Bounded Markdown summaries are `new-upload-customers-all-studies-follow-up.md` and `new-upload-customers-all-chewy-follow-up.md` in `outputs/tables/opportunity/2026-05-01_2026-07-31/`. Standalone SQL is `query.sql` in each cache; templates are `src/sql/opportunity_new_upload_customer_follow_up.sql` and `src/sql/opportunity_new_upload_customer_chewy_follow_up.sql`.
+
+The target updates three tables in `src/latex/appendix/financial_opportunity_new_upload_follow_up.tex` and the ECOM table in `financial_opportunity_new_upload_chewy_follow_up.tex`. Labels are `tab:financial-opportunity-new-upload-follow-up`, `tab:financial-opportunity-new-upload-same-pet-different-part`, `tab:financial-opportunity-new-upload-any-vet-diet` and `tab:financial-opportunity-new-upload-all-chewy`. All are included in the financial subsection and preserved by the other financial generators. Run `make report` to rebuild the PDF.
+
+70-day results for the 11,550 first-CUSTOMER_UPLOAD customers:
+
+| Study | Customers | Cohort percentage | Orders | Net sales |
+| --- | ---: | ---: | ---: | ---: |
+| same-part-pet | 2,509 | 21.72% | 4,801 | 427,522.19 |
+| same-pet-different-part | 1,617 | 14.00% | 3,220 | 281,008.90 |
+| any-vet-diet | 3,753 | 32.49% | 8,395 | 762,808.17 |
+| any-chewy | 6,712 | 58.11% | 21,917 | 1,732,549.06 |
+
+All earlier exact same-part/pet rows remain unchanged. All three RxP study line sets are subsets of ECOM at every horizon; customer outcomes include all 11,550 customers in every study/window. Independent count/sales and nested-population checks pass. Per-window scope and financial reconciliation audits are saved beside the exports.
+
+### Whole aged-cohort follow-up percentages
+
+`make opportunity-follow-up-sales CACHED=1` regenerates all four whole-aged-cohort follow-up tables with a `Cohort (%)` column. Every 7–70-day row divides its returning-customer count by the full fixed distinct aged-customer cohort, **30,382** for the May–July study. The denominator includes customers with no qualifying reorder and customers whose pet/product matching keys are unusable; it is not the returning-customer count or the smaller 11,550 first-upload cohort. Empty cohorts show N/A.
+
+The same denominator and unrounded percentages are exported as `cohort_customers` and `cohort_percentage` in the existing RxP/ECOM summary Parquet files, with formatted percentages in the Markdown and LaTeX tables. Counts, orders and net sales are unchanged. The separate order-frequency matrix continues to use its previously requested final 70-day returning-customer denominator (7,944); the first-upload cohort tables continue to use 11,550. Run `make report` after regeneration to update the PDF.
+
+### Interleaved cohort follow-up tables in the report
+
+Financial Opportunity Analysis groups each study consecutively, with the whole aged-customer cohort first, the first-CUSTOMER_UPLOAD cohort second, and the first-vet-diet cohort third:
+
+1. Same pet and product part number.
+2. Same pet, different product part number (vet diet).
+3. Any vet-diet purchase.
+4. Any Chewy purchase.
+
+The customer order-frequency matrix follows all four study groups, at the end of the subsection. It retains the final 70-day returning-customer denominator. Table labels and data are unchanged; LaTeX renumbers references automatically.
+
+The follow-up generators now write per-study fragments using `financial_opportunity_follow_up_<study>.tex` for the whole cohort and `financial_opportunity_new_upload_follow_up_<study>.tex` for the first-upload cohort (hyphens in study names become underscores). All-Chewy files retain their existing names. Frequency is `src/latex/appendix/financial_opportunity_customer_order_frequency.tex`. Aggregate RxP files remain available as compatibility outputs, while the report includes the individual fragments in paired order. The shared ordering helper is `src/python/opportunity_report_tables.py`; baseline, whole-cohort and first-upload generators preserve this order on reruns.
+
+To regenerate all tables and the PDF from the verified sources:
+
+```bash
+make opportunity-follow-up-sales CACHED=1
+make opportunity-new-upload-customer-follow-up CACHED=1
+make opportunity-new-vet-diet-customer-follow-up CACHED=1
+make report
+```
+
+### Follow-up for first observed vet-diet customers
+
+```bash
+make opportunity-new-vet-diet-customer-follow-up
+make opportunity-new-vet-diet-customer-follow-up CACHED=1
+make opportunity-new-vet-diet-customer-follow-up PRINT_SQL=1
+make opportunity-new-vet-diet-customer-follow-up START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
+```
+
+This target repeats all four studies for the **5,097 customers** whose aged order was their unique first observed **vet-diet** order, across all historical approval channels and prescription sources. This differs from both first-ever Chewy order and first CUSTOMER_UPLOAD vet-diet order. The original aged population remains CMPU/vet-diet/CUSTOMER_UPLOAD, cancelled May 1–July 31, 2026 by default. The historical category-first definition uses TRUE vet-diet RxP lines and ECOM order IDs/timestamps, including cancelled orders. Cohort source/SQL/export fingerprints are checked; a missing prerequisite is generated on a fresh run.
+
+Only the first qualifying aged order anchors each customer. Follow-up begins strictly after cancellation, with cumulative 7/14/21/28/35/42/49/56/63/70-day inclusive limits and the October 28 cutoff. The four scopes are same pet/part, same pet/different part with vet-diet TRUE, any vet diet, and all Chewy purchases. Whole-order non-cancellation rules and matching-line money definitions are unchanged. Each percentage uses the fixed full 5,097-customer denominator, with zero-return outcomes exported for every horizon. Later approval channels and prescription sources are unrestricted. Results reflect observed history and current extraction statuses.
+
+70-day results:
+
+| Study | Customers | Cohort percentage | Orders | Net sales |
+| --- | ---: | ---: | ---: | ---: |
+| same-part-pet | 800 | 15.70% | 1,567 | 120,434.49 |
+| same-pet-different-part | 548 | 10.75% | 1,122 | 91,928.98 |
+| any-vet-diet | 1,165 | 22.86% | 2,541 | 202,269.09 |
+| any-chewy | 2,591 | 50.83% | 7,865 | 561,647.94 |
+
+The new cohort, first-order IDs and anchor lines are subsets of the first-upload cohort; all new scope/window line sets reconcile to broader studies and the corresponding first-upload follow-ups. No missing matching keys, incomplete follow-up or missing sales occur in this snapshot. Studies overlap and their totals must not be added.
+
+Separate data roots are `data/opportunity/new-vet-diet-customer-follow-up-studies/2026-05-01_2026-08-01_7d-70d_as-of-2026-10-28/` and `new-vet-diet-customer-follow-up-chewy/` with the same dated subdirectory. Templates are `src/sql/opportunity_new_vet_diet_customer_follow_up.sql` and `src/sql/opportunity_new_vet_diet_customer_chewy_follow_up.sql`; standalone executed queries are query.sql in each cache. Markdown summaries are `new-vet-diet-customers-all-studies-follow-up.md` and `new-vet-diet-customers-all-chewy-follow-up.md` under `outputs/tables/opportunity/2026-05-01_2026-07-31/`. Full original/match/reorder/customer-outcome data, exact money, fingerprints and reconciliation audits remain alongside the source files.
+
+Financial Opportunity Analysis groups each study as whole aged cohort, first CUSTOMER_UPLOAD cohort, then first vet-diet cohort. New table fragments use `financial_opportunity_new_vet_diet_follow_up_<study>.tex`; Chewy uses `financial_opportunity_new_vet_diet_chewy_follow_up.tex`. Labels start `tab:financial-opportunity-new-vet-diet-`. The frequency matrix remains last. The shared report-order helper preserves this arrangement on all generator reruns. Run `make report` to rebuild the PDF; the cached target updates its own LaTeX tables automatically.
+
+### Customer-initiated contacts around aged cancellation
+
+```bash
+make opportunity-aged-customer-contacts
+make opportunity-aged-customer-contacts CACHED=1
+make opportunity-aged-customer-contacts CACHED=1 HANDLED_ONLY=1
+make opportunity-aged-customer-contacts PRINT_SQL=1
+make opportunity-aged-customer-contacts START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
+```
+
+The target uses the full current financial aged cohort: CMPU vet-diet CUSTOMER_UPLOAD orders cancelled May 1–July 31, 2026 by default, with exclusive END_DATE and no prescription-creation or first-order restriction. It retains all 38,314 aged orders and 30,382 customers. AS_OF_DATE must allow the complete positive-day window.
+
+Reuse `EDLDB.BT_CUSTOMER_CARE.FCT_CONTACTS_BRD` from the earlier contact/Sankey work, joining contact ORDER_ID to the original aged order. Require the contact’s numeric CUSTOMER_ID to equal the aged-order customer. Customer-initiated is operationally defined as `LOWER(TRIM(SESSION_INITIAL_DIRECTION))='inbound'`; it is a source-direction proxy, not independently verified human initiation. All contact categories are included, without a WISMO filter. Default counts handled, unhandled and unknown-handled inbound attempts. `HANDLED_ONLY=1` restores the earlier handled-contact requirement, sharing the same raw cache but writing separate outputs. Missing/mismatched contact customer IDs, unknown directions, outbound records and missing timestamps remain audited and are excluded from the table.
+
+The table has exactly three columns: days relative to cancellation, distinct customers contacting, and distinct aged order IDs. Every integer day from **−13 through +3** is always present, with zero filling even for an empty cohort or no contacts. Use the previously confirmed UTC SESSION_START_DTTM, not leg-handled time. Day n is the exact elapsed 24-hour interval `[cancellation+n days, cancellation+(n+1) days)`, with nanosecond-floor handling: day −1 is the preceding 24 hours; day 0 starts exactly at cancellation; day +3 ends just before +4 days. These are elapsed bins rather than calendar-date differences. Each customer/order counts once per day regardless of repeat legs, sessions or qualifying order lines. Day totals overlap and must not be added to obtain global unique totals.
+
+Current all-inbound results include 30,299 distinct customers and 38,194 distinct aged order IDs across the full window. Day −13 has 38 customers / 38 orders; day −12 has 858 / 861; day −11 has 19,267 customers / 23,158 orders; day −10 has 11,364 / 13,530; day 0 has 71 / 71; day +2 has 28 / 28; day +3 has 22 / 23. Most included contact rows are Email / Other ingress (39,520 rows on 38,166 orders), so use the exported channel audit when interpreting initiation. Among inbound source rows, three have missing customer IDs and 38 have mismatching customer IDs; these are excluded. Missing contact timestamps are retained if present.
+
+Summary: `outputs/tables/opportunity/2026-05-01_2026-07-31/aged-customer-contacts-by-cancellation-day.md` (handled-only suffix for that mode). Raw source/query/source.json live under `data/opportunity/aged-customer-contacts/2026-05-01_2026-08-01_as-of-2026-10-28/`. The `all-inbound/` and `handled-inbound/` subdirectories contain complete aged orders/contact details, daily summary Parquet, direction/customer-identity/channel audits, metadata, and executable SQL. Source template: `src/sql/opportunity_aged_customer_contacts.sql`; `query.sql` is extraction SQL, `summary.sql` is standalone Snowflake SQL producing all seventeen table rows, and `verification.sql` is independent DuckDB verification. PRINT_SQL prints the final Snowflake summary query.
+
+Every daily cell reconciles independently in DuckDB; an additional live execution of summary.sql matches all seventeen rows. Original aged order/customer/cancellation identities reconcile exactly to the existing whole-cohort follow-up study. Duplicated source contacts collapse; conflicting session/leg/order evidence fails validation. The source cache fingerprints dates, UTC/window rules and SQL; mode-specific metadata records source/export hashes and exclusions. No existing diagrams or unrelated report tables are regenerated by this target.
+
+The contacts target also refreshes `src/latex/appendix/contact_analysis.tex`, included after Financial Opportunity Analysis. The caption reports the distinct customers contacting across the whole window, without summing overlapping daily counts. It contains the captioned table labeled `tab:aged-customer-contacts-by-cancellation-day`, its reference, cohort dates and counting notes. Run `make report` to rebuild the PDF. The generated mode directory also retains `contact-table.tex`.
+
+The same contacts target also exports `customer-contact-days.parquet` and `contact-day-frequency.parquet` in each mode directory, with a Markdown `aged-customer-contact-day-frequency.md` summary (handled-only suffix for that mode). It adds a second appendix table labeled `tab:aged-customer-contact-day-frequency`. Rows 0..17 count distinct relative cancellation-day bins per customer across all their aged orders, deduplicating repeat contacts and orders in the same bin. Zero includes cohort customers without qualifying contact. Frequencies sum to the full cohort and positive-day rows sum to the caption total. `frequency-verification.sql` independently recomputes the histogram in DuckDB from registered contacts and aged_orders.
+
+### Same-pet/product reorders by contact-day frequency
+
+```bash
+make opportunity-contact-frequency-reorders
+make opportunity-contact-frequency-reorders CACHED=1
+make opportunity-contact-frequency-reorders CACHED=1 HANDLED_ONLY=1
+make opportunity-contact-frequency-reorders PRINT_SQL=1
+make opportunity-contact-frequency-reorders START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28 FOLLOWUP_DAYS=14
+```
+
+Segments are the existing frequency-table groups: customers contacting on exactly **one or two distinct relative day bins** in the −13..+3 contact window, pooling their qualifying aged orders. Multiple contacts on the same relative day count as one day. Default includes all inbound attempts with matching original aged order/customer IDs, all categories; HANDLED_ONLY=1 restricts handled contacts. This uses the full CMPU vet-diet CUSTOMER_UPLOAD aged cancellation cohort, with May 1–July 31, 2026 cancellation dates by default (END_DATE exclusive). No first-order or prescription-created-date restriction.
+
+A returning customer has a different non-cancelled order placed strictly after at least one matching aged cancellation and through 14 days inclusive, matching customer ID, PET_ID and PRODUCT_PART_NUMBER. Each cancellation has its own follow-up window. Use the existing certified RxP order-line follow-up rules, any approval channel/source, and exclude an entire reorder order if any line has cancellation evidence or unknown status. Count a customer once in their segment regardless of multiple original cancellations, products, pets, lines or reorders. The percentage denominator is all customers in that frequency segment, including customers lacking usable matching keys or reorders. Contacts through +3 contribute to the descriptive segment, so the segment includes post-cancellation information.
+
+The new target independently extracts both established source queries and validates that their aged-order/customer/cancellation cohorts match exactly. Data, query SQL, manifests, full customer outcomes, qualifying reorder associations and summary Parquets are under `data/opportunity/contact-frequency-reorders/<start>_<exclusive-end>_<followup>d_as-of-<cutoff>/`. Raw SQL files are `contacts/query.sql` and `reorders/query.sql`; PRINT_SQL prints both with instructions to execute separately. Mode-specific `all-inbound/` and `handled-inbound/` directories contain outputs and DuckDB `verification.sql`. Dates, cutoff, window definitions, SQL and both raw sources are fingerprinted. CACHED=1 requires this exact validated cache. The bounded Markdown table is `outputs/tables/opportunity/<start>_<inclusive-end>/contact-frequency-14d-same-pet-part-reorders.md` (handled-only suffix for that mode). This target does not rebuild the report or existing analyses.
+
+Current default results: one contact day — 3,376 returning customers out of 27,265 (12.38%); two contact days — 396 out of 2,808 (14.10%). Fresh segment memberships and returning-customer identities reconcile exactly to the existing contact-frequency table and same-pet/part 14-day follow-up. Reconciliation evidence is saved in `all-inbound/prior-analysis-reconciliation.json`.
+
+The contact-frequency reorder target also refreshes `src/latex/appendix/contact_frequency_reorders.tex`, included below the contact-day frequency table in `contact_analysis.tex`, with caption, reference and label `tab:contact-frequency-same-pet-part-reorders`. Contact-table reruns preserve the inclusion. The selected mode exports its own `reorder-table.tex`; run `make report` to rebuild the PDF.
+
+SQL listings are omitted from the PDF report. Executable source/summary SQL remains in the analysis data directories (including the financial baseline `summary-report.sql`), and PRINT_SQL=1 remains available. Financial report generators emit tables and notes without embedding SQL.
+
+The existing first-order-line survival PNG is included in `src/latex/appendix/survival_anaysis.tex` under Survival Analysis, with label `fig:first-order-line-survival`. The appendix is included after Study Population Analysis. Run `make report` to rebuild the PDF; adding this figure does not rerun the underlying survival analysis.
+
+Contact Analysis also includes `src/latex/appendix/contact_window_reorders.tex`, labeled `tab:contact-window-same-pet-part-reorders`, below the contact-frequency reorder results. It compares contact days -7 through +3 versus the complementary aged cohort using the verified 14-day same-pet/part endpoint. Source summary, full customer assignments, fingerprints and independently executed DuckDB verification SQL are under `data/opportunity/contact-window-reorders/2026-05-01_2026-08-01_contact-minus-7-to-plus-3_14d_as-of-2026-10-28/`. Contact-table reruns preserve this inclusion; `make report` rebuilds the PDF.
+
+The appendix contents lists numbered subsubsections. Financial follow-up and contact detail headings are real subsubsections, and their generators retain this structure on reruns. The cancellation baseline and both contact summary tables also have subsubsection entries. Run `make report` to refresh the contents and PDF links.

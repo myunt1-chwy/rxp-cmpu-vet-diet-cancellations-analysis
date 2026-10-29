@@ -1,0 +1,47 @@
+\clearpage
+\subsubsection{Non-cancelled reorders after aged cancellation}
+Table~\ref{tab:financial-opportunity-reorder-windows} summarizes cumulative
+follow-up windows after CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged cancellations
+from May 1, 2026 through July 31, 2026, inclusive, UTC.
+
+\begin{table}[!htbp]
+\centering
+\caption{Customers, cohort percentages, non-cancelled reorder orders and matching-line net sales within 7, 14, 21, 28, 35, 42, 49, 56, 63 and 70 days after aged cancellation.}
+\label{tab:financial-opportunity-reorder-windows}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+Follow-up (days) & Customers & Cohort (\%) & Orders & Net sales \\
+\midrule
+7 & 2,316 & 7.62\% & 2,407 & 221,122.35 \\
+14 & 3,832 & 12.61\% & 4,143 & 386,124.68 \\
+21 & 5,133 & 16.89\% & 5,951 & 558,914.70 \\
+28 & 5,850 & 19.25\% & 7,289 & 685,719.76 \\
+35 & 6,461 & 21.27\% & 8,905 & 841,298.69 \\
+42 & 6,818 & 22.44\% & 10,118 & 958,671.19 \\
+49 & 7,280 & 23.96\% & 11,898 & 1,131,240.46 \\
+56 & 7,510 & 24.72\% & 13,152 & 1,252,558.38 \\
+63 & 7,756 & 25.53\% & 14,621 & 1,393,281.96 \\
+70 & 7,944 & 26.15\% & 15,808 & 1,507,063.94 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Match exact customer ID, \texttt{PRODUCT\_PART\_NUMBER} and non-null
+\texttt{PET\_ID} on a different order, placed strictly after cancellation through
+the indicated number of days, inclusive. Original eligibility is selected by
+cancellation date, with no prescription-creation or first-order restriction.
+All windows use the same source snapshot and require complete follow-up through
+2026-10-28 00:00 UTC. Reorders may use any approval channel or prescription
+source within the certified RxP order-line view. Exclude orders if any line has
+status X, a recorded cancellation reason or cancellation timestamp; also exclude
+orders with unknown line status. Statuses reflect the extraction snapshot.
+Each customer and reorder order counts once within a window, even when linked
+to several original cancellations. Windows and studies overlap; do not add their counts.
+Net sales sum \texttt{ORDER\_LINE\_NET\_SALES} on matching reorder lines only,
+once per shipment/line contribution, preserving zero and negative amounts.
+Sales may be recorded after the placement window; this is recorded matching-line
+sales, not proof of recovered revenue. Missing sales make the total incomplete.
+Every cohort percentage divides returning customers by the same full aged-customer cohort of 30,382, including customers with no qualifying reorder or unusable matching keys. A zero cohort is shown as N/A. Amounts display two decimals; exports retain five.
+\end{minipage}
+\end{table}

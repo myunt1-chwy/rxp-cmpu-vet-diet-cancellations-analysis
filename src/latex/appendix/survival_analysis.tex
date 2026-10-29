@@ -1,0 +1,27 @@
+% Existing plot: make cmpu-first-order-line-survival (requires audited event-time data).
+\clearpage
+\nolinenumbers
+\subsubsection{Survival Analysis}\label{subsec:survival-analysis}
+Figure~\ref{fig:first-order-line-survival} shows the probability that a first-order
+line is still awaiting an accepted upload or cancellation after order placement.
+
+\begin{center}
+\includegraphics[width=\linewidth,height=0.62\textheight,keepaspectratio]{../../outputs/charts/2026-08-15_2026-10-14/cmpu-first-order-line-survival_uploads-2026-08-01_2026-10-26_accepted-state-change_order-placed.png}
+\captionof{figure}{Kaplan--Meier survival curve for 94,869 eligible distinct
+first-order lines linked to CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} prescriptions
+created August 15--October 14, 2026, inclusive, UTC. Time zero is order placement;
+the event is the earlier of the actual or estimated accepted-entity state-change
+time and order cancellation. The upload-entity discovery window is August
+1--October 25, 2026, inclusive. Missing events and events after October 26, 2026
+at 00:00 UTC are right-censored at that cutoff; events exactly at the cutoff
+are observed. Lines with missing placement, placement after the cutoff or
+negative event durations are excluded. Shading shows pointwise 95\%
+log-log Greenwood confidence intervals conditional on the supplied event times;
+it does not include uncertainty from the fixed 0.96 estimation rule. The plot
+displays days 0--13, with vertical markers at days 3, 6, 10 and 11 and horizontal
+guides at days 3, 6 and 10. Survival means neither accepted-state change nor
+cancellation has occurred; it does not measure upload completion alone.}
+\label{fig:first-order-line-survival}
+\end{center}
+\clearpage
+\linenumbers
