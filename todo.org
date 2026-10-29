@@ -724,3 +724,7 @@
 * DONE Repair report build after input restructuring
   - Preserve nested appendix organization and user prose. Fix the three moved input paths and survival filename mismatch, rebuild/inspect PDF and run final checks.
   - Fixed the three nested inputs in study_population_analysis.tex with paths relative to the src/latex build root, including the existing survival_anaysis.tex filename. Preserved the user’s nested organization and prose. Initial and repeat make report builds succeed; all 23 inputs resolve uniquely, no LaTeX warnings, rebuilt survival page visually checked. Final checks: 621 passed, 16 subtests passed in 31.31s. Changes remain uncommitted.
+
+* DONE Prepare committed analysis changes and PDF for main
+  - User authorizes committing and merging the current feature branch. Track outputs/pdf, preserve other generated-output exclusions, rebuild/verify report and run final checks before fast-forwarding local main.
+  - Updated .gitignore to track outputs/pdf while retaining other generated-output exclusions. Rebuilt the current report and visually inspected it; no LaTeX warnings. Final checks: 621 passed, 16 subtests passed in 32.74s. Current feature work is committed and ready for a fast-forward into local main with the PDF. User explicitly authorizes commit and merge.
