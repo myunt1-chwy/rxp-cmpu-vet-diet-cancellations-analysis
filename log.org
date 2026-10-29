@@ -207,3 +207,9 @@
     filter edits, AGENTS/editor/example changes and pre-existing untracked
     analyses were excluded. Local table-layout adaptations in those untracked
     analyses remain outside these commits.
+
+* 2026-10-29 Reviewed analysis report prepared for main
+  - User approved integrating feat/accepted-upload-timing into local main, including outputs/pdf. Existing analysis/report work is in 335620e and 65bed67.
+  - Committed the rebuilt report PDF and .gitignore exception in 2b6c5e0 (docs: track compiled analysis report PDF). Other generated analysis outputs and raw data remain ignored.
+  - make report succeeds without LaTeX warnings; rebuilt PDF visually inspected. Full final suite: 621 passed, 16 subtests passed in 32.74s. git diff --check passed.
+  - Feature branch is ready for fast-forward integration; no remote push was requested.
