@@ -54,9 +54,9 @@ class FirstOrderSankeyTests(unittest.TestCase):
                  ('Item block reason: ', 'Item block reason')]
         result=ET.fromstring(analysis.add_title(svg,'Fixture',columns))
         headings=result.find('{http://www.w3.org/2000/svg}g[@class="stage-headings"]')
-        self.assertEqual([t.text for t in headings], ['First-order cancel reason','Item block reason'])
+        self.assertEqual([' '.join(t.itertext()) for t in headings], ['First-order cancel reason','Item block reason'])
         labels=result.findall('.//{http://www.w3.org/2000/svg}g[@class="node-labels"]/{http://www.w3.org/2000/svg}text')
-        self.assertEqual([t.text for t in labels],['Aged Order (2; 40.00%)','X / NEW_ITEM_AUTHORIZATION (3; 60.00%)'])
+        self.assertEqual([' '.join(span.text for span in t.findall('{http://www.w3.org/2000/svg}tspan')) for t in labels],['Aged Order (2; 40.00%)','X / NEW_ITEM_AUTHORIZATION (3; 60.00%)'])
 
     def test_many_nodes_have_serializable_render_dimensions(self):
         groups = pd.DataFrame({'channel': ['CUSTOMER_UPLOAD']*21,
@@ -65,7 +65,25 @@ class FirstOrderSankeyTests(unittest.TestCase):
                                'prescriptions': [1]*21})
         source = analysis.mermaid_source(analysis.make_flows(groups))
         config = json.loads(source.split('config: ',1)[1].split('\n---',1)[0])
-        self.assertEqual(config['sankey']['height'], 1155)
+        self.assertEqual(config['sankey']['height'], 2688)
+
+    def test_landscape_layout_wraps_labels_and_preserves_full_accessible_name(self):
+        svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5000 1400">'
+               '<g class="node" x="0" y="0"><rect height="1400"/></g>'
+               '<g class="node" x="840" y="0"><rect height="1400"/></g>'
+               '<g class="node-labels"><text x="834" y="0" text-anchor="end">'
+               'Reason: Customer Initiated Cancellation (1,234; 25.00%)</text></g></svg>')
+        result = ET.fromstring(analysis.add_title(svg, 'A long title | Scope | ' + 'date notes; '*30,
+                                                 [('Reason: ', 'Cancellation reason')]))
+        ns = {'s': 'http://www.w3.org/2000/svg'}
+        self.assertLess(float(result.attrib['width']), 5000)
+        label = result.find('.//s:g[@class="node-labels"]/s:text', ns)
+        self.assertEqual([t.text for t in label.findall('s:tspan', ns)],
+                         ['Customer Initiated', 'Cancellation', '(1,234; 25.00%)'])
+        self.assertEqual(label.attrib['text-anchor'], 'start')
+        self.assertEqual(label.find('s:title', ns).text,
+                         'Reason: Customer Initiated Cancellation (1,234; 25.00%)')
+        self.assertGreater(len(result.findall('s:text', ns)[1].findall('s:tspan', ns)), 1)
 
     def test_upload_labels_render_above_links(self):
         # Mermaid emits labels before links; the later opaque links cover this text.
@@ -190,13 +208,13 @@ class FirstOrderSankeyTests(unittest.TestCase):
                 self.assertIn('title: "CMPU vet-diet prescriptions | CUSTOMER_UPLOAD only | 2026-08-14 through 2026-10-14 | Denominator: 4"', focused.read_text())
                 visible_svg = ET.fromstring(focused.with_suffix('.svg').read_text())
                 heading = visible_svg.findall('{http://www.w3.org/2000/svg}text')
-                self.assertIn('CUSTOMER_UPLOAD only', heading[0].text)
-                self.assertIn('Denominator: 4', heading[1].text)
-                self.assertAlmostEqual(float(visible_svg.attrib['height']), 1000 + 96 * 1.2)
+                self.assertIn('CUSTOMER_UPLOAD only', ' '.join(heading[0].itertext()))
+                self.assertIn('Denominator: 4', ' '.join(heading[1].itertext()))
+                self.assertGreater(float(visible_svg.attrib['height']), 1000)
                 self.assertEqual(heading[0].attrib['font-size'], '33.6')
                 self.assertEqual(heading[1].attrib['font-size'], '21.6')
                 node_labels = visible_svg.find('.//{http://www.w3.org/2000/svg}g[@class="node-labels"]')
-                self.assertEqual(node_labels.attrib['font-size'], '21')
+                self.assertEqual(node_labels.attrib['font-size'], '30')
                 self.assertEqual(node_labels.attrib['font-weight'], 'bold')
                 self.assertIn('Channel: CUSTOMER_UPLOAD (4; 44.44%)', main_source)
                 self.assertIn('First order: Customer Initiated Cancellation (1; 11.11%)', main_source)

@@ -15,11 +15,13 @@ WITH prescriptions AS (
            MIN(o.order_order_line_status) AS line_status,
            COUNT(DISTINCT COALESCE(o.order_order_line_status, '[Missing]')) AS status_variants,
            MIN(o.order_line_created_dttm) AS line_created_utc,
-           COUNT(DISTINCT o.order_line_created_dttm)
-             + CASE WHEN COUNT_IF(o.order_line_created_dttm IS NULL) > 0 THEN 1 ELSE 0 END AS creation_variants,
            MIN(o.order_line_created_dttm_est) AS line_created_eastern,
-           COUNT(DISTINCT o.order_line_created_dttm_est) AS eastern_variants,
-           COUNT_IF(o.order_line_created_dttm_est IS NULL) AS missing_eastern_rows,
+           MIN(o.order_placed_dttm) AS order_placed_utc,
+           COUNT(DISTINCT o.order_placed_dttm)
+             + CASE WHEN COUNT_IF(o.order_placed_dttm IS NULL) > 0 THEN 1 ELSE 0 END AS placement_variants,
+           MIN(o.order_placed_dttm_est) AS order_placed_eastern,
+           COUNT(DISTINCT o.order_placed_dttm_est) AS eastern_variants,
+           COUNT_IF(o.order_placed_dttm_est IS NULL) AS missing_eastern_rows,
            MAX(o.max_approved_datetime) AS max_approved_datetime,
            COUNT_IF(o.max_approved_datetime IS NULL) AS missing_approval_rows,
            COUNT(DISTINCT o.max_approved_datetime) AS approval_variants

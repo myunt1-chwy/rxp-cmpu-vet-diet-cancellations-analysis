@@ -21,6 +21,9 @@ def fixture():
             order_status_description=None, order_cancel_reason='Aged Order' if i < 2 else None,
             upload_count=2 if i%2 else 0, cohort_window_upload_count=2 if i%2 else 0,
             first_upload_at_utc=pd.Timestamp('2026-09-02') if i%2 else pd.NaT,
+            upload_state_changed_at_utc=pd.Timestamp('2026-09-03') if i%2 else pd.NaT,
+            selected_upload_id=f'U{i}' if i%2 else None, selected_upload_state='ACCEPTED' if i%2 else None,
+            order_placed_utc=pd.Timestamp('2026-09-01'),order_placed_eastern=pd.Timestamp('2026-08-31 20:00'),placement_variants=1,
             **{key: 0 for key in analysis.legacy.AUDIT_COLUMNS}))
     return pd.DataFrame(rows)
 
@@ -147,7 +150,7 @@ def test_empty_population():
 
 
 def test_cached_sql_fingerprint_rejected(tmp_path):
-    period=analysis.legacy.period_name('2026-08-15','2026-10-15','2026-08-01')+'_uploads-end-2026-10-26'
+    period=analysis.legacy.period_name('2026-08-15','2026-10-15','2026-08-01')+'_uploads-end-2026-10-26_'+analysis.legacy.TIMING_VARIANT
     data=tmp_path/'data'/analysis.NAME/(period+'_block-reasons')
     data.mkdir(parents=True)
     fixture().to_parquet(data/'source.parquet')
@@ -180,10 +183,10 @@ def test_order_status_removed_and_uploads_split_by_cancellation_reason_presence(
     assert pairs.target.str.startswith('First order cancel reason:').all()
     assert not any(n.startswith('First order status:') for n in set(flows.source)|set(flows.target))
     counts=flows.loc[flows.transition.eq(3)].groupby('target').prescriptions.sum().to_dict()
-    assert counts=={'Matching upload: With cancellation reason / Has matching upload':1,
-        'Matching upload: With cancellation reason / No matching upload':1,
-        'Matching upload: No cancellation reason / Has matching upload':1,
-        'Matching upload: No cancellation reason / No matching upload':2}
+    assert counts=={'Accepted upload: With cancellation reason / Has matching accepted upload':1,
+        'Accepted upload: With cancellation reason / No matching accepted upload':1,
+        'Accepted upload: No cancellation reason / Has matching accepted upload':1,
+        'Accepted upload: No cancellation reason / No matching accepted upload':2}
 
 
 @pytest.mark.parametrize('reason',[None,'','   ','Customer Request'])
@@ -196,7 +199,7 @@ def test_upload_groups_use_reason_presence_and_merge_recorded_reasons(reason):
     assert lines.loc[1,'order_status']=='D'
     flows=analysis.flows_for_rendering(groups)
     targets=flows.loc[flows.transition.eq(3)].groupby('target').prescriptions.sum()
-    assert f'Matching upload: {expected} / Has matching upload' in targets.index
+    assert f'Accepted upload: {expected} / Has matching accepted upload' in targets.index
     assert int(targets.sum())==5
 
 
@@ -209,7 +212,7 @@ def test_non_d_keeps_explicit_line_status_column_and_all_non_d_codes():
     assert flows.groupby('transition').prescriptions.sum().to_dict()=={1:3,2:3,3:3}
     assert set(flows.loc[flows.transition.eq(1),'target'])=={'First order line status: X','First order line status: C'}
     assert [heading for _,heading in flows.attrs['columns']]==[
-        'Approval channel','Order line status','Cancellation reason','Matching upload']
+        'Approval channel','Order line status','Cancellation reason','Accepted upload']
 
 
 def test_unknown_order_and_line_statuses_reach_upload_and_cancel_reasons_stay_explicit():
@@ -221,7 +224,7 @@ def test_unknown_order_and_line_statuses_reach_upload_and_cancel_reasons_stay_ex
     assert not any(n.startswith('First order status:') for n in set(flows.source)|set(flows.target))
     assert set(flows.loc[flows.transition.eq(2),'target'])=={
         'First order cancel reason: Aged Order','First order cancel reason: [No cancellation reason recorded]'}
-    assert flows.loc[flows.transition.eq(3),'target'].str.startswith('Matching upload:').all()
+    assert flows.loc[flows.transition.eq(3),'target'].str.startswith('Accepted upload:').all()
     assert flows.groupby('transition').prescriptions.sum().eq(5).all()
 
 
@@ -237,7 +240,7 @@ def test_column_headers_remove_prefixes_from_visible_labels_in_all_views(tmp_pat
             '<text>'+n+' (1; 20.00%)</text>' for n in nodes)+'</g></svg>'
         tree=ET.fromstring(analysis.legacy.add_title(svg,'Fixture',flows.attrs['columns']))
         ns={'s':'http://www.w3.org/2000/svg'}
-        labels=[t.text for t in tree.findall('.//s:g[@class="node-labels"]/s:text',ns)]
+        labels=[' '.join(span.text for span in t.findall('s:tspan',ns)) for t in tree.findall('.//s:g[@class="node-labels"]/s:text',ns)]
         assert not any(label.startswith(tuple(prefix for prefix,_ in flows.attrs['columns'])) for label in labels)
         assert len(tree.findall('.//s:g[@class="stage-headings"]/s:text',ns))==4
     assert 'Clinic response' in (tmp_path/'tables'/'order-lines.md').read_text()

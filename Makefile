@@ -1,5 +1,15 @@
 .DEFAULT_GOAL := setup
 
+LATEXMK ?= latexmk
+
+.PHONY: report
+report:
+	@command -v "$(LATEXMK)" >/dev/null 2>&1 || { echo 'Error: latexmk is required. Install a TeX distribution with latexmk and pdflatex, or set LATEXMK=/path/to/latexmk.' >&2; exit 1; }
+	mkdir -p build/latex outputs/pdf
+	cd src/latex && "$(LATEXMK)" -pdf -interaction=nonstopmode -halt-on-error -file-line-error -outdir="$(CURDIR)/build/latex" main.tex
+	cp build/latex/main.pdf outputs/pdf/cmpu-aged-order-analysis.pdf
+	@echo "Report: outputs/pdf/cmpu-aged-order-analysis.pdf"
+
 .PHONY: cmpu-upload-time-ratio-distribution
 cmpu-upload-time-ratio-distribution:
 	.venv/bin/python -m src.python.create_cmpu_upload_time_ratio_distribution --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
@@ -117,3 +127,19 @@ aged-customer-prior-same-clinic-shipments:
 .PHONY: aged-customer-21d-reorder-clinic-history
 aged-customer-21d-reorder-clinic-history:
 	.venv/bin/python -m src.python.create_aged_customer_21d_reorder_clinic_history --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: cmpu-upload-entity-state-change-distributions
+cmpu-upload-entity-state-change-distributions:
+	.venv/bin/python -m src.python.create_cmpu_upload_entity_state_change_distributions --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: cmpu-upload-entity-order-creation-distributions
+cmpu-upload-entity-order-creation-distributions:
+	.venv/bin/python -m src.python.create_cmpu_upload_entity_order_creation_distributions --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-27)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
+
+.PHONY: opportunity-order-cancellation-summary
+opportunity-order-cancellation-summary:
+	.venv/bin/python -m src.python.create_opportunity_order_cancellation_summary --start-date "$(or $(START_DATE),2026-06-01)" --end-date "$(or $(END_DATE),2026-09-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(WRITE_LATEX)),--write-latex)
+
+.PHONY: prescription-cohort-order-comparison
+prescription-cohort-order-comparison:
+	.venv/bin/python scripts/summarize_prescription_cohort_order_comparison.py $(if $(filter 1,$(CACHED)),,--refresh) --write-latex

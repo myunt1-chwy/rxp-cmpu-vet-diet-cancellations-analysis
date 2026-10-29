@@ -30,18 +30,18 @@ def observations(lines, cutoff):
     if (frame[['order_id', 'order_line_id']].isna().any().any()
             or frame.duplicated(['order_id', 'order_line_id']).any()):
         raise ValueError('require unique populated order/line keys')
-    for col in ['line_created_utc', 'event_time']:
+    for col in ['order_placed_utc', 'event_time']:
         frame[col] = pd.to_datetime(frame[col], utc=True, format='mixed').astype('datetime64[ns, UTC]')
     frame['survival_eligibility'] = 'Included'
-    frame.loc[frame.event_time.lt(frame.line_created_utc), 'survival_eligibility'] = 'Negative event duration'
-    frame.loc[frame.line_created_utc.gt(cutoff), 'survival_eligibility'] = 'Creation after cutoff'
-    frame.loc[frame.line_created_utc.isna(), 'survival_eligibility'] = 'Missing creation'
+    frame.loc[frame.event_time.lt(frame.order_placed_utc), 'survival_eligibility'] = 'Negative event duration'
+    frame.loc[frame.order_placed_utc.gt(cutoff), 'survival_eligibility'] = 'Placement after cutoff'
+    frame.loc[frame.order_placed_utc.isna(), 'survival_eligibility'] = 'Missing placement'
     included = frame.survival_eligibility.eq('Included')
     observed = frame.event_time.notna() & frame.event_time.le(cutoff)
     frame['event_observed'] = pd.Series(pd.NA, index=frame.index, dtype='boolean')
     frame.loc[included, 'event_observed'] = observed[included]
     frame['observation_end_utc'] = frame.event_time.where(observed, cutoff).where(included)
-    delta = frame.observation_end_utc - frame.line_created_utc
+    delta = frame.observation_end_utc - frame.order_placed_utc
     frame['duration_ns'] = pd.Series(pd.NA, index=frame.index, dtype='Int64')
     frame.loc[included, 'duration_ns'] = delta[included].astype('int64')
     frame['elapsed_days'] = frame.duration_ns / DAY_NS
@@ -120,7 +120,7 @@ def figure(curve, n, path, subtitle):
     keep = np.r_[True, pixel[1:] != pixel[:-1]] | np.r_[pixel[:-1] != pixel[1:], True]
     points = points.loc[keep]
     data = alt.Data(values=points.to_dict(orient='records'))
-    base = alt.Chart(data).encode(x=alt.X('elapsed_days:Q', title='Days from order-line creation',
+    base = alt.Chart(data).encode(x=alt.X('elapsed_days:Q', title='Days from order placement',
         scale=alt.Scale(domain=[0, display_end], nice=False),
         axis=alt.Axis(tickCount=12)), order='sequence:Q')
     band = base.mark_area(color='#F28E2C', opacity=.18, interpolate='step-after').encode(
@@ -167,7 +167,7 @@ def write_outputs(lines, associations, metadata, period):
     audit = [('Prescriptions', len(associations)), ('Unmatched prescription associations',
              int(associations.association_state.ne('Matched').sum())), ('Distinct matched lines', len(lines))]
     audit += [('Source negative durations (overlapping quality flag)',
-               int(details.event_time.lt(details.line_created_utc).sum()))]
+               int(details.event_time.lt(details.order_placed_utc).sum()))]
     audit += [(str(k), int(v)) for k,v in details.survival_eligibility.value_counts().items()]
     audit += [(str(k), int(v)) for k,v in details.survival_outcome.value_counts().items()]
     for source in ['actual_upload', 'estimated_upload', 'order_cancellation', 'tie', 'missing']:
@@ -182,11 +182,11 @@ def write_outputs(lines, associations, metadata, period):
     note = (f"Prescriptions UTC [{metadata['start_date']}, {metadata['end_date_exclusive']}); "
             f"uploads UTC [{metadata['upload_start_date']}, {metadata['upload_end_date_exclusive']}).\n\n"
             'One observation per audited REFNUM 20 distinct order/order-line pair; all statuses and flags. '
-            'Event is the earlier of actual/estimated upload and cancellation, including ties. '
-            'The 0.96 upload estimate is treated as an event time. S(t) is the probability that neither '
-            'upload nor cancellation has occurred by elapsed day t; it is not an upload-completion probability. '
+            'Time zero is ORDER_PLACED_DTTM. Observed upload means the selected ACCEPTED entity STATE_CHANGED_TS_UTC. Event is the earlier of actual/estimated acceptance and cancellation, including ties. '
+            'The fixed 0.96 estimate is retained pending recalibration and treated as an event time. S(t) is the probability that neither '
+            'accepted-entity state change nor cancellation has occurred by elapsed day t; it is not an upload-completion probability. '
             f'Right censor missing or later events at {cutoff.isoformat()}; an event exactly at cutoff is observed. '
-            'Exclude missing creation, creation after cutoff and negative event durations from the curve; '
+            'Exclude missing placement, placement after cutoff and negative event durations from the curve; '
             'preserve them in line details. Zero durations are included. '
             'Kaplan–Meier uses events before censoring for equal durations and no extrapolation beyond follow-up. '
             'The shaded band is a pointwise 95% log-log Greenwood confidence interval conditional on supplied '

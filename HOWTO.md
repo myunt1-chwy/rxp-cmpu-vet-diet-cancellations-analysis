@@ -42,6 +42,16 @@ To run the setup behavior checks after setup:
 .venv/bin/python -m unittest discover -s tests
 ```
 
+## Build the LaTeX report
+
+```bash
+make report
+# If latexmk is not on PATH:
+make report LATEXMK=/Library/TeX/texbin/latexmk
+```
+
+Requires a TeX distribution providing `latexmk`, `pdflatex` and the packages used by the report (for example MacTeX). The target compiles `src/latex/main.tex` from its source directory so the local style and appendix inputs resolve. `latexmk` runs the passes needed for references and the appendix contents. Intermediate files and the compiler log stay under ignored `build/latex/`; the successfully built PDF is copied to **`outputs/pdf/cmpu-aged-order-analysis.pdf`**. A failed compile leaves the previous published PDF in place. This target does not run the data analyses or access Snowflake.
+
 ## Matt Pocock skills
 
 With Node.js and npm (which provides `npx`) installed, run:
@@ -74,6 +84,67 @@ install them again.
 
 See the [skills CLI reference](https://github.com/vercel-labs/skills/blob/main/docs/commands.md)
 for installation options.
+
+## Accepted-entity timing from order placement (REFNUM 49)
+
+All current CMPU timing targets use **ORDER_PLACED_DTTM (UTC)** as time zero.
+Upload evidence requires a `DIET_PRESCRIPTION` entity currently in
+`STATE_NAME = 'ACCEPTED'`, matching expanded RX_ID and numeric CUSTOMER_ID.
+The current state is not a historical state at cancellation, and entity acceptance
+is separate from prescription approval.
+
+Keep each target's existing **CREATED_TS_UTC discovery window**. Select the earliest
+accepted entity by CREATED_TS_UTC, breaking ties by UPLOAD_ID, then use that
+same entity's **STATE_CHANGED_TS_UTC** for the observed endpoint. State changes
+may occur beyond the discovery window or after cancellation. Retain selected ID,
+creation/state-change timestamps and current state. An accepted entity with no
+state-change timestamp still counts as present; its duration is missing. There
+is no fallback to CREATED_TS_UTC for elapsed time.
+
+- Acceptance elapsed time = STATE_CHANGED_TS_UTC − ORDER_PLACED_DTTM.
+- Approval elapsed time = the target's approval endpoint − ORDER_PLACED_DTTM.
+- Upload-to-approval gap = approval elapsed time − acceptance elapsed time.
+- Ratio = acceptance elapsed time / approval elapsed time.
+- Event estimate = ORDER_PLACED_DTTM + 0.96 × (MIN_APPROVED_DENIED_DATETIME − ORDER_PLACED_DTTM), rounded to nanoseconds, without an intercept.
+
+The fixed **0.96** coefficient is retained pending a later update; regenerated
+descriptive fits do not change it. Observed accepted-state timing takes precedence
+over estimates. Cancellation caps event time; the existing observation cutoff,
+censoring rules, ties and day-13 survival display remain. Keep missing/negative
+values in details and audits; each distribution retains its documented exclusions.
+UTC/Eastern placement companions are checked within one second where available.
+Line-creation timestamps remain in source evidence but are not timing origins.
+
+Caches and outputs include **accepted-state-change_order-placed**. Old caches
+cannot satisfy the new SQL/definition fingerprints. Full derived datasets stay
+in Parquet under data/; Markdown tables remain bounded to 1 MB. The Sankey target
+also exports placement-to-state-change hours and quality flags in its line and
+association data. Legacy first_upload_at_utc remains the selected entity's
+creation timestamp for discovery validation; upload_state_changed_at_utc is the
+new timing endpoint. Event extracts retain corresponding association/actual
+creation, state-change and entity-ID fields.
+
+Fresh execution order (the upload measures share one validated extract):
+
+```sh
+make cmpu-first-order-line-status
+make cmpu-first-order-line-approval-distribution
+make cmpu-first-order-line-upload-distribution
+make cmpu-upload-to-approval-distribution CACHED=1
+make cmpu-first-order-line-approval-distribution WITH_UPLOAD=1 CACHED=1
+make cmpu-upload-time-ratio-distribution CACHED=1
+make cmpu-order-to-approval-distributions
+make cmpu-first-order-line-event-times
+make cmpu-first-order-line-survival
+make report
+```
+
+The extraction targets retain CACHED=1 and PRINT_SQL=1; survival validates its
+frozen event-time prerequisite. Targets retain their existing counting grains
+and eligibility restrictions, including D-status requirements where applicable.
+The approval-only target still does not require upload presence unless
+WITH_UPLOAD=1. Separate reorder/contact/history analyses and the archived
+approval_time_analysis.sql queries retain their established definitions.
 
 ## First order to first-usage approval distributions
 
@@ -135,30 +206,37 @@ Join the certified `ORDER_LINE_COST_MEASURES_RXP` view on both
 `FIRST_ORDER_ID = ORDER_ID` and numeric `FIRST_ORDERITEM_ID = ORDER_LINE_ID`.
 Count each distinct matched order/line pair once, requiring current
 `ORDER_ORDER_LINE_STATUS = 'D'`. Collapse shipment rows using the latest populated
-approval; conflicting statuses or creation timestamps reject the extract,
-including missing/populated mixtures. UTC/Eastern creation companions must
+approval; conflicting statuses or placement timestamps reject the extract,
+including missing/populated mixtures. UTC/Eastern placement companions must
 agree within one second where populated. Missing companions are audited.
 
 The three targets calculate hours as follows:
 
 | Target | Timing difference | Negative durations |
 | --- | --- | --- |
-| `cmpu-first-order-line-approval-distribution` | Latest approval minus line creation | Retained |
-| `cmpu-first-order-line-upload-distribution` | Earliest matching upload entity creation minus line creation | Excluded |
-| `cmpu-upload-to-approval-distribution` | Latest approval minus earliest matching upload entity creation | Excluded |
+| `cmpu-first-order-line-approval-distribution` | Latest approval minus order placement | Retained |
+| `cmpu-first-order-line-upload-distribution` | Selected accepted entity state change minus order placement | Excluded |
+| `cmpu-upload-to-approval-distribution` | Latest approval minus selected accepted entity state change | Excluded |
+
+The upload-to-approval target plots only **0 through 60 seconds inclusive**, with
+one-second histogram bins and a CDF normalized to those displayed lines. Exactly
+60 seconds is retained in the final histogram bin. Captions and the plot-counts
+table report displayed and omitted counts. Full-range statistics, hourly bins,
+CDF and Parquet details remain exported; other timing targets keep their full range.
+
 
 Upload entities match by expanded RX_ID and numeric CUSTOMER_ID; the earliest
 matching entity within the upload search window supplies the upload time.
 Multiple uploads cannot multiply lines. Matching does not establish file
-presence and need not precede approval or follow line creation. Both timing
+presence and need not precede approval or follow order placement. Both timing
 endpoints are required; the upload-minus-line calculation does not require
 approval. Excluded negatives remain in details and eligibility audits. Zero
 and all nonnegative outliers are retained.
 
-Every target produces a transparent Altair count histogram with integer-aligned
+Timing targets normally produce a transparent Altair count histogram with integer-aligned
 one-hour bins `[lower, upper)` and an exact empirical cumulative distribution
 with labeled verticals at 24, 72, 144 and 240 hours. The full observed eligible
-range is shown. Empty populations produce tables and remove stale figures.
+range is shown except for the upload-to-approval plots, which show 0–60 seconds. Empty populations produce tables and remove stale figures.
 Statistics use unbinned durations and linear interpolation: N, minimum, p25,
 median, p75 and p95. Histogram and cumulative totals reconcile to eligible
 unique lines. Missing keys, unmatched lines, status exclusions, missing timing
@@ -168,8 +246,8 @@ Charts live directly in `outputs/charts/<start>_<last-prescription-day>/`, using
 inclusive dates. For the default run this is `outputs/charts/2026-08-15_2026-10-14/`.
 Filenames identify the measure, upload window, negative filter and figure type:
 
-- `cmpu-d-lines_line-creation-to-upload_uploads-2026-08-01_2026-10-25_nonnegative_histogram.png`
-- `cmpu-d-lines_line-creation-to-upload_uploads-2026-08-01_2026-10-25_nonnegative_cumulative.png`
+- `cmpu-d-lines_order-placement-to-accepted-state-change_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_histogram.png`
+- `cmpu-d-lines_order-placement-to-accepted-state-change_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_cumulative.png`
 
 Each analysis has matching Markdown notes, and the target prints their path.
 Markdown associations, unique lines, eligibility, hourly counts, cumulative
@@ -190,13 +268,7 @@ The three upload-matched measures share the same source extract. `CACHED=1`
 verifies SQL, dates and the extract fingerprint without querying Snowflake.
 `START_DATE`, exclusive `END_DATE` and `UPLOAD_START_DATE` are supported overrides.
 
-The corrected cohort retains 104,307 prescriptions, of which 33,220 have uploads.
-There are 24,944 D-status lines with uploads: the upload-to-approval analysis
-includes 24,938 after six missing-approval exclusions (median about 49 seconds,
-p75 4.77 hours, p95 25.07 hours). The upload-minus-line analysis includes 24,701
-after excluding 243 negative durations (median 22.76 hours). Rendered figures
-and notes using uploads only through October 14 were removed at user request;
-underlying data, tables and source files remain available.
+Rerun the accepted-state-change variants for current counts and timing statistics; earlier creation-time summaries are superseded.
 
 ## Sankeys with the extended upload window
 
@@ -205,6 +277,13 @@ make cmpu-first-order-line-status
 make cmpu-first-order-line-status CACHED=1
 make cmpu-first-order-line-status PRINT_SQL=1
 .venv/bin/python -m pytest -q tests/test_cmpu_first_order_line_status.py
+```
+
+Sankey exports use a wide layout for landscape PDF pages, with wrapped category labels, separate counts/percentages and larger text. Titles/date notes and column headings wrap. Transparent PNG and SVG outputs retain the same populations, flow weights and percentages. Re-render with `CACHED=1`; no warehouse refresh is needed. The report includes only the CMPU vet-diet first-order-line Sankey for the `CUSTOMER_UPLOAD` approval channel, on one portrait page, scaled to the available text width and height. The entire report uses portrait pages. Generate its input with the cached first-order-line target before `make report`:
+
+```sh
+make cmpu-first-order-line-status CACHED=1
+make report
 ```
 
 This is the default CMPU first-order-line Sankey run (REFNUM 14/17).
@@ -266,7 +345,7 @@ or individual-status subtotal. Transition totals must not be added together.
 ### Matching upload entities
 
 Match `DIET_PRESCRIPTION` entities on expanded RX_ID and numeric CUSTOMER_ID
-within the extended upload window; deduplicate repeated uploads. No uploaded-file
+within the creation-based extended upload window. Require current `STATE_NAME = 'ACCEPTED'`; select earliest `CREATED_TS_UTC`, breaking ties by `UPLOAD_ID`. Use that selected entity's `STATE_CHANGED_TS_UTC` for elapsed-time endpoints, without a state-change-date filter. No uploaded-file
 or association-flag filter, or upload-after-prescription-creation requirement,
 is applied. Matching entity presence does not independently verify a file.
 Upload-source audits cover the entire search window.
@@ -294,11 +373,7 @@ Generated data, Mermaid sources and figures remain ignored by Git.
 use the read-only rxp-sql runner with browser SSO. Both Make names above select
 this extended window automatically; no shorter-window flag is needed.
 
-The existing extended-window extract contains 113,608 prescriptions and 103,514
-matched unique lines, including 95,071 CUSTOMER_UPLOAD lines. Its 24,944
-CUSTOMER_UPLOAD D-status lines with uploads reconcile to the timing analysis
-before missing-approval exclusions. Historical shorter-window source extracts
-remain available; their superseded diagrams and Markdown exports are removed.
+The prescription/line population is independent of accepted-entity presence. Audit tables reconcile unmatched prescriptions, distinct lines and accepted-entity counts for each refreshed snapshot.
 
 ## Upload time as a share of approval time (REFNUM 18)
 
@@ -310,9 +385,9 @@ make cmpu-upload-time-ratio-distribution
 ```
 
 For CMPU vet-diet CUSTOMER_UPLOAD D-status first-order lines, compute
-`(earliest matching upload entity creation − line creation) /
-(latest populated approval − line creation)`. A ratio of 0.75 is 75%: upload
-occurred three-quarters of the way from line creation to approval. Use the
+`(selected accepted entity state change − order placement) /
+(latest populated approval − order placement)`. A ratio of 0.75 is 75%: upload
+occurred three-quarters of the way from order placement to approval. Use the
 established two-key first-order-line join, shipment collapse, upload matching,
 source audits and UTC/Eastern checks. Each distinct order/line pair counts once.
 
@@ -353,14 +428,11 @@ An `analysis.json` under `data/cmpu-upload-time-ratio-distribution/<source-perio
 records the formula, exclusions, bin width, dates, source path/fingerprints,
 extraction/generation timestamps and eligible count without copying source data.
 
-The validated cached run has 24,695 eligible lines after six missing approvals
-and 243 negative upload durations. No zero/negative approval durations occur.
-The median ratio is 0.992258 (99.23%); p25 is 68.62%, p75 99.97% and p95 99.99%.
-No eligible ratios exceed one in this snapshot.
+The ratio target regenerates descriptive linear/log fits for the accepted state-change endpoint. These fits do not replace the fixed 0.96 event-time coefficient.
 
 The REFNUM 18 target also plots the two elapsed times and fits a line using
-exactly the same eligible unique lines. The scatter x axis is line creation
-to latest approval in hours; the y axis is line creation to earliest matching
+exactly the same eligible unique lines. The scatter x axis is order placement
+to latest approval in hours; the y axis is order placement to earliest matching
 upload in hours. All points and outliers are retained. Unweighted ordinary
 least squares estimates an intercept and slope; the line is shown over the
 observed x range. The equation, R² and N appear on the figure and in
@@ -370,14 +442,13 @@ a start time. Fewer than two points or constant x values produce a scatter
 without a regression; R² is undefined for constant y values.
 
 The scatter is named
-`cmpu-d-lines_upload-vs-approval-times_uploads-2026-08-01_2026-10-25_nonnegative_linear-fit.png`
-in the same flat chart folder. The cached cohort gives
-`upload_hours = -3.072068 + 0.960573 × approval_hours`, R²=0.952879, N=24,695.
+`cmpu-d-lines_upload-vs-approval-times_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_linear-fit.png`
+in the same flat chart folder. Inspect the newly generated linear-fit table for the current coefficients and population.
 Regenerate with `make cmpu-upload-time-ratio-distribution CACHED=1`.
 
 The same target also fits natural logs of both elapsed times and saves a
 log–log scatter as
-`cmpu-d-lines_upload-vs-approval-times_uploads-2026-08-01_2026-10-25_nonnegative_log-log-fit.png`.
+`cmpu-d-lines_upload-vs-approval-times_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_log-log-fit.png`.
 The axes show hours on logarithmic scales. Fit
 `ln(upload_hours) = intercept_log_hours + slope × ln(approval_hours)`
 with unweighted OLS and an intercept. The equivalent curve is
@@ -387,8 +458,7 @@ correction. R² is computed in log space. Only strictly positive time pairs
 from the ratio-eligible cohort enter this fit; no pseudocount is added.
 Zero/nonpositive exclusions and the fit N are exported in `log-log-fit.md`.
 Zero-ratio observations still belong to the original ratio and linear analyses.
-The cached snapshot has no additional log exclusions: N=24,695, log slope
-1.028342, log intercept -0.774953, power multiplier 0.460725, R²(log)=0.741830.
+Inspect the new log-log-fit table for its current eligible population and coefficients.
 Both original and log–log fit figures are linked from the chart notes and
 regenerate with `make cmpu-upload-time-ratio-distribution CACHED=1`.
 
@@ -404,8 +474,8 @@ For the current ratio analysis, use `outputs/tables/2026-08-15_2026-10-14/`:
 
 - `cmpu-d-lines_upload-time-share_uploads-2026-08-01_2026-10-25_nonnegative_statistics.md`
 - `cmpu-d-lines_upload-time-share_uploads-2026-08-01_2026-10-25_nonnegative_order-lines.md`
-- `cmpu-d-lines_upload-vs-approval-times_uploads-2026-08-01_2026-10-25_nonnegative_linear-fit.md`
-- `cmpu-d-lines_upload-vs-approval-times_uploads-2026-08-01_2026-10-25_nonnegative_log-log-fit.md`
+- `cmpu-d-lines_upload-vs-approval-times_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_linear-fit.md`
+- `cmpu-d-lines_upload-vs-approval-times_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_log-log-fit.md`
 
 Timing table prefixes match their corresponding chart prefixes. Other analyses
 use `<analysis>_<run-variant>_<table-kind>.md`; run variants preserve independent
@@ -442,13 +512,13 @@ no survival outcomes or censoring rules.
 The complete calculation is in `src/sql/cmpu_first_order_line_event_times.sql`.
 It joins both FIRST_ORDER_ID and numeric FIRST_ORDERITEM_ID, collapses shipment
 rows per order/line pair, and uses the earliest populated
-MIN_APPROVED_DENIED_DATETIME. Conflicting statuses, flags, creation timestamps
+MIN_APPROVED_DENIED_DATETIME. Conflicting statuses, flags, order-placement timestamps
 (including null versus populated) or populated cancellation timestamps stop
 exports. Multiple prescriptions referencing one line contribute their earliest
 matching upload. Missing/invalid keys and unmatched prescriptions remain in a
 separate association table.
 
-Estimated upload = line creation + 0.96 × (approval/denial minimum − creation),
+Estimated acceptance = order placement + 0.96 × (approval/denial minimum − order placement),
 without an intercept. SQL uses decimal arithmetic and rounds the offset to the
 nearest nanosecond; timestamp strings preserve nine fractional digits through
 extraction. Python independently checks the estimate using integer nanoseconds
@@ -459,10 +529,10 @@ caps the event, regardless of line status. Equal times produce `tie` while
 retaining the candidate source. Sources are `actual_upload`, `estimated_upload`,
 `order_cancellation`, `tie`, or `missing`.
 
-Unsuffixed timestamps are interpreted as UTC. Creation is checked against its
+Unsuffixed timestamps are interpreted as UTC. Order placement is checked against its
 Eastern companion where present. ORDER_CANCEL_DTTM uses the established UTC
 interpretation checked against ORDER_CANCEL_DTTM_EST in REFNUM 5; the certified
-line view has no cancellation Eastern companion. Missing creation or event
+line view has no cancellation Eastern companion. Missing placement or event
 produces null elapsed hours. Null and negative durations remain exported with
 quality flags and audit counts; missing estimate inputs leave the estimate null.
 
@@ -493,15 +563,15 @@ per distinct order/order-line pair. No new dependency is required.
 
 Default interpretation: the event is REFNUM 20's earlier actual/estimated upload
 or order cancellation, including ties. The curve estimates the probability of
-still awaiting either upload or cancellation after elapsed days from line
-creation. It does not estimate upload completion alone. Estimated upload times
+still awaiting either upload or cancellation after elapsed days from order
+placement. It does not estimate upload completion alone. Estimated upload times
 use REFNUM 20's fixed 0.96 rule and are treated as event times.
 
 Right-censor missing events and events later than the exclusive upload end
 (`END_DATE + 11 days`; October 26, 2026 at 00:00 UTC by default) at that cutoff.
 An event exactly at the cutoff is observed. The source must have been extracted
-at or after the cutoff. Exclude negative event durations, missing creation and
-creation after cutoff from the curve, retaining every line in the detail export.
+at or after the cutoff. Exclude negative event durations, missing placement and
+placement after cutoff from the curve, retaining every line in the detail export.
 Zero durations remain. No 12-day truncation or outlier removal is applied.
 
 The Kaplan–Meier calculation groups exact integer nanosecond durations; tied
@@ -893,6 +963,8 @@ make aged-order-reorder-prescription-sankeys CACHED=1
 
 Optional `START_DATE=2026-08-15 END_DATE=2026-10-15 AS_OF_DATE=2026-10-27` uses an exclusive prescription end and an as-of cutoff at 00:00 UTC. The prerequisite cache must use the same dates and `INCLUDE_21_DAYS=1` with same-pet matching. Docker must already be running for Mermaid rendering.
 
+The reorder diagrams use the same wide landscape layout as the first-order-line Sankeys.
+
 Each horizon counts a reordered customer once, selecting the cancellation/reorder pair with the shortest exact delay. Ties use earlier reorder placement, reorder order/line IDs, then original order/line IDs. Original and reordered lines must have the same customer, product and populated unambiguous pet. This selection matches the daily plot and is not necessarily the customer's chronologically first reorder. Separate complete-follow-up populations apply to each horizon; placed attempts count regardless of shipment or later status.
 
 The diagrams show reordered customers → prescription identity → approval channel **only for Different prescription**. Compare actual line `RX_ID` evidence; `RX_USAGE_ID` does not define identity. Missing/partial IDs are Unknown, and multiple IDs remain separate. Same prescription and unresolved categories terminate at the identity stage. Diagram percentages use all reordered customers in that horizon; channel tables also show the percentage within Different prescription customers. Customers without reorders remain outside the diagrams. Current line associations and registry approval channels do not establish historical assignment/channel at placement.
@@ -1061,3 +1133,138 @@ Default snapshot: 5,382 reordered customers among 15,544 eligible complete-follo
 Every generated `.md` file is limited to **1,000,000 bytes (1 MB)**. Large tables produce an explicitly labeled preview of up to 25 rows; complete records remain in the analysis's `data/` Parquet extracts. A final file-level check also bounds reports containing several tables or long notes. Small Markdown exports and non-Markdown outputs retain their existing contents.
 
 Python generators use `markdown_table(frame)` for bounded table formatting and `write_text(path, text)` from `src.python.markdown_tables` for text exports. The writer applies the size cap only to `.md` files; SQL, JSON, Mermaid, SVG and other text exports pass through unchanged. Keep these helpers when adding generators. Existing large Markdown files were removed; Parquet data, figures and compact summaries are retained. Regenerating an analysis now produces only size-limited Markdown previews and summaries.
+
+## REFNUM 51: upload-entity state-change distributions
+
+```bash
+make cmpu-upload-entity-state-change-distributions
+make cmpu-upload-entity-state-change-distributions CACHED=1
+make cmpu-upload-entity-state-change-distributions PRINT_SQL=1
+# Optional window overrides (END_DATE is exclusive):
+make cmpu-upload-entity-state-change-distributions START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01 AS_OF_DATE=2026-10-27
+```
+
+Counts each distinct `UPLOAD_ID` once in each of two populations: all entities linked by expanded RX_ID and numeric customer ID to CMPU vet-diet CUSTOMER_UPLOAD prescriptions, and entities with any matched prescription whose first-order line has an Aged Order cancellation at/before AS_OF_DATE 00:00 UTC. Both first-order keys must match. No line-status condition is added. Defaults cover Rx creation August 15–October 14 inclusive and upload creation August 1–October 25 inclusive (exclusive END_DATE + 11 days). Null upload creation dates are retained and explicitly marked as having unknown discovery-window membership.
+
+Elapsed time is current `STATE_CHANGED_TS_UTC − CREATED_TS_UTC`, in hours. Every current state and every matching upload is retained, without the ACCEPTED filter, earliest-upload selection, 60-second chart restriction, or censoring state changes at cancellation/cutoff. Exact duplicates collapse; conflicting entity states/timestamps/customers or prescription/cancellation evidence fail validation. Missing timestamps remain in exports/audits and are omitted from duration marks; negative durations remain in the plots with flags in data.
+
+Two transparent Altair PNGs under `outputs/charts/<dated-window>/cmpu-upload-entity-state-change-distributions/` show horizontal box plots with a shared state order, palette, and full-range symmetric-log hours axis (one-second linear-region constant). State names are JSON-quoted to distinguish literal values from `[NULL state]`. Medians, linearly interpolated quartiles, observed Tukey whiskers (1.5×IQR), all outliers, and usable/total counts are shown. Empty state groups remain visible with zero counts.
+
+Complete source expansions, matched prescription/line associations, both entity populations, state statistics and audits are Parquet files under `data/cmpu-upload-entity-state-change-distributions/<period>/`. Bounded Markdown statistics, summary previews and audits are under the matching dated `outputs/tables/` folder. Source manifests validate dates, cutoff, population definitions, implementation/SQL fingerprints, and source Parquet SHA-256; analysis manifests fingerprint all exported Parquets. Changes to the query or implementation create a distinct cache identity. `CACHED=1` requires that exact extract; `PRINT_SQL=1` performs no extraction or output writes, even with `CACHED=1`. This target does not regenerate other analyses.
+
+REFNUM 51 x-axis labels use 1, 5 and 30 minutes; 1, 6, 24, 48, 72, 120 and 240 hours. Both plots retain their shared symmetric-log scale and full observed range; horizontal two-line labels show the requested time intervals directly.
+
+REFNUM 51 overwrites `all-study-linked.png` and `aged-order.png` in that stable chart folder on every run. Markdown summaries likewise overwrite files under `outputs/tables/<dated-window>/cmpu-upload-entity-state-change-distributions/`. Checksums remain in the data-cache paths and metadata only.
+
+## REFNUM 52: upload creation relative to order creation
+
+```bash
+make cmpu-upload-entity-order-creation-distributions
+make cmpu-upload-entity-order-creation-distributions CACHED=1
+make cmpu-upload-entity-order-creation-distributions PRINT_SQL=1
+```
+
+Accepts START_DATE, exclusive END_DATE, UPLOAD_START_DATE and AS_OF_DATE with the REFNUM 51 defaults. One transparent figure contains two horizontal boxplots: Overall and Aged orders. Elapsed hours = upload CREATED_TS_UTC − order ORDER_PLACED_DTTM; positive means upload after order, negative means upload before order. The study uses order placement, rather than order-line creation, as order creation. Every matching current upload state is retained.
+
+Each UPLOAD_ID counts once per population, using its earliest populated matched first-order placement; multiple-order entities are flagged. Aged entities qualify through any aged first-order association at/before AS_OF_DATE 00:00 UTC, and use the same entity-level reference as overall. All entity/prescription/line associations remain in Parquet. Missing timestamps remain in details/audits and are excluded only from plotted durations; negative durations and all outliers remain plotted. Shipment placement conflicts fail validation. Quartiles use linear interpolation and whiskers use observed values within 1.5×IQR fences. Signed minute/hour ticks use a shared symmetric-log scale with a one-second linear region.
+
+Stable figure: `outputs/charts/<dated-window>/cmpu-upload-entity-order-creation-distributions/overall-and-aged-orders.png`. Complete source/associations/entities/population rows/statistics/audits are under `data/cmpu-upload-entity-order-creation-distributions/<dated-parameters>/`, with bounded Markdown under the matching dated `outputs/tables/` analysis folder. Reruns overwrite outputs. Cache manifests check dates, SQL, version and source SHA-256; analysis metadata fingerprints exported data. This independent target preserves existing REFNUM 51 figures.
+
+## Study-population table: uploaded documents (REFNUM 54)
+
+The two document columns in `tab:study-population-counts` count distinct linked DIET_PRESCRIPTION UPLOAD_IDs for each row's matched first-order-line population. The Total column includes every current state; Accepted requires current STATE_NAME = ACCEPTED. Prescriptions are created August 15–October 14, 2026, uploads August 1–October 25, 2026, UTC; aged cancellations are at/before October 27, 2026, 00:00 UTC. Entities shared by prescriptions count once per row. Counts differ from REFNUM 51 overall, which also retains entities without matched first-order lines.
+
+Read-only extraction and independent aggregation checks:
+
+```bash
+.venv/bin/python .agents/skills/rxp-sql/scripts/run_snowflake_query.py src/sql/cmpu_study_population_uploaded_documents.sql --output-parquet data/cmpu-study-population-uploaded-documents/source.parquet --sql-log-dir src/autogenerated/cmpu-study-population-uploaded-documents/sql-history
+.venv/bin/python scripts/summarize_study_population_uploaded_documents.py --export
+make report
+```
+
+The summary script validates the source fingerprint in `data/cmpu-study-population-uploaded-documents/source.json`, checks matched prescription/order/line membership against the report's baseline extract, and independently reconciles Pandas and DuckDB distinct counts. Source metadata records SQL, query ID, extraction time and Parquet fingerprint; update that metadata after any fresh extraction. Derived associations, counts and audits remain in that data folder, with bounded Markdown under `outputs/tables/2026-08-15_2026-10-14/study-population-uploaded-documents.md`. Current counts are all channels 30,735 total / 26,254 accepted; CUSTOMER_UPLOAD 29,715 / 25,606; aged subset 782 / 52.
+
+## Prescription outcome table (REFNUM 55)
+
+`tab:study-population-prescription-decisions` uses the same frozen matched-first-order prescription membership as `tab:study-population-counts`. Current approval/denial evidence is extracted with `src/sql/cmpu_study_population_prescription_decisions.sql`; the baseline is the October 28 REFNUM 14 line-source extract. The summary validates first-order pairs, channels, source fingerprints, shipment flag/reason consistency, distinct prescription identity and registry/line approval agreement. One newly linked current prescription is excluded and audited to retain the existing table populations.
+
+Approved means registry APPROVED_NUMERATOR TRUE, which the certified line-view metadata defines as the source of PRESCRIPTION_APPROVED. Rejected means current RX_STATUS DENIED without an approval flag. Unknown is the remainder, including cancelled and pending prescriptions. A false approval flag alone does not establish rejection. Historical denial timestamps do not override a current approved or pending status. Approval takes precedence when an approval flag and DENIED status coexist. Dedicated timestamps and lifecycle labels remain in the full exports for auditing. Decisions use the current source snapshot, without an approval/denial-date cutoff; only aged cohort cancellation uses the October 27, 2026, 00:00 UTC cutoff.
+
+After extraction, preserve the SQL, query ID, timestamp and source SHA-256 in `data/cmpu-study-population-prescription-decisions/source.json`. To summarize the fingerprint-verified extract and validate the existing cohort:
+
+```bash
+.venv/bin/python scripts/summarize_study_population_prescription_decisions.py
+make report
+```
+
+The script independently reconciles Pandas and DuckDB distinct counts, exports `prescriptions.parquet`, `summary.parquet`, `unknown-status-audit.parquet`, and `excluded-newly-linked-prescriptions.parquet`, and fingerprints these in `analysis.json`. A bounded Markdown summary/audit is saved as `outputs/tables/2026-08-15_2026-10-14/study-population-prescription-decisions.md`. Table categories are mutually exclusive and exhaustive within each row. Current Approved / Unknown / Rejected counts: all channels 36,874 / 66,595 / 47; CUSTOMER_UPLOAD 30,504 / 64,569 / 0; aged subset 6 / 26,437 / 0.
+
+The report includes both REFNUM 51 upload-entity state-change figures via `src/latex/appendix/entity_upload_analysis.tex`, under the placeholder subsection `Bogus`. Figures have captions and labels `fig:entity-upload-state-time-overall` and `fig:entity-upload-state-time-aged`; the executive-summary references point to these labels. Regenerate the stable PNGs with `make cmpu-upload-entity-state-change-distributions CACHED=1` and rebuild with `make report`.
+
+The same appendix file also includes the REFNUM 52 overall/aged-order comparison PNG with label `fig:entity-upload-vs-order-creation`. Its source is the stable `overall-and-aged-orders.png` from `make cmpu-upload-entity-order-creation-distributions CACHED=1`.
+
+`src/latex/appendix/approval_analysis.tex` contains the Approval Analysis subsection and the cumulative accepted-upload-to-approval figure, labelled `fig:accepted-upload-to-approval-cumulative`. It uses the existing `accepted-state-change_order-placed_cumulative.png` output of `make cmpu-upload-to-approval-distribution CACHED=1`. The caption documents the conditional 0–60-second display and omission of longer gaps. Rebuild the report with `make report`.
+
+## Oppurtunity Analysis
+
+### Orders, line items and actual revenue by cancellation reason
+
+```bash
+# Fresh read-only extraction and standalone table generation:
+make opportunity-order-cancellation-summary
+# Reuse the validated extract and overwrite the same table/detail files:
+make opportunity-order-cancellation-summary CACHED=1
+# Override the UTC order-placement window; END_DATE is exclusive:
+make opportunity-order-cancellation-summary START_DATE=2026-06-01 END_DATE=2026-09-01
+# Print SQL only, without extracting or writing outputs:
+make opportunity-order-cancellation-summary PRINT_SQL=1
+```
+
+The defaults include orders placed June 1 through August 31, 2026. Select every physical vet-diet order line with any RX_ID and numeric-customer-ID match to a vet-diet RXP_PRESCRIPTIONS record whose approval channel is CUSTOMER_UPLOAD and prescription source is CMPU. The registry supplies the eligibility fields; line-view channel/status and source-match evidence are retained for audit. Include subsequent orders and prescriptions created outside the placement window. Order status, prescription creation, and cancellation dates impose no additional filter. Only qualifying lines contribute revenue, including on orders containing other products. Other-channel, other-source, unmatched-prescription and customer-mismatched lines remain in the raw extract/audit, outside qualifying totals.
+
+The summary contains Order cancellation reason, distinct Orders, distinct physical Line items, and Net sales, plus a global TOTAL. Reasons are trimmed and grouped case-insensitively. Blank/null reasons form [No recorded cancellation reason], which does not by itself establish an uncancelled order. An order can appear in several reason rows if its qualifying lines have different reasons; group order counts can then overlap, while TOTAL always counts the order once. Each physical line belongs to one reason, so line and revenue totals remain additive. Conflicting reasons, customer IDs or placement timestamps within a physical line fail validation.
+
+**Revenue grain:** sum ORDER_LINE_NET_SALES once per shipment/order-line source record. A split shipment carries a separate contribution, even when two shipment amounts are equal. Repeated financial keys with identical amounts collapse; conflicting amounts for the same key fail validation. Prescription joins cannot multiply money. The source field is NUMBER(28,5); extraction preserves its exact decimal representation and exported monetary columns use DECIMAL(38,5). Only display is rounded to two decimal places. Net sales are reported as supplied, without an assumed currency symbol. Site, legal-company and transaction context are retained in the source and a site-context audit. Negative/refund and zero amounts remain included. A missing sales amount makes the affected line, reason subtotal and global revenue total incomplete; exact known subtotals and missing counts remain exported. This table is the actual-sales baseline for later financial opportunity sizing.
+
+Stable outputs, overwritten on rerun:
+
+- Summary: `outputs/tables/opportunity/<start>_<last-inclusive-day>/order-cancellation-summary.md`.
+- Audit and explicitly bounded line preview: the same table folder.
+- Source, query/history, source manifest, associations, unique shipment records, physical order lines, summary and audit Parquets: `data/opportunity/order-cancellation-summary/<start>_<exclusive-end>/`.
+- Analysis metadata includes extraction provenance, source and export SHA-256 fingerprints, and the SQL/parameters used for independent verification.
+
+`CACHED=1` validates dates, fixed eligibility criteria, definition version, SQL and source fingerprint. Presentation-only edits do not invalidate an otherwise identical raw extract. A failed validation leaves the fresh source without a valid cache manifest. `PRINT_SQL=1` is read-only even when combined with `CACHED=1`. The existing repository Snowflake runner is used; an expired cached ADBC ID token can be refreshed through the installed Snowflake browser-SSO connector using the same account, role and SQL.
+
+Related future charts belong under `outputs/charts/opportunity/`, and diagrams under `outputs/diagrams/opportunity/`, with stable descriptive filenames. This target creates only tables and data and does not modify the existing report or regenerate earlier analyses.
+
+Verification:
+
+```bash
+.venv/bin/python -m pytest tests/test_opportunity_order_cancellation_summary.py -q
+```
+
+Every fresh or cached run independently recomputes distinct counts and exact revenue from the raw extract in DuckDB before publishing the table. Tests cover date boundaries, all-order membership, eligibility and customer matching, split shipments with equal/unequal amounts, duplicate registry/association/source records, null shipment keys, missing/negative/zero revenue, decimal precision, blank/case-varied/conflicting reasons, mixed-reason order totals, empty cohorts, stable exports, cache rejection and SQL-only mode.
+
+Default June–August 2026 snapshot: 508,075 distinct orders, 569,872 qualifying line items and 46,719,345.94 in net sales. The Aged order row contains 40,014 orders, 43,660 lines and 3,633,444.49. All 15 reason/total rows reconcile independently; no missing sales or overlapping reason-group orders were found in this snapshot. Negative and zero sales remain included.
+
+For the all-orders comparison using prescriptions created August 15–October 14, retain the original inclusive aged-cancellation cutoff of October 27, 2026, 00:00 UTC. The saved comparison is `outputs/tables/opportunity/2026-08-15_2026-10-14/prescription-cohort-order-cancellations.md`, with source, line details, cutoff membership and fingerprints under `data/opportunity/prescription-cohort-orders/2026-08-15_2026-10-15/`. Qualifying aged counts are 24,409 orders and 26,445 lines (21.18%). Current aged reasons outside the cutoff remain a separate audit row and are excluded from qualifying aged counts. All-order totals remain 111,137 orders and 124,886 lines; this is an aged-membership cutoff, not a historical-status reconstruction or order-placement cutoff. Compared with first orders at the same cutoff, the increase is one aged order and two aged lines.
+
+To regenerate the appendix comparison by cancellation reason (first-order and all-order counts, physical lines and net sales), use the fingerprint-verified Aug 15–Oct 14 prescription cohort and the same inclusive Oct 27, 2026, 00:00 UTC aged cutoff:
+
+```bash
+make prescription-cohort-order-comparison
+make report
+```
+
+Use `make prescription-cohort-order-comparison CACHED=1` to validate and reuse cached financial data. The target updates the appendix table, Parquet exports and Markdown summary; run `make report` afterward to rebuild the PDF. This target uses the fixed, fingerprint-verified cohort and cutoff described above. For exports without changing the appendix, run `.venv/bin/python scripts/summarize_prescription_cohort_order_comparison.py` (add `--refresh` for fresh sales). Read-only SQL is in `src/sql/prescription_cohort_order_sales.sql`; frozen-key requests, source fingerprints, shipment details, exact-decimal line/summary Parquet, and independent DuckDB verification are under `data/opportunity/prescription-cohort-order-comparison/2026-08-15_2026-10-15_as-of-2026-10-27/`. The Markdown table is `outputs/tables/opportunity/2026-08-15_2026-10-14/first-all-order-cancellation-comparison.md`. The PDF table is labelled `tab:first-all-order-cancellations`.
+
+Net sales sum unique shipment-and-line contributions for qualifying lines, preserving negative/zero values and five-decimal precision. Missing sales are shown as incomplete; they are never silently treated as zero. Independent source-based SQL verifies every reason and both totals. The comparison snapshot contains 87,725 first orders / 95,074 first lines (one additional matched line/order versus the earlier frozen study table), and 111,137 all orders / 124,886 lines. Net sales are refreshed from `ORDER_LINE_NET_SALES` (see the exported summary for current totals). First orders are included in all orders; do not add the columns together.
+
+To insert the opportunity order-cancellation summary into the report's Financial Opportunity Analysis appendix:
+
+```bash
+make opportunity-order-cancellation-summary CACHED=1 WRITE_LATEX=1
+make report
+```
+
+Omit `CACHED=1` to refresh data first. `START_DATE` and exclusive `END_DATE` control the UTC order-placement window (defaults June 1–August 31, 2026 inclusive). `WRITE_LATEX=1` overwrites `src/latex/appendix/financial_opportunity.tex` from the verified summary, including the dates, CMPU prescription source, CUSTOMER_UPLOAD approval channel, vet-diet criteria, caption and label `tab:financial-opportunity-cancellations`. The file is included in the report. This all-orders baseline has no prescription-creation or cancellation-date cutoff; its population differs from the August–October prescription cohort. Sales use `ORDER_LINE_NET_SALES`, preserving the shipment-and-line financial grain.

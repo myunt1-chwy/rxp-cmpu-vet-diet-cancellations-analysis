@@ -1,0 +1,44 @@
+% Generate these stable inputs with make cmpu-upload-entity-state-change-distributions CACHED=1.
+\clearpage
+\nolinenumbers
+\subsection{Prescription Document Upload Analysis}\label{subsec:entity-upload-analysis}
+Figures~\ref{fig:entity-upload-state-time-overall}
+and~\ref{fig:entity-upload-state-time-aged} show the elapsed time from
+upload entity creation to its current recorded state change, grouped by final
+state, for the overall study-linked population and its aged-order subset.
+Both figures use the same state order and time scale.
+
+\begin{center}
+\includegraphics[width=\linewidth,height=0.32\textheight,keepaspectratio]{../../outputs/charts/2026-08-15_2026-10-14/cmpu-upload-entity-state-change-distributions/all-study-linked.png}
+\captionof{figure}{Upload creation to current recorded state change for all
+study-linked CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} entities
+($N=33{,}336$). Each upload entity counts once. Boxplots show medians,
+quartiles, 1.5-times-IQR whiskers and all outliers, grouped by final state.}
+\label{fig:entity-upload-state-time-overall}
+\end{center}
+
+\begin{center}
+\includegraphics[width=\linewidth,height=0.32\textheight,keepaspectratio]{../../outputs/charts/2026-08-15_2026-10-14/cmpu-upload-entity-state-change-distributions/aged-order.png}
+\captionof{figure}{Upload creation to current recorded state change for the
+aged-order entity subset ($N=782$). A qualifying matched first-order line
+was cancelled for aging on or before October 27, 2026, 00:00 UTC.
+Current entity states and state-change times are not capped at cancellation.}
+\label{fig:entity-upload-state-time-aged}
+\end{center}
+
+Figure~\ref{fig:entity-upload-vs-order-creation} compares upload entity
+creation relative to order placement for the overall and aged-order populations.
+
+\begin{center}
+\includegraphics[width=\linewidth,height=0.25\textheight,keepaspectratio]{../../outputs/charts/2026-08-15_2026-10-14/cmpu-upload-entity-order-creation-distributions/overall-and-aged-orders.png}
+\captionof{figure}{Upload creation relative to order placement for the overall
+and aged-order entity populations. Elapsed time is upload creation minus order
+placement: positive values indicate upload after ordering and negative values
+indicate upload before ordering. Each entity uses its earliest matched first-order
+placement. Plotted durations include 29,715 overall entities and 782 aged-order
+entities; entities missing an order-placement timestamp are excluded from the
+boxplots. Medians, quartiles, 1.5-times-IQR whiskers and all outliers are shown.}
+\label{fig:entity-upload-vs-order-creation}
+\end{center}
+\clearpage
+\linenumbers

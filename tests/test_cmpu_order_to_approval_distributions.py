@@ -21,6 +21,9 @@ def source(hours=(0, 1, -1, 2)):
                    first_usage_approved_datetime=pd.Timestamp('2026-08-15 12:00') + pd.Timedelta(hours=hours_value),
                    upload_count=2 if index % 2 == 0 else 0,
                    first_upload_at_utc=pd.Timestamp('2026-08-01') if index % 2 == 0 else pd.NaT)
+        row.update(selected_upload_id=f'U{index}' if index%2==0 else None,
+                   selected_upload_state='ACCEPTED' if index%2==0 else None,
+                   upload_state_changed_at_utc=row['first_upload_at_utc'])
         row.update({col: 0 for col in analysis.AUDIT_COLUMNS})
         rows.append(row)
     return pd.DataFrame(rows)
@@ -109,7 +112,7 @@ def test_sql_bounds_and_print_only():
 
 
 def test_cached_fingerprint_rejected(tmp_path):
-    directory = tmp_path / 'data' / analysis.NAME / analysis.period_name(*DATES)
+    directory = tmp_path / 'data' / analysis.NAME / (analysis.period_name(*DATES)+'_'+analysis.TIMING_VARIANT)
     directory.mkdir(parents=True)
     frame = source()
     frame.to_parquet(directory / 'source.parquet')

@@ -11,6 +11,9 @@ WITH prescriptions AS (
       AND rx_creation_datetime < '{{ end_date }}'::TIMESTAMP_NTZ
 ), order_lines AS (
     SELECT o.order_id, o.order_line_id, COUNT(*) AS line_source_rows,
+           MIN(o.order_placed_dttm) AS order_placed_utc,
+           MIN(o.order_placed_dttm_est) AS order_placed_eastern,
+           COUNT(DISTINCT o.order_placed_dttm)+IFF(COUNT_IF(o.order_placed_dttm IS NULL)>0,1,0) AS placement_variants,
            COUNT(*) - COUNT(DISTINCT COALESCE(o.shipment_key::VARCHAR, '[No shipment]')) AS duplicate_shipment_rows,
            MIN(o.order_status) AS order_status,
            MIN(o.order_order_line_status) AS order_line_status,
@@ -27,7 +30,7 @@ WITH prescriptions AS (
       ON o.order_id = p.first_order_id AND o.order_line_id = p.first_order_line_id
     GROUP BY o.order_id, o.order_line_id
 ), upload_source AS (
-    SELECT upload_id, customer_id AS raw_customer_id, rx_id AS rx_ids, created_ts_utc,
+    SELECT upload_id, customer_id AS raw_customer_id, rx_id AS rx_ids, created_ts_utc, state_name, state_changed_ts_utc,
            CASE WHEN REGEXP_LIKE(TRIM(customer_id), '^[0-9]+$')
                 THEN TRY_TO_NUMBER(customer_id) END AS customer_id,
            COUNT(*) OVER (PARTITION BY upload_id) AS upload_source_rows
@@ -36,20 +39,31 @@ WITH prescriptions AS (
       AND created_ts_utc >= '{{ upload_start_date }}'::TIMESTAMP_NTZ
       AND created_ts_utc < '{{ upload_end_date }}'::TIMESTAMP_NTZ
 ), expanded AS (
-    SELECT DISTINCT u.upload_id, u.customer_id, u.created_ts_utc,
+    SELECT DISTINCT u.upload_id, u.customer_id, u.created_ts_utc, u.state_name, u.state_changed_ts_utc,
            NULLIF(TRIM(t.value::VARCHAR), '') AS rx_id
     FROM upload_source u,
          LATERAL FLATTEN(INPUT => SPLIT(TRIM(COALESCE(u.rx_ids, ''), '{}'), ','), OUTER => TRUE) t
+), ranked_uploads AS (
+    SELECT *, ROW_NUMBER() OVER (
+        PARTITION BY rx_id, customer_id ORDER BY created_ts_utc, upload_id
+    ) AS upload_rank
+    FROM expanded
+    WHERE customer_id IS NOT NULL AND REGEXP_LIKE(rx_id, '^[A-Za-z0-9_-]+$')
+      AND state_name = 'ACCEPTED'
 ), uploads AS (
     SELECT rx_id, customer_id, COUNT(DISTINCT upload_id) AS upload_count,
            COUNT(DISTINCT CASE WHEN created_ts_utc >= '{{ start_date }}'::TIMESTAMP_NTZ
                                THEN upload_id END) AS cohort_window_upload_count,
-           MIN(created_ts_utc) AS first_upload_at_utc
-    FROM expanded
-    WHERE customer_id IS NOT NULL AND REGEXP_LIKE(rx_id, '^[A-Za-z0-9_-]+$')
+           MIN(created_ts_utc) AS first_upload_at_utc,
+           MAX(IFF(upload_rank=1, upload_id, NULL)) AS selected_upload_id,
+           MAX(IFF(upload_rank=1, state_changed_ts_utc, NULL)) AS upload_state_changed_at_utc,
+           MIN(state_name) AS selected_upload_state
+    FROM ranked_uploads
     GROUP BY rx_id, customer_id
 ), audit AS (
     SELECT COUNT(*) AS window_upload_rows,
+           COUNT_IF(state_name='ACCEPTED') AS accepted_window_upload_rows,
+           COUNT_IF(state_name IS NULL OR state_name<>'ACCEPTED') AS excluded_window_upload_rows,
            COALESCE(COUNT_IF(upload_id IS NULL OR upload_source_rows <> 1), 0) AS invalid_upload_source_rows,
            COALESCE(COUNT_IF(NULLIF(TRIM(raw_customer_id), '') IS NULL), 0) AS uploads_missing_customer,
            COALESCE(COUNT_IF(NULLIF(TRIM(raw_customer_id), '') IS NOT NULL AND customer_id IS NULL), 0) AS uploads_invalid_customer,
@@ -63,11 +77,12 @@ SELECT CURRENT_TIMESTAMP::VARCHAR AS extracted_at_session_time,
        p.*, COALESCE(o.line_source_rows, 0) AS line_source_rows,
        o.order_id AS matched_order_id, o.order_line_id AS matched_order_line_id,
        o.duplicate_shipment_rows, o.order_status_variants, o.line_status_variants, o.cancel_reason_variants,
+       o.order_placed_utc, o.order_placed_eastern, o.placement_variants,
        o.order_status, o.order_line_status, o.order_item_block_reason, o.block_reason_variants,
        o.order_status_description, o.order_cancel_reason,
        COALESCE(u.upload_count, 0) AS upload_count,
        COALESCE(u.cohort_window_upload_count, 0) AS cohort_window_upload_count,
-       u.first_upload_at_utc,
+       u.first_upload_at_utc, u.selected_upload_id, u.selected_upload_state, u.upload_state_changed_at_utc,
        a.*
 FROM prescriptions p
 LEFT JOIN order_lines o ON p.first_order_id = o.order_id

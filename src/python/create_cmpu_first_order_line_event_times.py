@@ -10,19 +10,20 @@ import click
 from jinja2 import Environment, StrictUndefined
 import pandas as pd
 
-from src.python.create_cmpu_prescription_first_order_status import ROOT, RUNNER, AUDIT_COLUMNS, digest
+from src.python.create_cmpu_prescription_first_order_status import ROOT, RUNNER, TIMING_VARIANT, AUDIT_COLUMNS, digest
 from src.python.markdown_tables import markdown_table, table_layout
 from src.python.markdown_tables import write_text
 
 NAME = 'cmpu-first-order-line-event-times'
 TEMPLATE = ROOT / 'src/sql/cmpu_first_order_line_event_times.sql'
-TIMES = ['line_created_utc', 'line_created_eastern', 'order_cancel_time',
+TIMES = ['line_created_utc', 'line_created_eastern', 'actual_upload_created_time', 'order_placed_utc', 'order_placed_eastern', 'order_cancel_time',
          'min_approved_denied_datetime', 'actual_upload_time', 'estimated_upload_time',
          'candidate_upload_time', 'event_time']
 ASSOCIATION_COLUMNS = ['rx_id', 'customer_id', 'rx_creation_datetime', 'approval_channel',
                        'first_order_id', 'first_orderitem_id', 'first_order_line_id',
-                       'rx_source_rows', 'upload_count', 'association_upload_time']
-QUALITY = ['missing_creation', 'missing_event', 'missing_estimate',
+                       'rx_source_rows', 'upload_count', 'association_upload_time', 'association_upload_created_time',
+                       'association_upload_id', 'association_upload_state']
+QUALITY = ['missing_placement', 'missing_event', 'missing_estimate',
            'negative_duration', 'negative_approval_interval']
 STATES = ['Missing order ID', 'Missing line ID', 'Invalid line ID', 'Unmatched line', 'Matched']
 
@@ -48,7 +49,7 @@ def expected_estimate(created, approved):
 def validate(frame, start, end, upload_start):
     render_sql(start, end, upload_start)  # Validate date options in direct callers too.
     frame = frame.rename(columns=str.lower).copy()
-    for col in ['rx_creation_datetime', 'association_upload_time', *TIMES]:
+    for col in ['rx_creation_datetime', 'association_upload_time', 'association_upload_created_time', *TIMES]:
         frame[col] = pd.to_datetime(frame[col], utc=True, format='mixed', errors='raise').astype('datetime64[ns, UTC]')
     if frame.rx_id.isna().any() or frame.rx_id.duplicated().any() or not frame.rx_source_rows.eq(1).all():
         raise ValueError('missing or duplicate prescription IDs')
@@ -64,12 +65,17 @@ def validate(frame, start, end, upload_start):
         raise ValueError('missing or duplicate upload source IDs')
     if (frame.upload_count.isna().any() or frame.upload_count.lt(0).any()
             or frame.upload_count.mod(1).ne(0).any()
-            or frame.upload_count.gt(0).ne(frame.association_upload_time.notna()).any()):
+            or frame.upload_count.gt(0).ne(frame.association_upload_created_time.notna()).any()):
         raise ValueError('invalid upload counts or timestamps')
     upload_end = pd.Timestamp(end, tz='UTC') + pd.Timedelta(days=11)
-    if not frame.association_upload_time.dropna().between(
+    if not frame.association_upload_created_time.dropna().between(
             pd.Timestamp(upload_start, tz='UTC'), upload_end, inclusive='left').all():
         raise ValueError('upload outside search window')
+    present = frame.upload_count.gt(0)
+    if (present & (frame.association_upload_id.isna() | frame.association_upload_state.ne('ACCEPTED').fillna(True))).any():
+        raise ValueError('invalid selected accepted entity')
+    if (~present & (frame.association_upload_time.notna() | frame.association_upload_id.notna())).any():
+        raise ValueError('accepted entity evidence disagrees')
     numeric = frame.first_orderitem_id.astype('string').str.strip().str.fullmatch(r'[0-9]+').fillna(False)
     for row, valid in zip(frame.itertuples(), numeric):
         parsed = int(str(row.first_orderitem_id).strip()) if valid else None
@@ -80,9 +86,9 @@ def validate(frame, start, end, upload_start):
     if matched.ne(frame.order_line_id.notna()).any() or (matched & (
             frame.first_order_id.ne(frame.order_id) | frame.first_order_line_id.ne(frame.order_line_id))).any():
         raise ValueError('first-order keys disagree')
-    for col in ['line_status_variants', 'is_deleted_variants', 'is_refill_variants', 'line_created_utc_variants']:
+    for col in ['line_status_variants', 'is_deleted_variants', 'is_refill_variants', 'order_placed_utc_variants']:
         if not frame.loc[matched, col].eq(1).all():
-            raise ValueError('conflicting line status, flags or creation timestamps')
+            raise ValueError('conflicting line status, flags or placement timestamps')
     if frame.loc[matched, ['cancellation_variants', 'eastern_variants']].gt(1).any().any():
         raise ValueError('conflicting populated cancellation or Eastern timestamps')
     blank = frame.first_orderitem_id.astype('string').str.strip().fillna('').eq('')
@@ -100,13 +106,14 @@ def validate(frame, start, end, upload_start):
     if (lines.shipment_rows.isna().any() or lines.shipment_rows.lt(1).any()
             or lines.shipment_rows.mod(1).ne(0).any()):
         raise ValueError('invalid shipment row counts')
-    eastern = lines.line_created_utc.dt.tz_convert('America/New_York').dt.tz_localize(None)
-    companion = lines.line_created_eastern.dt.tz_localize(None)
+    eastern = lines.order_placed_utc.dt.tz_convert('America/New_York').dt.tz_localize(None)
+    companion = lines.order_placed_eastern.dt.tz_localize(None)
     lines['timezone_checked'] = eastern.notna() & companion.notna()
     if (lines.timezone_checked & (eastern - companion).abs().gt(pd.Timedelta(seconds=1))).any():
-        raise ValueError('UTC/Eastern creation timestamp disagreement')
+        raise ValueError('UTC/Eastern placement timestamp disagreement')
+    lines['missing_accepted_state_change'] = lines.actual_upload_id.notna() & lines.actual_upload_time.isna()
     associations = frame[ASSOCIATION_COLUMNS + ['order_id', 'order_line_id', 'association_state']].copy()
-    earliest = frame.loc[matched].groupby(['order_id', 'order_line_id']).association_upload_time.min()
+    chosen = frame.loc[matched].sort_values(['association_upload_created_time', 'association_upload_id'], na_position='last').drop_duplicates(['order_id','order_line_id']).set_index(['order_id','order_line_id'])
     counts = frame.loc[matched].groupby(['order_id', 'order_line_id']).size()
     for row in lines.itertuples():
         key = (row.order_id, row.order_line_id)
@@ -119,9 +126,11 @@ def validate(frame, start, end, upload_start):
                 agrees = actual == expected
             if not agrees:
                 raise ValueError(f'{name} disagrees for line {key}')
-        same(row.actual_upload_time, earliest.loc[key], 'earliest upload')
+        same(row.actual_upload_time, chosen.loc[key, 'association_upload_time'], 'selected accepted state change')
+        same(row.actual_upload_created_time, chosen.loc[key, 'association_upload_created_time'], 'selected entity creation')
+        same(row.actual_upload_id, chosen.loc[key, 'association_upload_id'], 'selected entity ID')
         same(row.prescription_associations, counts.loc[key], 'association count')
-        estimate = expected_estimate(row.line_created_utc, row.min_approved_denied_datetime)
+        estimate = expected_estimate(row.order_placed_utc, row.min_approved_denied_datetime)
         same(row.estimated_upload_time, estimate, '0.96 estimate')
         candidate = row.actual_upload_time if pd.notna(row.actual_upload_time) else estimate
         candidate_source = ('actual_upload' if pd.notna(row.actual_upload_time) else
@@ -135,16 +144,16 @@ def validate(frame, start, end, upload_start):
                   else candidate_source)
         same(row.event_time, event, 'event time')
         same(row.event_time_source, source, 'event source')
-        elapsed = (event.value - row.line_created_utc.value) / 3_600_000_000_000 if (
-            pd.notna(event) and pd.notna(row.line_created_utc)) else None
+        elapsed = (event.value - row.order_placed_utc.value) / 3_600_000_000_000 if (
+            pd.notna(event) and pd.notna(row.order_placed_utc)) else None
         if elapsed is None:
             same(row.elapsed_hours, None, 'elapsed hours')
         elif pd.isna(row.elapsed_hours) or abs(float(row.elapsed_hours) - elapsed) > 1e-9:
             raise ValueError('elapsed hours disagree')
-        for col, expected in zip(QUALITY, [pd.isna(row.line_created_utc), pd.isna(event), pd.isna(estimate),
-                event < row.line_created_utc if elapsed is not None else None,
-                row.min_approved_denied_datetime < row.line_created_utc if pd.notna(row.min_approved_denied_datetime)
-                and pd.notna(row.line_created_utc) else None]):
+        for col, expected in zip(QUALITY, [pd.isna(row.order_placed_utc), pd.isna(event), pd.isna(estimate),
+                event < row.order_placed_utc if elapsed is not None else None,
+                row.min_approved_denied_datetime < row.order_placed_utc if pd.notna(row.min_approved_denied_datetime)
+                and pd.notna(row.order_placed_utc) else None]):
             same(getattr(row, col), expected, col)
     audit = [('associations', 'Cohort', len(associations))]
     audit += [('associations', state, int(associations.association_state.eq(state).sum())) for state in STATES]
@@ -162,11 +171,14 @@ def validate(frame, start, end, upload_start):
                 raise ValueError('event source counts do not reconcile')
             distribution = distribution.reindex(categories, fill_value=0)
         audit += [(col, str(value), int(n)) for value, n in distribution.items()]
+    audit += [('quality', 'missing_accepted_state_change', int(lines.missing_accepted_state_change.sum()))]
     audit += [('quality', col, int(lines[col].fillna(False).sum())) for col in QUALITY]
     audit += [('quality', 'Missing Eastern companion rows', int(lines.missing_eastern_rows.sum())),
               ('quality', 'Missing approval shipment rows', int(lines.missing_approval_rows.sum())),
               ('quality', 'Multiple populated approval minima', int(lines.approval_variants.gt(1).sum()))]
     audit += [('upload source', col, int(frame[col].iloc[0]) if len(frame) else None) for col in AUDIT_COLUMNS]
+    audit += [('upload source',key,int(frame[key].iloc[0]) if len(frame) and pd.notna(frame[key].iloc[0]) else 0)
+              for key in ['accepted_window_upload_rows','excluded_window_upload_rows'] if key in frame]
     if len(associations) != sum(associations.association_state.eq(s).sum() for s in STATES):
         raise ValueError('association counts do not reconcile')
     return associations, lines, pd.DataFrame(audit, columns=['grain', 'measure', 'count'])
@@ -175,10 +187,12 @@ def validate(frame, start, end, upload_start):
 def load_source(start, end, upload_start, cached=False):
     sql = render_sql(start, end, upload_start)
     upload_end = (date.fromisoformat(end) + timedelta(days=11)).isoformat()
-    period = f'{start}_{end}_uploads-{upload_start}_{upload_end}'
+    period = f'{start}_{end}_uploads-{upload_start}_{upload_end}_{TIMING_VARIANT}'
     directory = ROOT / 'data' / NAME / period
     parquet, manifest = directory / 'source.parquet', directory / 'source.json'
-    options = dict(start_date=start, end_date_exclusive=end, upload_start_date=upload_start,
+    options = dict(timing_variant=TIMING_VARIANT, timing_origin='ORDER_PLACED_DTTM',
+                   upload_timing_field='STATE_CHANGED_TS_UTC', upload_state_filter='ACCEPTED',
+                   estimate_multiplier='0.96', start_date=start, end_date_exclusive=end, upload_start_date=upload_start,
                    upload_end_date_exclusive=upload_end)
     if cached:
         metadata = json.loads(manifest.read_text())
@@ -215,7 +229,8 @@ def write_outputs(frame, metadata, period):
     notes = (f"Prescriptions UTC [{metadata['start_date']}, {metadata['end_date_exclusive']}); "
              f"uploads UTC [{metadata['upload_start_date']}, {metadata['upload_end_date_exclusive']}).\n\n"
              'Distinct order/order-line pairs; all statuses and nullable flags retained. '
-             'Estimate = creation + round(0.96 × approval/denial elapsed nanoseconds), no intercept. '
+             'Estimate = order placement + round(0.96 × approval/denial elapsed nanoseconds), no intercept. '
+             'Accepted-entity STATE_CHANGED_TS_UTC supplies the observed endpoint. The fixed 0.96 coefficient is retained pending recalibration. '
              'Actual upload takes precedence over estimate; populated cancellation caps either. '
              'ORDER_CANCEL_DTTM uses the UTC interpretation checked against its Eastern companion '
              'in REFNUM 5; this view has no cancellation Eastern companion. '

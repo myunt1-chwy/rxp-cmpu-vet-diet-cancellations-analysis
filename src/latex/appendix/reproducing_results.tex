@@ -1,0 +1,86 @@
+\subsection{Reproducing the Numerical Results}
+The code to reproduce all the results is in \ref{ref:analysis-repository}. Follow the instructions in the HOWTO.md file to generate the figures, models and analyses.
+You will need to clone the repository to run the code. The code uses make and python.
+In addition you need to have access to a Snowflake role that has access to the following tables:
+\begin{verbatim}
+ EDLDB.PET_HEALTH_ANALYTICS_SANDBOX.FCT__TASKS_LIFECYCLE
+ EDLDB.BT_HCA_HCDM.RXP_RX_USAGE_ACTIONS
+ CHEWYBI.CUSTOMER_PETPROFILES
+ EDLDB.PDM.PRODUCT
+ EDLDB.BT_HCA_HCDM.RXP_PRESCRIPTIONS
+ EDLDB.PET_HEALTH_ANALYTICS_SANDBOX.FCT__RX_RESULT_FIELD_CHANGE_SUMMARY
+\end{verbatim}
+and the pet health analytics sandbox in the dev environment;
+\begin{verbatim}
+ EDLDB_DEV.PET_HEALTH_ANALYTICS_SANDBOX
+\end{verbatim}
+to generate transient tables.
+
+\begin{table}[htbp]
+\centering
+\caption{Study population and uploaded-document counts. Counts are distinct within each population.}
+\label{tab:study-population-counts}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.28\linewidth}rrrrrr@{}}
+\toprule
+& & & & & \multicolumn{2}{c}{Uploaded documents} \\
+\cmidrule(lr){6-7}
+Population & Prescriptions & Orders & \shortstack[r]{Order\\lines} & Customers & Total & Accepted \\
+\midrule
+All approval channels, matched to first-order lines
+    & 103,516 & 95,533 & 103,516 & 80,649 & 30,735 & 26,254 \\
+\addlinespace
+\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines
+    & 95,073 & 87,724 & 95,073 & 73,905 & 29,715 & 25,606 \\
+\addlinespace
+\texttt{CUSTOMER\_UPLOAD} aged-cancellation subset
+    & 26,443 & 24,408 & 26,443 & 20,587 & 782 & 52 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} CMPU vet-diet prescriptions created from August 15, 2026 inclusive
+through October 15, 2026 exclusive, UTC. The aged-cancellation subset includes
+qualifying cancellations observed through October 27, 2026, 00:00 UTC.
+Line associations and document counts were refreshed on October 28, 2026.
+Uploaded documents count distinct linked \texttt{DIET\_PRESCRIPTION} upload entities
+created August 1--October 25, 2026, UTC, with a matched first-order line; entities
+shared by prescriptions count once per row. Accepted documents have current
+\texttt{STATE\_NAME = ACCEPTED}.
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Prescription decisions for the study populations.}
+\label{tab:study-population-prescription-decisions}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.45\linewidth}rrrr@{}}
+\toprule
+Population & Prescriptions & Approved & Unknown & Rejected \\
+\midrule
+All approval channels, matched to first-order lines
+    & 103,516 & 36,874 & 66,595 & 47 \\
+\addlinespace
+\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines
+    & 95,073 & 30,504 & 64,569 & 0 \\
+\addlinespace
+\texttt{CUSTOMER\_UPLOAD} aged-cancellation subset
+    & 26,443 & 6 & 26,437 & 0 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Distinct prescriptions in the same populations as
+Table~\ref{tab:study-population-counts}. Approved means
+\texttt{PRESCRIPTION\_APPROVED = TRUE}, consistent with the prescription registry's
+\texttt{APPROVED\_NUMERATOR}. Rejected means current \texttt{RX\_STATUS = DENIED}
+without an approval flag. Unknown includes cancelled and pending prescriptions
+without a recorded approval or rejection outcome. The three categories are
+mutually exclusive and sum to the prescription count in each row.
+Decisions use the current source snapshot refreshed October 28, 2026;
+approval and denial times are not restricted to the aged-cancellation cutoff.
+\end{minipage}
+\end{table}

@@ -24,9 +24,9 @@ def summarize(frame, start, end, upload_start):
     selected = timing.upload_subset(original, start, end, upload_start)
     associations, lines, source_audit, _, _ = timing.summarize(selected, start, end)
     for details in [associations, lines]:
-        details['first_upload_at_utc'] = pd.to_datetime(details.first_upload_at_utc, utc=True, errors='raise')
-        upload_duration = details.first_upload_at_utc - details.line_created_utc
-        approval_duration = details.max_approved_datetime - details.line_created_utc
+        details['upload_state_changed_at_utc'] = pd.to_datetime(details.upload_state_changed_at_utc, utc=True, errors='raise')
+        upload_duration = details.upload_state_changed_at_utc - details.order_placed_utc
+        approval_duration = details.max_approved_datetime - details.order_placed_utc
         details['upload_duration_hours'] = upload_duration.dt.total_seconds() / 3600
         details['approval_duration_hours'] = approval_duration.dt.total_seconds() / 3600
         details['ratio'] = upload_duration / approval_duration.where(approval_duration.ne(pd.Timedelta(0)))
@@ -50,6 +50,8 @@ def summarize(frame, start, end, upload_start):
             ('prescription associations before upload filter', 'No matching upload', len(original)-len(selected))]
     rows += [('upload source', col, int(original[col].iloc[0]) if len(original) else None)
              for col in timing.AUDIT_COLUMNS]
+    rows += [('upload source',key,int(original[key].iloc[0]) if len(original) and pd.notna(original[key].iloc[0]) else 0)
+             for key in ['accepted_window_upload_rows','excluded_window_upload_rows'] if key in original]
     rows += [(grain, state, int(details.eligibility.eq(state).sum()))
              for grain, details in [('prescription associations', associations), ('distinct matched lines', lines)]
              for state in states]
@@ -62,8 +64,8 @@ def summarize(frame, start, end, upload_start):
            [('p25', .25), ('median', .5), ('p75', .75), ('p95', .95)]}, maximum=values.max())])
     # Python integer nanoseconds avoid floating-point boundary errors and int64
     # overflow when scaling long durations by 100. Ratio 1 belongs to [1, 1.01).
-    indexes = [((row.first_upload_at_utc - row.line_created_utc).value * 100)
-               // (row.max_approved_datetime - row.line_created_utc).value
+    indexes = [((row.upload_state_changed_at_utc - row.order_placed_utc).value * 100)
+               // (row.max_approved_datetime - row.order_placed_utc).value
                for row in eligible.itertuples()]
     counts = Counter(indexes)
     bins = pd.DataFrame([(index, index / 100, (index+1) / 100, count)
@@ -84,7 +86,7 @@ def summarize(frame, start, end, upload_start):
 
 def figures(bins, cdf, n, charts, stem, subtitle):
     domain = [float(bins.lower_ratio.min()), float(bins.upper_ratio.max())]
-    x_title = 'Share of approval interval elapsed before upload'
+    x_title = 'Accepted-state elapsed time / approval elapsed time'
     histogram = alt.Chart(bins).mark_bar(color='#F28E2C', orient='vertical').encode(
         x=alt.X('lower_ratio:Q', title=x_title, axis=alt.Axis(format='.0%', tickCount=10),
                 scale=alt.Scale(domain=domain, nice=False)),
@@ -159,9 +161,9 @@ def time_figure(lines, fit, path, subtitle, log=False):
     unit = 'hours, log scale' if log else 'hours'
     points = alt.Chart(alt.Data(values=selected.to_dict(orient='records'))).mark_circle(
         color='#F28E2C', opacity=0.18, size=12).encode(
-        x=alt.X('approval_duration_hours:Q', title=f'Line creation to latest approval ({unit})',
+        x=alt.X('approval_duration_hours:Q', title=f'Order placement to latest approval ({unit})',
                 scale=x_scale, axis=alt.Axis(tickCount=5 if log else 10)),
-        y=alt.Y('upload_duration_hours:Q', title=f'Line creation to earliest upload ({unit})',
+        y=alt.Y('upload_duration_hours:Q', title=f'Order placement to accepted entity state change ({unit})',
                 scale=y_scale, axis=alt.Axis(tickCount=5 if log else 10)),
         tooltip=['order_id:N', 'order_line_id:N', alt.Tooltip('approval_duration_hours:Q', format='.3f'),
                  alt.Tooltip('upload_duration_hours:Q', format='.3f')])
@@ -195,25 +197,25 @@ def time_figure(lines, fit, path, subtitle, log=False):
         ).configure_view(stroke=None).save(path, scale_factor=2)
 
 
-def write_outputs(frame, metadata, charts, tables):
+def write_outputs(frame, metadata, charts, tables, data_dir=None):
     start, end, upload_start = (metadata[k] for k in ['start_date', 'end_date_exclusive', 'upload_start_date'])
     associations, lines, audit, stats, bins, cdf = summarize(frame, start, end, upload_start)
     last = (date.fromisoformat(end) - timedelta(days=1)).isoformat()
     upload_last = (date.fromisoformat(end) + timedelta(days=timing.UPLOAD_FOLLOWUP_DAYS-1)).isoformat()
-    stem = f'cmpu-d-lines_upload-time-share_uploads-{upload_start}_{upload_last}_nonnegative'
+    stem = f'cmpu-d-lines_upload-time-share_uploads-{upload_start}_{upload_last}_nonnegative_{timing.TIMING_VARIANT}'
     scatter = charts / (stem.replace('upload-time-share', 'upload-vs-approval-times') + '_linear-fit.png')
     log_scatter = scatter.with_name(scatter.name.replace('_linear-fit.png', '_log-log-fit.png'))
     subtitle = [f'CMPU vet diet · CUSTOMER_UPLOAD · Rx created {start}–{last} (UTC)',
-                f'Earliest matching upload · Uploads {upload_start}–{upload_last} (UTC)',
-                '(Upload − line creation) / (latest approval − line creation) · Nonnegative numerator; positive denominator']
-    note = ('\n\n'.join(subtitle) + '\n\n'
+                f'Selected accepted entity state change · Uploads {upload_start}–{upload_last} (UTC)',
+                '(Accepted state change − order placement) / (latest approval − order placement) · Nonnegative numerator; positive denominator']
+    note = ('Only current ACCEPTED entities qualify. Select earliest entity creation, with UPLOAD_ID ties; ' + '\n\n'.join(subtitle) + '\n\n'
         'One observation per distinct matched first-order/order-line pair with current status D. '
-        'Shipment rows collapsed using latest populated approval; conflicting creation/status values rejected. '
+        'Shipment rows collapsed using latest populated approval; conflicting placement/status values rejected. '
         'UTC/Eastern companions validated where populated. Uploads match expanded RX_ID and numeric CUSTOMER_ID. '
         'All three timestamps required. Negative upload durations and zero/negative approval durations are excluded '
         'and retained explicitly in details/audits. Zero ratios, ratios above one and all outliers are retained. '
         'No approval-date filter. Ratios use unrounded durations; ratio statistics are dimensionless with linear quantiles. '
-        'A ratio of 0.75 is 75%, meaning upload occurred three-quarters of the way from line creation to approval. '
+        'A ratio of 0.75 is 75%, meaning the accepted state change occurred three-quarters of the way from order placement to approval. '
         'Bins are [lower, upper), width 0.01; unlisted empty bins have zero count. '
         'CDF is the share of eligible lines with ratio ≤ each listed ratio. '
         f"Source extracted at {metadata['extracted_at_utc']}; source Parquet SHA-256 {metadata['parquet_sha256']}.\n\n")
@@ -226,7 +228,7 @@ def write_outputs(frame, metadata, charts, tables):
         write_text(tables / f'{stem}_{name}.md', f'# {name.title()}\n\n' + note + markdown_table(data) + '\n')
     fit_note = ('Unweighted ordinary least squares with a fitted intercept: '
         'upload_duration_hours = intercept_hours + slope × approval_duration_hours. '
-        'Both intervals start at line creation. The scatter and fit use the same eligible unique lines '
+        'Both intervals start at order placement. The scatter and fit use the same eligible unique lines '
         'as the ratio charts, including all outliers. R² describes this sample; '
         'these related intervals share a start time and the association does not establish causation.\n\n')
     write_text(tables / (stem.replace('upload-time-share', 'upload-vs-approval-times') + '_linear-fit.md'), '# Elapsed-time linear fit\n\n' + note + fit_note + markdown_table(fit) + '\n')
@@ -258,6 +260,10 @@ def write_outputs(frame, metadata, charts, tables):
         (f'![Log–log time fit]({log_scatter.name})\n\n' if log_fit.N.iloc[0]
          else 'No strictly positive time pairs; no log–log figure generated.\n\n') +
         log_note + markdown_table(log_fit) + '\n')
+    if data_dir is not None:
+        data_dir.mkdir(parents=True,exist_ok=True)
+        for name,data in [('associations',associations),('lines',lines),('audit',audit),('statistics',stats),('bins',bins),('cdf',cdf),('linear-fit',fit),('log-log-fit',log_fit)]:
+            data.to_parquet(data_dir/f'{name}.parquet',index=False)
     return audit, stats, notes
 
 
@@ -275,11 +281,12 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
         frame, source, period = timing.load_source(start_date, end_date, True, upload_start_date, cached)
         last = date.fromisoformat(end_date) - timedelta(days=1)
         audit, stats, notes = write_outputs(frame, source, ROOT/'outputs/charts'/f'{start_date}_{last}',
-                                           ROOT/'outputs/tables'/f'{start_date}_{last}')
+                                           ROOT/'outputs/tables'/f'{start_date}_{last}',
+                                           data_dir=ROOT/'data'/NAME/period)
         directory = ROOT/'data'/NAME/period
         directory.mkdir(parents=True, exist_ok=True)
         write_text(directory/'analysis.json', json.dumps(dict(
-            formula='(first_upload_at_utc - line_created_utc) / (max_approved_datetime - line_created_utc)',
+            formula='(upload_state_changed_at_utc - order_placed_utc) / (max_approved_datetime - order_placed_utc)',
             time_fit='upload_duration_hours = intercept_hours + slope * approval_duration_hours; unweighted OLS',
             log_time_fit='ln(upload_duration_hours) = intercept_log_hours + slope * ln(approval_duration_hours); unweighted OLS',
             log_fit_requires_strictly_positive_times=True,

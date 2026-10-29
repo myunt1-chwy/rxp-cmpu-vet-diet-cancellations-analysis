@@ -55,6 +55,8 @@ def summarize(frame):
     validation = frame.copy()
     validation['order_source_rows'] = matched.astype(int)
     associations, _, audits = legacy.summarize(validation)
+    associations = legacy.validate_accepted_uploads(associations)
+    associations['upload_group'] = associations.upload_count.gt(0).map({True:'Has matching accepted upload',False:'No matching accepted upload'})
     associations['order_group'] = (frame.order_line_status.astype('string').str.strip().str.upper()
                                    .replace('', pd.NA).fillna('[Unknown line status]'))
     associations['order_status_group'] = (frame.order_status.astype('string').str.strip().str.upper()
@@ -68,6 +70,17 @@ def summarize(frame):
         {True: 'With cancellation reason', False: 'No cancellation reason'})
     associations.loc[associations.order_group.eq('D'), 'block_reason'] = '[Not applicable: status D]'
     associations.loc[associations.order_group.eq('[Unknown line status]'), 'block_reason'] = '[Not applicable: unknown line status]'
+    for col in ['order_placed_utc', 'order_placed_eastern']:
+        associations[col] = pd.to_datetime(associations[col], utc=True, errors='raise')
+    if not frame.loc[matched, 'placement_variants'].eq(1).all():
+        raise ValueError('conflicting order placement timestamps')
+    local = associations.order_placed_utc.dt.tz_convert('America/New_York').dt.tz_localize(None)
+    companion = associations.order_placed_eastern.dt.tz_localize(None)
+    if ((local - companion).abs().gt(pd.Timedelta(seconds=1))).any():
+        raise ValueError('UTC/Eastern order placement disagreement')
+    associations['accepted_elapsed_hours'] = (associations.upload_state_changed_at_utc - associations.order_placed_utc).dt.total_seconds()/3600
+    associations['missing_placement'] = associations.order_placed_utc.isna()
+    associations['negative_accepted_duration'] = associations.accepted_elapsed_hours.lt(0)
     associations['line_match'] = 'Matched'
     associations.loc[~matched, 'line_match'] = 'First order line not found'
     associations.loc[frame.first_order_line_id.isna(), 'line_match'] = 'Missing or invalid first order item ID'
@@ -85,6 +98,9 @@ def summarize(frame):
     groups = lines.groupby(DIMENSIONS).size().reset_index(name='order_lines')
     groups['percent_of_cohort'] = 100 * groups.order_lines / len(lines) if len(lines) else 0.
     audits = {f'prescription_{key}': value for key, value in audits.items()}
+    for key in ['accepted_window_upload_rows','excluded_window_upload_rows']:
+        if key in frame:
+            audits['prescription_'+key] = int(frame[key].iloc[0]) if len(frame) and pd.notna(frame[key].iloc[0]) else 0
     audits.update(cohort_prescriptions=len(frame), matched_prescriptions=int(matched.sum()),
                   missing_first_order_id=int(frame.first_order_id.isna().sum()),
                   missing_or_invalid_first_order_item_id=int((frame.first_order_id.notna()
@@ -99,6 +115,9 @@ def summarize(frame):
                   order_lines_without_recorded_block_reason=int(lines.order_item_block_reason.astype('string').str.strip().replace('', pd.NA).isna().sum()),
                   canceled_lines_on_uncanceled_orders=int((lines.order_line_status.astype('string').str.strip().str.upper().eq('X')
                       & ~lines.order_status.astype('string').str.strip().str.upper().eq('X')).sum()))
+    audits.update(missing_accepted_state_change=int(lines.missing_accepted_state_change.sum()),
+                  missing_placement=int(lines.missing_placement.sum()),
+                  negative_accepted_duration=int(lines.negative_accepted_duration.sum()))
     if (audits['matched_prescriptions'] + audits['missing_first_order_id']
             + audits['missing_or_invalid_first_order_item_id'] + audits['unmatched_first_order_line'] != len(frame)
             or groups.order_lines.sum() != len(lines)):
@@ -111,7 +130,7 @@ def flows_for_rendering(groups):
     groups = groups.assign(upload_node=groups.cancellation_reason_group + ' / ' + groups.upload_group)
     stages = [('channel', 'Channel: '), ('order_group', 'First order line status: '),
               ('cancel_reason', 'First order cancel reason: '),
-              ('upload_node', 'Matching upload: ')]
+              ('upload_node', 'Accepted upload: ')]
     rows = []
     for transition, ((source, source_label), (target, target_label)) in enumerate(zip(stages, stages[1:]), 1):
         for (left, right), count in groups.groupby([source, target]).order_lines.sum().items():
@@ -130,13 +149,13 @@ def flows_for_rendering(groups):
             raise ValueError('unbalanced Sankey intermediate nodes')
     flows.attrs['node_alignment'] = 'left'
     flows.attrs['columns'] = [(prefix, heading) for (_, prefix), heading in zip(stages,
-        ['Approval channel', 'Order line status', 'Cancellation reason', 'Matching upload'])]
+        ['Approval channel', 'Order line status', 'Cancellation reason', 'Accepted upload'])]
     nodes = set(flows.source) | set(flows.target)
     flows.attrs['node_colors'] = {node: '#AF7AA1' for node in nodes if node.startswith('First order cancel reason: ')}
     return flows
 
 
-def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None, table_prefix=''):
+def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None, table_prefix='', data_dir=None):
     associations, lines, groups, audit = summarize(frame)
     start, end, upload_start = map(pd.Timestamp, [metadata['start_date'], metadata['end_date_exclusive'],
                                                  metadata['upload_start_date']])
@@ -144,14 +163,16 @@ def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None, tabl
             or not associations.rx_creation_datetime.between(start, end, inclusive='left').all()):
         raise ValueError('prescription outside cohort window')
     upload_end = end + pd.Timedelta(days=UPLOAD_FOLLOWUP_DAYS)
-    if not associations.first_upload_at_utc.dropna().between(upload_start, upload_end, inclusive='left').all():
+    upload_start_utc = upload_start.tz_localize('UTC')
+    upload_end_utc = upload_end.tz_localize('UTC')
+    if not associations.first_upload_at_utc.dropna().between(upload_start_utc, upload_end_utc, inclusive='left').all():
         raise ValueError('upload outside search window')
     diagram_dir.mkdir(parents=True, exist_ok=True)
     source_dir = source_dir if source_dir is not None else diagram_dir
     source_dir.mkdir(parents=True, exist_ok=True)
     table_dir.mkdir(parents=True, exist_ok=True)
     field = 'ORDER_ORDER_LINE_STATUS'
-    note = (f"Prescription creation {metadata['start_date']} inclusive to {metadata['end_date_exclusive']} exclusive UTC; "
+    note = ('Only current ACCEPTED entities qualify. Select earliest entity creation, with UPLOAD_ID ties; ' f"Prescription creation {metadata['start_date']} inclusive to {metadata['end_date_exclusive']} exclusive UTC; "
             f"uploads {metadata['upload_start_date']} inclusive to {upload_end.date()} exclusive UTC. "
             f"Extracted {metadata['extracted_at_utc']}.\n\n"
             'Source: EDLDB.BT_HCA_HCDM.ORDER_LINE_COST_MEASURES_RXP. Join FIRST_ORDER_ID = ORDER_ID AND '
@@ -167,13 +188,13 @@ def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None, tabl
             'Blank/null cancellation reasons are labeled [No cancellation reason recorded]; this does not establish '
             'whether the overall order was canceled. '
             'Multiple prescriptions sharing a line are counted once; conflicting classifications fail validation. '
-            'Upload matching retains the DIET_PRESCRIPTION expanded RX_ID + numeric CUSTOMER_ID rules, '
+            'Accepted-entity matching retains the DIET_PRESCRIPTION expanded RX_ID + numeric CUSTOMER_ID rules, '
             'without file/association flags, prescription-status/deletion filters or upload-after-creation requirement. '
             'A matching entity does not verify file presence. Approval channel → line status → '
             'cancellation reason → upload presence is a categorical breakdown, not a chronological journey. Full percentages use all matched distinct lines; focused '
             'percentages use matched distinct CUSTOMER_UPLOAD lines. The separate non-D figure uses only '
             'known non-D CUSTOMER_UPLOAD lines as its denominator. Upload endpoints separate lines with a '
-            'recorded cancellation reason from lines without one, each split into has/no matching upload. '
+            'recorded cancellation reason from lines without one, each split into has/no matching accepted upload. '
             'Blank/null/whitespace reasons mean no recorded reason, not proof of an uncanceled order. '
             'All three figures include the explicit line-status column. '
             'Column headers identify stages; visible node labels omit repeated stage prefixes. '
@@ -204,7 +225,7 @@ def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None, tabl
                  f"Rx: {metadata['start_date']}–{last}; uploads: {metadata['upload_start_date']}–{(upload_end - pd.Timedelta(days=1)).date()} | "
                  f"Denominator: {n:,} order lines; {stages}")
         stem = (f"cmpu-first-order-lines_{scope}_uploads-{metadata['upload_start_date']}_"
-                f"{(upload_end - pd.Timedelta(days=1)).date()}_sankey")
+                f"{(upload_end - pd.Timedelta(days=1)).date()}_{legacy.TIMING_VARIANT}_sankey")
         legacy.render_sankey(flows, source_dir / f'{stem}.mmd', diagram_dir / f'{stem}.png', title)
     # Compare order-level and line-level statuses from the same line population.
     comparison = lines.groupby(['order_status', 'order_line_status'], dropna=False).size().reset_index(name='order_lines')
@@ -216,13 +237,22 @@ def write_outputs(frame, metadata, diagram_dir, table_dir, source_dir=None, tabl
     write_text(table_dir / (table_prefix + 'summary.md'), '# First-order lines\n\n'+note+markdown_table(
         pd.DataFrame(audit.items(), columns=['measure', 'count']))+'\n\n'+markdown_table(groups)+'\n')
     image_prefix = (f"cmpu-first-order-lines_{{scope}}_uploads-{metadata['upload_start_date']}_"
-                    f"{(upload_end - pd.Timedelta(days=1)).date()}_sankey.png")
+                    f"{(upload_end - pd.Timedelta(days=1)).date()}_{legacy.TIMING_VARIANT}_sankey.png")
     write_text(diagram_dir / 'cmpu-first-order-lines.md', '# REFNUM 14: first-order lines\n\n'+note+
         (f'![All channels]({image_prefix.format(scope="all")})\n\n' if len(lines) else 'No matched order lines.\n\n')+
         (f'![CUSTOMER_UPLOAD]({image_prefix.format(scope="customer-upload")})\n' if lines.channel.eq('CUSTOMER_UPLOAD').any()
          else 'No matched CUSTOMER_UPLOAD order lines.\n')+
         (f'\n![CUSTOMER_UPLOAD non-D line statuses]({image_prefix.format(scope="non-d")})\n' if len(non_d_lines)
          else '\nNo matched known non-D CUSTOMER_UPLOAD order lines.\n'))
+    if data_dir is not None:
+        data_dir.mkdir(parents=True, exist_ok=True)
+        exported = {'associations':associations,'lines':lines,'distribution':groups,
+                    'audit':pd.DataFrame(audit.items(),columns=['measure','count'])}
+        for name,data in exported.items():
+            data.to_parquet(data_dir/f'{name}.parquet',index=False)
+        write_text(data_dir/'exports.json',json.dumps({
+            'source_sha256':metadata['parquet_sha256'],
+            'files':{f'{name}.parquet':legacy.digest(data_dir/f'{name}.parquet') for name in exported}},indent=2)+'\n')
     return audit
 
 
@@ -241,6 +271,7 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
             return
         upload_end = (date.fromisoformat(end_date) + timedelta(days=UPLOAD_FOLLOWUP_DAYS)).isoformat()
         period = legacy.period_name(start_date, end_date, upload_start_date) + f'_uploads-end-{upload_end}'
+        period += '_' + legacy.TIMING_VARIANT
         directory = ROOT / 'data' / NAME / (period+'_block-reasons')
         parquet, manifest = directory / 'source.parquet', directory / 'source.json'
         if cached:
@@ -275,7 +306,7 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
         diagram_dir = ROOT / 'outputs/diagrams' / date_range
         table_dir, table_prefix = table_layout(ROOT, NAME, scope)
         audit = write_outputs(frame, metadata, diagram_dir,
-                              table_dir, source_dir=source_dir, table_prefix=table_prefix)
+                              table_dir, source_dir=source_dir, table_prefix=table_prefix, data_dir=directory)
         click.echo(f'Mermaid sources: {source_dir}\nSankey figures: {diagram_dir}')
         click.echo(json.dumps(audit, indent=2))
     except (ValueError, OSError, KeyError, subprocess.CalledProcessError) as error:

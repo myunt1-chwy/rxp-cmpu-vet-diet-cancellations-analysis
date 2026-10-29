@@ -27,19 +27,22 @@ def sources():
     for i, (upload, cancel, approval) in enumerate(triples):
         lines.append(dict(order_id=100, order_line_id=i, order_order_line_status=['D','X','P',None][i % 4],
             is_deleted=[True,False,None][i % 3], is_refill=[None,True,False][i % 3],
-            order_line_created_dttm=BASE if i != 9 else pd.NaT,
-            order_line_created_dttm_est=BASE - pd.Timedelta(hours=4) if i != 9 else pd.NaT,
+            order_placed_dttm=BASE if i != 9 else pd.NaT,
+            order_placed_dttm_est=BASE - pd.Timedelta(hours=4) if i != 9 else pd.NaT,
             order_cancel_dttm=BASE + pd.Timedelta(hours=cancel) if cancel is not None else pd.NaT,
             min_approved_denied_datetime=BASE + pd.Timedelta(hours=approval) if approval is not None else pd.NaT))
         if upload is not None:
             uploads.append(dict(upload_id=f'U{i}', customer_id='007', rx_id=f'{{RX{i},RX{i}}}',
-                                upload_type='DIET_PRESCRIPTION', created_ts_utc=BASE + pd.Timedelta(hours=upload)))
+                                upload_type='DIET_PRESCRIPTION', state_name='ACCEPTED',
+                                state_changed_ts_utc=BASE + pd.Timedelta(hours=upload), created_ts_utc=BASE + pd.Timedelta(hours=upload)))
     # Fractional nanosecond estimate must round 0.96 * 13 = 12.48 to 12 ns.
     lines[11]['min_approved_denied_datetime'] = BASE + pd.Timedelta(nanoseconds=13)
     return prescriptions, pd.DataFrame(lines), pd.DataFrame(uploads)
 
 
 def execute(prescriptions, lines, uploads):
+    if 'order_line_created_dttm' not in lines:
+        lines=lines.assign(order_line_created_dttm=lines.order_placed_dttm, order_line_created_dttm_est=lines.order_placed_dttm_est)
     sql = analysis.render_sql(*DATES)
     for name, replacement in [('RXP_PRESCRIPTIONS','p_source'), ('ORDER_LINE_COST_MEASURES_RXP','l_source'),
                               ('RXP_UPLOAD_ENTITY','u_source')]:
@@ -49,10 +52,10 @@ def execute(prescriptions, lines, uploads):
     sql = sql.replace("LATERAL FLATTEN(INPUT => SPLIT(TRIM(COALESCE(u.rx_ids, ''), '{}'), ','), OUTER => TRUE) t",
         "LATERAL UNNEST(string_split(TRIM(COALESCE(u.rx_ids, ''), '{}'), ',')) t(value)")
     sql = sql.replace('t.value::VARCHAR', 't.value')
-    sql = sql.replace('DATEADD(nanosecond,\n                   ROUND(DATEDIFF(nanosecond, l.line_created_utc,\n                                  l.min_approved_denied_datetime) * 0.96, 0)::DECIMAL(38,0),\n                   l.line_created_utc)',
-        'make_timestamp_ns(epoch_ns(l.line_created_utc) + CAST(ROUND((epoch_ns(l.min_approved_denied_datetime) - epoch_ns(l.line_created_utc)) * 0.96, 0) AS BIGINT))')
-    sql = sql.replace('DATEDIFF(nanosecond, e.line_created_utc, e.event_time)',
-                      '(epoch_ns(e.event_time) - epoch_ns(e.line_created_utc))')
+    sql = sql.replace('DATEADD(nanosecond,\n                   ROUND(DATEDIFF(nanosecond, l.order_placed_utc,\n                                  l.min_approved_denied_datetime) * 0.96, 0)::DECIMAL(38,0),\n                   l.order_placed_utc)',
+        'make_timestamp_ns(epoch_ns(l.order_placed_utc) + CAST(ROUND((epoch_ns(l.min_approved_denied_datetime) - epoch_ns(l.order_placed_utc)) * 0.96, 0) AS BIGINT))')
+    sql = sql.replace('DATEDIFF(nanosecond, e.order_placed_utc, e.event_time)',
+                      '(epoch_ns(e.event_time) - epoch_ns(e.order_placed_utc))')
     with duckdb.connect() as con:
         for name, data in [('p_source', prescriptions), ('l_source', lines), ('u_source', uploads)]:
             con.register(name, data)
@@ -94,7 +97,7 @@ def test_shipment_collapse_both_keys_associations_and_earliest_upload():
         l.iloc[[0]].assign(min_approved_denied_datetime=BASE + pd.Timedelta(hours=20)),
         l.iloc[[0]].assign(order_id=101, min_approved_denied_datetime=BASE),
         l.iloc[[0]].assign(order_line_id=99, min_approved_denied_datetime=BASE)])
-    u = pd.concat([u, u.iloc[[0]].assign(upload_id='EARLY', rx_id='{EXTRA}', created_ts_utc=BASE),
+    u = pd.concat([u, u.iloc[[0]].assign(upload_id='EARLY', rx_id='{EXTRA}', created_ts_utc=BASE, state_changed_ts_utc=BASE),
                   u.iloc[[0]].assign(upload_id='WRONGCUSTOMER', customer_id='8', created_ts_utc=BASE - pd.Timedelta(days=1))])
     a, lines, audit = analysis.validate(execute(p,l,u), *DATES)
     assert len(a) == 17 and len(lines) == 12
@@ -106,7 +109,7 @@ def test_shipment_collapse_both_keys_associations_and_earliest_upload():
 
 
 @pytest.mark.parametrize('column,value', [('order_order_line_status','Z'), ('is_deleted',False),
-    ('is_refill',True), ('order_line_created_dttm',BASE + pd.Timedelta(seconds=1)),
+    ('is_refill',True), ('order_placed_dttm',BASE + pd.Timedelta(seconds=1)),
     ('order_cancel_dttm',BASE)])
 def test_conflicting_shipment_fields_rejected(column,value):
     p,l,u = sources()
@@ -132,7 +135,7 @@ def test_date_boundaries_and_upload_bounds():
 @pytest.mark.parametrize('column,value', [('event_time','2026-08-17'),('estimated_upload_time','2026-08-17'),
     ('candidate_upload_source','estimated_upload'),('event_time_source','missing'),('elapsed_hours',11),
     ('negative_duration',True),('rx_source_rows',2),('invalid_upload_source_rows',1),
-    ('first_order_line_id',99),('line_created_eastern','2026-08-15 12:00')])
+    ('first_order_line_id',99),('order_placed_eastern','2026-08-15 12:00')])
 def test_independent_audit_rejects_bad_extract(column,value):
     f=execute(*sources())
     f.loc[f.rx_id.eq('RX0'),column]=value

@@ -13,14 +13,15 @@ import numpy as np
 import pandas as pd
 
 from src.python.create_cmpu_prescription_first_order_status import (
-    AUDIT_COLUMNS, ROOT, RUNNER, digest, period_name,
+    AUDIT_COLUMNS, ROOT, RUNNER, TIMING_VARIANT, digest, period_name,
 )
+from src.python.create_cmpu_prescription_first_order_status import validate_accepted_uploads
 from src.python.markdown_tables import markdown_table, table_layout
 from src.python.markdown_tables import write_text
 
 NAME = 'cmpu-order-to-approval-distributions'
 TEMPLATE = ROOT / 'src/sql/cmpu_order_to_approval_distributions.sql'
-GROUPS = ['Has matching upload', 'No matching upload']
+GROUPS = ['Has matching accepted upload', 'No matching accepted upload']
 COLORS = ['#F28E2C', '#8CC9EE']
 STATES = ['No first order ID', 'First order not found', 'Unknown order status',
           'Canceled', 'Missing both timestamps', 'Missing order timestamp',
@@ -58,6 +59,8 @@ def summarize(frame, start, end, upload_start):
             or not frame.rx_creation_datetime.between(pd.Timestamp(start, tz='UTC'),
                      pd.Timestamp(end, tz='UTC'), inclusive='left').all()):
         raise ValueError('prescription outside cohort window')
+    frame = validate_accepted_uploads(frame)
+    frame['accepted_elapsed_hours'] = (frame.upload_state_changed_at_utc - frame.order_placed_at_utc).dt.total_seconds()/3600
     uploaded = frame.first_upload_at_utc
     if frame.upload_count.gt(0).ne(uploaded.notna()).any():
         raise ValueError('upload counts and timestamps disagree')
@@ -158,14 +161,14 @@ def figures(stats, bins, directory, subtitle):
         directory / 'statistics.png', scale_factor=2)
 
 
-def write_outputs(frame, metadata, charts, tables, table_prefix=''):
+def write_outputs(frame, metadata, charts, tables, table_prefix='', data_dir=None):
     details, audit, stats, bins = summarize(frame, metadata['start_date'], metadata['end_date_exclusive'],
                                            metadata['upload_start_date'])
     tables.mkdir(parents=True, exist_ok=True)
     end = (date.fromisoformat(metadata['end_date_exclusive']) - timedelta(days=1)).isoformat()
     subtitle = [f"CMPU vet diet · CUSTOMER_UPLOAD · Rx created {metadata['start_date']}–{end} (UTC)",
                 f"Uploads: {metadata['upload_start_date']}–{end} · First order with known status other than X"]
-    note = '\n\n'.join(subtitle) + (
+    note = 'Only current ACCEPTED upload entities qualify; state-change timestamps are retained separately from creation-based discovery.\n\n' + '\n\n'.join(subtitle) + (
         '\n\nDuration = FIRST_USAGE_APPROVED_DATETIME − ORDER_PLACED_DTTM, hours. '
         'One observation per prescription; both timestamps required. Negative durations and all outliers retained. '
         'Bins are [lower, upper), aligned to integer hours. Order status is the current snapshot. '
@@ -180,6 +183,8 @@ def write_outputs(frame, metadata, charts, tables, table_prefix=''):
                 display[col] = display[col].map(lambda x: '—' if pd.isna(x) else f'{x:.2f}')
         write_text(tables / (table_prefix + f'{name}.md'), f'# {name.title()}\n\n' + note + markdown_table(display) + '\n')
     source_audit = {col: int(frame[col].iloc[0]) if len(frame) else None for col in AUDIT_COLUMNS}
+    source_audit.update({key:int(frame[key].iloc[0]) if len(frame) and pd.notna(frame[key].iloc[0]) else 0
+                         for key in ['accepted_window_upload_rows','excluded_window_upload_rows'] if key in frame})
     write_text(tables / (table_prefix + 'source-audit.md'), '# Upload source audit\n\n' + note + markdown_table(
         pd.DataFrame(source_audit.items(), columns=['measure', 'count'])) + '\n')
     if stats.N.sum():
@@ -191,6 +196,10 @@ def write_outputs(frame, metadata, charts, tables, table_prefix=''):
     write_text(charts / 'README.md', '# Order to first-usage approval\n\n' + note + (
         '![Distributions](distributions.png)\n\n![Percentiles](statistics.png)\n' if stats.N.sum()
         else 'No eligible prescriptions; no figures generated.\n'))
+    if data_dir is not None:
+        data_dir.mkdir(parents=True,exist_ok=True)
+        for name,data in [('associations',details),('audit',audit),('statistics',stats),('bins',bins)]:
+            data.to_parquet(data_dir/f'{name}.parquet',index=False)
     return audit, stats
 
 
@@ -206,7 +215,7 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
         if print_sql:
             click.echo(sql)
             return
-        period = period_name(start_date, end_date, upload_start_date)
+        period = period_name(start_date, end_date, upload_start_date) + '_' + TIMING_VARIANT
         directory = ROOT / 'data' / NAME / period
         parquet, manifest = directory / 'source.parquet', directory / 'source.json'
         if cached:
@@ -218,11 +227,13 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
             frame = pd.read_parquet(parquet).rename(columns=str.lower)
         else:
             directory.mkdir(parents=True, exist_ok=True)
-            query = directory / 'source.sql'
+            generated = ROOT / 'src/autogenerated' / NAME / period
+            generated.mkdir(parents=True, exist_ok=True)
+            query = generated / 'source.sql'
             write_text(query, sql + '\n')
             manifest.unlink(missing_ok=True)
             subprocess.run([sys.executable, str(RUNNER), str(query), '--output-parquet', str(parquet.relative_to(ROOT)),
-                            '--sql-log-dir', str((directory / 'sql-history').relative_to(ROOT))], cwd=ROOT, check=True)
+                            '--sql-log-dir', str((generated / 'sql-history').relative_to(ROOT))], cwd=ROOT, check=True)
             frame = pd.read_parquet(parquet).rename(columns=str.lower)
             summarize(frame, start_date, end_date, upload_start_date)
             metadata = dict(sql=sql, sql_sha256=hashlib.sha256(sql.encode()).hexdigest(),
@@ -233,7 +244,7 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
             write_text(manifest, json.dumps(metadata, indent=2) + '\n')
         table_dir, table_prefix = table_layout(ROOT, NAME, period)
         audit, stats = write_outputs(frame, metadata, ROOT / 'outputs/charts' / NAME / period,
-                                     table_dir, table_prefix=table_prefix)
+                                     table_dir, table_prefix=table_prefix, data_dir=directory)
         click.echo(audit.to_string(index=False) + '\n\n' + stats.to_string(index=False))
     except (ValueError, OSError, KeyError, subprocess.CalledProcessError) as error:
         raise click.ClickException(str(error)) from error

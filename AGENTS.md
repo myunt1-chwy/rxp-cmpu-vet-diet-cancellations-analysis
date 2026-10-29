@@ -33,3 +33,5 @@
 - For charts, use Altair in Python and export PNGs with transparent backgrounds by default.
 - For diagrams use mermaid and use transparent backgrounds and export PNG by default.
 - Python packages should be managed by uv
+
+- Use stable descriptive paths for generated figures and overwrite the existing files on rerun. Do not put figures in checksum-named directories; keep fingerprints in cache metadata.

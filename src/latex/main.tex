@@ -1,0 +1,183 @@
+
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+  10pt,
+]{article}
+\usepackage[table]{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{rxp_report}
+\usepackage{pdflscape}
+\usepackage{fancyhdr}
+\usepackage{draftwatermark}
+\SetWatermarkLightness{0.88}
+\usepackage{etoc}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue,
+  pdfauthor={Mehmet Yunt},
+  pdftitle={Vet Diet CMPU Aged Order Analysis},
+  pdfcreator={LaTeX via pandoc}}
+\fancypagestyle{report}{%
+  \fancyhf{}%
+  \fancyfoot[L]{\footnotesize Vet Diet CMPU Aged Order Analysis}%
+  \fancyfoot[C]{\thepage}%
+  \fancyfoot[R]{\footnotesize Mehmet Yunt}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+\pagestyle{report}
+
+\title{Vet Diet CMPU Aged Order Analysis}
+\author{Mehmet Yunt}
+\date{\today}
+
+\begin{document}
+\thispagestyle{plain}
+\noindent{\Large\bfseries\color{red}DRAFT}\par\smallskip
+\noindent{\large\bfseries\color{reportnavy}CMPU Aged Order Analysis}\par
+\noindent\textbf{Author:} Mehmet Yunt\par
+\noindent\textbf{Date:} \today\par\medskip
+\section{Executive Summary}\label{abstract}
+
+%%%Mehmet Yunt
+
+
+
+
+
+In CMPU (Customer Must Upload) vet diet orders 68\% of the line items
+never get shipped; with 28\% line items, aged orders constituting the
+largest subset of non-shipping line items. These are orders that have
+been canceled automatically when the time between order creation and
+time of shipment or any other cancellation exceeds 11 days. A detailed
+breakdown of cancellation reasons can be found in Figure
+\ref{fig:first-order-lines-customer-upload}.
+
+For this analysis; 95,073 vet diet prescriptions created between
+August 15, 2026 and October 15, 2026 were used with
+\verb|CUSTOMER_UPLOAD| as the approval channel. This corresponds to
+87,724 distinct orders and 95,073 order lines. The 24,408 orders
+described in \verb|OMS| with the cancellation reason
+\verb|AGED_ORDER| constitute the  aged orders leading to 26,443 line
+items, 26,443 corresponding prescriptions and 20,587 customers.
+
+Factors that might be contributing to an order aging are: delay in
+prescription upload by the customer, delay in processing the upload,
+and delay in approving the prescription after the uploaded
+prescription document is accepted.
+
+The data for uploaded documents/entities does not cover all the
+prescriptions, the coverage is about 31\% in this study. The number of
+prescription documents uploaded for 26,443 aged order prescriptions is
+782 (~3\%) compared to 33,336 uploads for 95,073 prescriptions overall
+(~35\%) pointing to a severe non-response by the customers. See Table
+\ref{tab:study-population-counts}.
+
+Only 6 aged order related prescription were approved out of 52
+accepted/782 uploaded (See Table
+\ref{tab:study-population-prescription-decisions} for comparison with
+the rest of the order line population.) The median time for these
+prescriptions to become accepted was 10 days after upload, as a result
+missing the aged order cancellation deadline (Figure
+\ref{fig:entity-upload-state-time-aged}).  For comparison, the
+distributions of the time difference between upload of the documents
+and their final states are in Figure
+\ref{fig:entity-upload-state-time-overall} for all entities.
+Customers seem to upload at similar delays after order creation for
+overall and aged order prescriptions (Figure
+\ref{fig:entity-upload-vs-order-creation}).
+
+From the available entity upload data, it takes less than a minute to
+approve an accepted prescription document see Figure
+\ref{fig:accepted-upload-to-approval-cumulative}.
+
+For the main issue of  non-response by the customers;
+the suggested remedy is to contact the customers in the
+first 10 days and to remind them to upload their prescription
+documents.
+
+
+
+\section{Appendix}\label{appendix}
+\etocsettocdepth{subsubsection}
+\etocsettocstyle{\noindent\textcolor{reportnavy}{\textbf{Appendix contents}}\par\smallskip}{\par}
+\localtableofcontents
+\input{appendix/reproducing_results}
+\input{appendix/financial_opportunity}
+\input{appendix/study_population_analysis}
+\input{appendix/entity_upload_analysis}
+\input{appendix/approval_analysis}
+
+\Needspace{8\baselineskip}
+\section{References}\label{references}
+\begin{enumerate}[label={[\arabic*]},leftmargin=*]
+\item \label{ref:analysis-repository}\emph{RXP CMPU Vet Diet Cancellations Analysis}. GitHub repository. \url{https://github.com/myunt1-chwy/rxp-cmpu-vet-diet-cancellations-analysis}.
+\item   https://chewyinc.atlassian.net/wiki/x/PoB-WAE
+\end{enumerate}
+\end{document}

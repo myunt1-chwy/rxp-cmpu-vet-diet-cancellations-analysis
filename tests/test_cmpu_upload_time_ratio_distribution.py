@@ -19,11 +19,12 @@ def source(intervals=((0, 100), (25, 100), (50, 100), (100, 100), (150, 100))):
         rx_creation_datetime='2026-08-15', approval_channel='CUSTOMER_UPLOAD',
         first_order_id=100, first_orderitem_id=str(i), first_order_line_id=i,
         order_id=100, order_line_id=i, shipment_rows=2, line_status='D', status_variants=1,
-        creation_variants=1, eastern_variants=1, missing_eastern_rows=0,
+        placement_variants=1, eastern_variants=1, missing_eastern_rows=0,
         missing_approval_rows=0, approval_variants=1,
-        line_created_utc=created, line_created_eastern=created-pd.Timedelta(hours=4),
+        order_placed_utc=created, order_placed_eastern=created-pd.Timedelta(hours=4),
         max_approved_datetime=created+pd.Timedelta(seconds=approval) if approval is not None else pd.NaT,
-        first_upload_at_utc=created+pd.Timedelta(seconds=upload), upload_count=2,
+        first_upload_at_utc=created+pd.Timedelta(seconds=upload), upload_state_changed_at_utc=created+pd.Timedelta(seconds=upload),
+        selected_upload_id=f'U{i}', selected_upload_state='ACCEPTED', upload_count=2,
         **{col: 0 for col in ratio.timing.AUDIT_COLUMNS})
         for i, (upload, approval) in enumerate(intervals)])
 
@@ -42,14 +43,14 @@ def test_ratio_quantiles_zero_one_outliers_and_counts():
     assert audit.loc[audit.measure.eq('Ratio above 1'), 'count'].iloc[0] == 1
 
 
-def test_exclusions_missing_creation_and_upload_source_audits():
+def test_exclusions_missing_placement_and_upload_source_audits():
     frame = source(((-1, 10), (1, 0), (1, -10), (1, None), (0, 10), (1, 10)))
-    frame.loc[5, ['line_created_utc', 'line_created_eastern']] = pd.NaT
+    frame.loc[5, ['order_placed_utc', 'order_placed_eastern']] = pd.NaT
     frame.loc[5, ['eastern_variants', 'missing_eastern_rows']] = [0, 2]
     associations, lines, audit, stats, bins, cdf = ratio.summarize(frame, *DATES)
     assert associations.eligibility.tolist() == [
         'Negative upload duration', 'Zero approval duration', 'Negative approval duration',
-        'Missing approval timestamp', 'Eligible', 'Missing creation timestamp']
+        'Missing approval timestamp', 'Eligible', 'Missing placement timestamp']
     assert lines.ratio.iloc[0] == -.1
     assert pd.isna(lines.ratio.iloc[1])
     assert stats.N.iloc[0] == bins.order_lines.sum() == cdf.cumulative_lines.iloc[-1] == 1
@@ -66,7 +67,7 @@ def test_exclusions_missing_creation_and_upload_source_audits():
 def test_deduplicated_lines_non_d_and_no_upload_filtering():
     frame = source()
     frame.loc[1, 'line_status'] = 'X'
-    frame.loc[2, ['upload_count', 'first_upload_at_utc']] = [0, pd.NaT]
+    frame.loc[2, ['upload_count','first_upload_at_utc','upload_state_changed_at_utc','selected_upload_id','selected_upload_state']] = [0,pd.NaT,pd.NaT,None,None]
     extra = frame.iloc[[0]].assign(rx_id='another-rx')
     associations, lines, audit, stats, _, _ = ratio.summarize(pd.concat([frame, extra]), *DATES)
     assert len(associations) == 5 and len(lines) == 4
@@ -74,24 +75,25 @@ def test_deduplicated_lines_non_d_and_no_upload_filtering():
     assert audit.loc[audit.measure.eq('No matching upload'), 'count'].iloc[0] == 1
     assert audit.loc[audit.measure.eq('Repeated prescription associations'), 'count'].iloc[0] == 1
     broken = frame.copy()
-    broken.loc[0, 'creation_variants'] = 2
+    broken.loc[0, 'placement_variants'] = 2
     with pytest.raises(ValueError, match='conflicting shipment'):
         ratio.summarize(broken, *DATES)
 
 
 def test_integer_bins_at_boundaries_and_long_duration_overflow():
     frame = source(((0, 1),) * 4)
-    created = frame.line_created_utc.iloc[0]
-    frame['first_upload_at_utc'] = [created+pd.Timedelta(nanoseconds=x)
+    created = frame.order_placed_utc.iloc[0]
+    frame['upload_state_changed_at_utc'] = [created+pd.Timedelta(nanoseconds=x)
                                    for x in [290000000, 289999999, 1000000000, 1000000001]]
     _, _, _, _, bins, _ = ratio.summarize(frame, *DATES)
     assert bins.set_index('bin_index').order_lines.to_dict() == {28: 1, 29: 1, 100: 2}
     # Scaling a 100-day nanosecond interval by 100 overflows int64.
     frame = source(((100 * 86400, 200 * 86400),))
     # Upload must remain within the search window; move line creation earlier.
-    frame['line_created_utc'] -= pd.Timedelta(days=100)
-    frame['line_created_eastern'] -= pd.Timedelta(days=100)
+    frame['order_placed_utc'] -= pd.Timedelta(days=100)
+    frame['order_placed_eastern'] -= pd.Timedelta(days=100)
     frame['first_upload_at_utc'] -= pd.Timedelta(days=100)
+    frame['upload_state_changed_at_utc'] -= pd.Timedelta(days=100)
     frame['max_approved_datetime'] -= pd.Timedelta(days=100)
     # August is daylight time, but the moved May creation is also daylight time.
     assert ratio.summarize(frame, *DATES)[4].bin_index.iloc[0] == 50
@@ -110,7 +112,7 @@ def test_empty_or_all_excluded_removes_only_own_stale_figures(tmp_path):
                     extracted_at_utc='test', parquet_sha256='hash')
     charts = tmp_path/'charts'
     charts.mkdir()
-    stem = 'cmpu-d-lines_upload-time-share_uploads-2026-08-01_2026-10-25_nonnegative'
+    stem = 'cmpu-d-lines_upload-time-share_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed'
     for frame in [source().iloc[:0], source(((-1, 10),))]:
         for suffix in ['histogram', 'cumulative']:
             (charts/f'{stem}_{suffix}.png').write_bytes(b'stale')
@@ -158,7 +160,7 @@ def test_print_sql_side_effect_free_and_date_boundaries(tmp_path):
 
 
 def test_cached_source_provenance_and_changed_dates(tmp_path):
-    period = '2026-08-15_2026-10-15_with-upload_uploads-from-2026-08-01_uploads-end-2026-10-26'
+    period = '2026-08-15_2026-10-15_with-upload_uploads-from-2026-08-01_uploads-end-2026-10-26_accepted-state-change_order-placed'
     directory = tmp_path/'data'/ratio.timing.NAME/period
     directory.mkdir(parents=True)
     parquet = directory/'source.parquet'
@@ -277,7 +279,7 @@ def test_all_zero_uploads_keep_ratio_population_but_remove_log_figure(tmp_path):
                     extracted_at_utc='test', parquet_sha256='hash')
     charts = tmp_path/'charts'
     charts.mkdir()
-    log_scatter = charts/'cmpu-d-lines_upload-vs-approval-times_uploads-2026-08-01_2026-10-25_nonnegative_log-log-fit.png'
+    log_scatter = charts/'cmpu-d-lines_upload-vs-approval-times_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_log-log-fit.png'
     log_scatter.write_bytes(b'stale')
     frame = source(((0, 100), (0, 200)))
     with patch.object(ratio, 'figures'), patch.object(ratio, 'time_figure') as time_figure:

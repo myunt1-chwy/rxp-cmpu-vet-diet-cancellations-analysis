@@ -1,0 +1,21 @@
+% Generate the stable figure with make cmpu-upload-to-approval-distribution CACHED=1.
+\clearpage
+\nolinenumbers
+\subsection{Approval Analysis}\label{subsec:approval-analysis}
+Figure~\ref{fig:accepted-upload-to-approval-cumulative} shows the cumulative
+distribution of the interval between the selected upload entity's accepted-state
+change and the latest recorded approval for qualifying first-order lines.
+
+\begin{center}
+\includegraphics[width=\linewidth,height=0.70\textheight,keepaspectratio]{../../outputs/charts/2026-08-15_2026-10-14/cmpu-d-lines_upload-to-max-approval_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_cumulative.png}
+\captionof{figure}{Cumulative distribution of accepted-upload-to-approval time
+for CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} first-order lines with current
+status D. Elapsed time is the latest recorded approval timestamp minus the
+selected accepted entity's state-change timestamp. The curve shows only
+nonnegative gaps from 0 through 60 seconds inclusive and is normalized to that
+subset; gaps above 60 seconds are omitted. Each distinct matched first-order
+line counts once.}
+\label{fig:accepted-upload-to-approval-cumulative}
+\end{center}
+\clearpage
+\linenumbers

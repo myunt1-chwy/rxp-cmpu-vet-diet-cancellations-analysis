@@ -5,9 +5,11 @@ import hashlib
 import io
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
+import textwrap
 from tempfile import TemporaryDirectory
 import xml.etree.ElementTree as ET
 
@@ -29,8 +31,12 @@ AUDIT_COLUMNS = ['window_upload_rows', 'invalid_upload_source_rows', 'uploads_mi
 REASONS = {'aged order': 'Aged Order',
            'customer initiated cancellation': 'Customer Initiated Cancellation',
            'customer request': 'Customer Request'}
+TIMING_VARIANT = 'accepted-state-change_order-placed'
 TEXT_SCALE = 1.2
-NODE_FONT_SIZE = 21  # An additional 25% over the previous 16.8px labels.
+NODE_FONT_SIZE = 30
+STAGE_SPACING = 600
+LABEL_WIDTH = 28
+NODE_LINE_HEIGHT = 34
 
 
 def render_sql(start, end, upload_start=None):
@@ -51,6 +57,23 @@ def period_name(start, end, upload_start=None):
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def validate_accepted_uploads(frame):
+    """Entity presence and usable state-change time are separate evidence."""
+    present = frame.upload_count.gt(0)
+    if (present & (frame.selected_upload_id.isna() |
+                   frame.selected_upload_state.ne('ACCEPTED').fillna(True))).any():
+        raise ValueError('invalid selected accepted upload entity')
+    if (~present & (frame.selected_upload_id.notna() | frame.selected_upload_state.notna())).any():
+        raise ValueError('selected upload without accepted entity evidence')
+    for column in ['first_upload_at_utc', 'upload_state_changed_at_utc']:
+        frame[column] = pd.to_datetime(frame[column], utc=True, errors='raise')
+    if (~present & frame.upload_state_changed_at_utc.notna()).any():
+        raise ValueError('state-change time without accepted entity')
+    frame['missing_accepted_state_change'] = present & frame.upload_state_changed_at_utc.isna()
+    frame['state_change_before_entity_creation'] = frame.upload_state_changed_at_utc.lt(frame.first_upload_at_utc)
+    return frame
 
 
 def summarize(frame):
@@ -145,8 +168,8 @@ def mermaid_source(flows, title=None):
     }
     palette.update(flows.attrs.get('node_colors', {}))
     node_colors = {
-        label: ('#8CC9EE' if ' / No matching upload' in node or node == 'Matching upload: No matching upload'
-                else '#F28E2C' if ' / Has matching upload' in node or node == 'Matching upload: Has matching upload'
+        label: ('#8CC9EE' if (' / No matching upload' in node or ' / No matching accepted upload' in node) or node == 'Matching upload: No matching upload'
+                else '#F28E2C' if (' / Has matching upload' in node or ' / Has matching accepted upload' in node) or node == 'Matching upload: Has matching upload'
                 else palette.get(node, '#BAB0AB'))
         for node, label in labels.items()
     }
@@ -155,17 +178,17 @@ def mermaid_source(flows, title=None):
     writer = csv.writer(buffer, lineterminator='\n', quoting=csv.QUOTE_NONNUMERIC)
     for row in flows.itertuples(index=False):
         writer.writerow([labels[row.source], labels[row.target], row.prescriptions])
-    height = int(max(1000, 55 * max(flows.groupby('transition').source.nunique().max(),
+    height = int(max(1200, 128 * max(flows.groupby('transition').source.nunique().max(),
                                    flows.groupby('transition').target.nunique().max())))
     config = {'theme': 'base', 'themeVariables': {'fontFamily': 'Arial', 'fontSize': f'{18 * TEXT_SCALE:g}px'},
               'themeCSS': (f'.node-labels, .node-labels text {{ font-size: {NODE_FONT_SIZE:g}px; font-weight: bold; }} '
                            '.links { stroke-opacity: 0.75; } .link { mix-blend-mode: normal !important; } '
                            f'[class$="TitleText"] {{ font-size: {24 * TEXT_SCALE:g}px; '
                            'paint-order: stroke; stroke: white; stroke-width: 3px; stroke-linejoin: round; }'),
-              'sankey': {'width': 1200 * int(flows.transition.max()), 'height': height, 'linkColor': 'source',
+              'sankey': {'width': STAGE_SPACING * int(flows.transition.max()) + 10, 'height': height, 'linkColor': 'source',
                          'nodeColors': node_colors,
                          'nodeAlignment': flows.attrs.get('node_alignment', 'justify'), 'showValues': False,
-                         'useMaxWidth': False, 'nodePadding': 32, 'labelStyle': 'outlined'}}
+                         'useMaxWidth': False, 'nodePadding': 112, 'labelStyle': 'outlined'}}
     heading = 'title: ' + json.dumps(title) + '\n' if title else ''
     return '---\n' + heading + 'config: ' + json.dumps(config) + '\n---\nsankey-beta\n' + buffer.getvalue()
 
@@ -179,42 +202,81 @@ def add_title(svg, title, columns=None, bottom_padding=0):
     except ET.ParseError as error:
         raise ValueError('Mermaid produced invalid SVG') from error
     _, _, width, height = map(float, diagram.attrib['viewBox'].split())
-    header_height = 96 * TEXT_SCALE + (64 if columns else 0)
-    wrapper = ET.Element(f'{{{namespace}}}svg', width=str(width), height=str(height + header_height + bottom_padding),
-                         viewBox=f'0 0 {width} {height + header_height + bottom_padding}', role='img',
-                         attrib={'aria-label': title})
-    ET.SubElement(wrapper, f'{{{namespace}}}title').text = title
+    nodes = diagram.findall(f'.//{{{namespace}}}g[@class="node"]')
+    node_x = sorted({float(g.attrib['x']) for g in nodes if 'x' in g.attrib})
+    if node_x:
+        # Mermaid measures the original single-line labels into its viewBox.
+        # Reclaim that space after wrapping, reserving a terminal-label column.
+        width = max(node_x) + 650
+        height = max(float(g.attrib.get('y', 0)) + float(
+            g.find(f'{{{namespace}}}rect').attrib['height']) for g in nodes)
+        diagram.set('viewBox', f'-16 -64 {width} {height + 128}')
+        height += 128
+
+    def multiline(element, lines, line_height):
+        x = element.attrib.get('x', '0')
+        element.text = None
+        for i, line in enumerate(lines):
+            span = ET.SubElement(element, f'{{{namespace}}}tspan',
+                                 x=x, dy='0' if i == 0 else str(line_height))
+            span.text = line
+
     parts = title.split(' | ', 2)
     heading, subtitle = ' | '.join(parts[:2]), parts[2] if len(parts) > 2 else ''
-    for text, y, size, weight in [(heading, 34, 28, 'bold'), (subtitle, 65, 18, 'normal')]:
-        label = ET.SubElement(wrapper, f'{{{namespace}}}text', x=str(width / 2), y=str(y * TEXT_SCALE),
-            attrib={'text-anchor': 'middle', 'font-family': 'Arial, sans-serif', 'font-size': f'{size * TEXT_SCALE:g}',
+    heading_lines = textwrap.wrap(heading, max(20, int((width - 48) / 19)))
+    subtitle_lines = textwrap.wrap(subtitle, max(20, int((width - 48) / 12)))
+    heading_height = 40 * len(heading_lines)
+    subtitle_height = 27 * len(subtitle_lines)
+    column_height = 100 if columns else 0
+    header_height = 32 + heading_height + subtitle_height + column_height
+    wrapper = ET.Element(f'{{{namespace}}}svg', width=str(width),
+        height=str(height + header_height + bottom_padding),
+        viewBox=f'0 0 {width} {height + header_height + bottom_padding}', role='img',
+        attrib={'aria-label': title})
+    ET.SubElement(wrapper, f'{{{namespace}}}title').text = title
+    for lines, y, size, step, weight in [
+            (heading_lines, 36, 28 * TEXT_SCALE, 40, 'bold'),
+            (subtitle_lines, 36 + heading_height, 18 * TEXT_SCALE, 27, 'normal')]:
+        label = ET.SubElement(wrapper, f'{{{namespace}}}text', x=str(width / 2), y=str(y),
+            attrib={'text-anchor': 'middle', 'font-family': 'Arial, sans-serif', 'font-size': f'{size:g}',
                     'font-weight': weight, 'fill': '#222222', 'stroke': 'white', 'stroke-width': '3',
                     'paint-order': 'stroke', 'stroke-linejoin': 'round'})
-        label.text = text
+        multiline(label, lines, step)
     if columns:
-        # Column headings act as swimlanes; retain full node IDs in Mermaid/flow data.
-        node_x = sorted({float(g.attrib['x']) for g in diagram.findall(
-            f'.//{{{namespace}}}g[@class="node"]') if 'x' in g.attrib})
         if len(node_x) != len(columns):
             node_x = [width * i / len(columns) for i in range(len(columns))]
         headings = ET.SubElement(wrapper, f'{{{namespace}}}g', attrib={'class': 'stage-headings'})
-        for (prefix, heading), x in zip(columns, node_x):
-            label = ET.SubElement(headings, f'{{{namespace}}}text', x=str(x + 12),
-                y=str(header_height - 22), attrib={'font-family': 'Arial, sans-serif',
-                'font-size': '26', 'font-weight': 'bold', 'fill': '#222222', 'stroke': 'white',
+        for (_, heading), x in zip(columns, node_x):
+            label = ET.SubElement(headings, f'{{{namespace}}}text', x=str(x + 16),
+                y=str(header_height - column_height + 30), attrib={'font-family': 'Arial, sans-serif',
+                'font-size': '23', 'font-weight': 'bold', 'fill': '#222222', 'stroke': 'white',
                 'stroke-width': '3', 'paint-order': 'stroke'})
-            label.text = heading
-        for group in diagram.findall(f'.//{{{namespace}}}g[@class="node-labels"]'):
-            for label in group:
-                for prefix, _ in columns:
-                    if label.text and label.text.startswith(prefix):
-                        label.text = label.text.removeprefix(prefix)
-                        break
-    # Also override Mermaid's hard-coded 14px label attribute in the SVG export.
+            multiline(label, textwrap.wrap(heading, 23), 28)
     for group in diagram.findall(f'.//{{{namespace}}}g[@class="node-labels"]'):
         group.set('font-size', f'{NODE_FONT_SIZE:g}')
         group.set('font-weight', 'bold')
+        for label in group:
+            original = label.text or ''
+            visible = original
+            for prefix, _ in columns or []:
+                if visible.startswith(prefix):
+                    visible = visible.removeprefix(prefix)
+                    break
+            match = re.fullmatch(r'(.*) (\([\d,]+; [\d.]+%\))', visible)
+            category, values = match.groups() if match else (visible, None)
+            lines = textwrap.wrap(category, LABEL_WIDTH, break_long_words=True, break_on_hyphens=False)
+            if values:
+                lines.append(values)
+            if not lines:
+                continue
+            # Put terminal labels to the right as well, avoiding the preceding stage.
+            if label.attrib.get('text-anchor') == 'end':
+                label.set('x', str(float(label.attrib['x']) + 22))
+                label.set('text-anchor', 'start')
+            label.attrib.pop('dy', None)
+            label.set('y', str(float(label.attrib.get('y', 0)) - (len(lines)-1)*NODE_LINE_HEIGHT/2 + 7))
+            multiline(label, lines, NODE_LINE_HEIGHT)
+            ET.SubElement(label, f'{{{namespace}}}title').text = original
     # Normal blending preserves the blue palette across SVG rasterizers.
     for group in diagram.findall(f'.//{{{namespace}}}g[@class="link"]'):
         group.set('style', 'mix-blend-mode: normal;')

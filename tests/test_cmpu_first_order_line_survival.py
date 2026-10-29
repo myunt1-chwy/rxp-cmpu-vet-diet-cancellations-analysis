@@ -16,11 +16,11 @@ CUTOFF = pd.Timestamp('2026-10-26', tz='UTC')
 def lines(days=(1,2,2,3), censored=(False,False,True,False)):
     # Censored lines have no event and enter at cutoff minus their follow-up duration.
     frame = pd.DataFrame([dict(order_id=100, order_line_id=i,
-        line_created_utc=CUTOFF-pd.Timedelta(days=d) if c else ORIGIN,
+        order_placed_utc=CUTOFF-pd.Timedelta(days=d) if c else ORIGIN,
         event_time=pd.NaT if c else ORIGIN+pd.Timedelta(days=d),
         event_time_source='missing' if c else 'actual_upload')
         for i,(d,c) in enumerate(zip(days,censored))])
-    for col in ['line_created_utc','event_time']:
+    for col in ['order_placed_utc','event_time']:
         frame[col]=pd.to_datetime(frame[col],utc=True).astype('datetime64[ns, UTC]')
     return frame
 
@@ -60,19 +60,19 @@ def test_all_censored_and_empty():
     assert survival.risk_table(obs.iloc[:0],curve).empty
 
 
-def test_cutoff_negative_missing_creation_and_sources():
+def test_cutoff_negative_missing_placement_and_sources():
     frame=lines((1,1,1,1,1,1,1,1),(False,)*8)
     frame.loc[0,'event_time']=CUTOFF
     frame.loc[1,'event_time']=CUTOFF+pd.Timedelta(nanoseconds=1)
     frame.loc[2,'event_time']=ORIGIN-pd.Timedelta(nanoseconds=1)
-    frame.loc[3,'line_created_utc']=pd.NaT
-    frame.loc[4,['line_created_utc','event_time']]=[CUTOFF+pd.Timedelta(days=1),pd.NaT]
+    frame.loc[3,'order_placed_utc']=pd.NaT
+    frame.loc[4,['order_placed_utc','event_time']]=[CUTOFF+pd.Timedelta(days=1),pd.NaT]
     frame.loc[5,'event_time']=pd.NaT
     frame.loc[6,'event_time_source']='order_cancellation'
     frame.loc[7,'event_time_source']='tie'
     obs=survival.observations(frame,CUTOFF)
     assert obs.survival_eligibility.tolist()==['Included','Included','Negative event duration',
-        'Missing creation','Creation after cutoff','Included','Included','Included']
+        'Missing placement','Placement after cutoff','Included','Included','Included']
     assert obs.loc[0,'event_observed'] and not obs.loc[1,'event_observed']
     assert obs.loc[0,'observation_end_utc']==obs.loc[1,'observation_end_utc']==CUTOFF
     assert obs.loc[5,'survival_outcome']=='Censored: missing event'
@@ -109,7 +109,7 @@ def metadata():
 
 def test_exports_cli_and_no_eligible_chart_cleanup(tmp_path):
     m=metadata()
-    period='2026-08-15_2026-10-15_uploads-2026-08-01_2026-10-26'
+    period='2026-08-15_2026-10-15_uploads-2026-08-01_2026-10-26_accepted-state-change_order-placed'
     associations=pd.DataFrame({'association_state':['Matched']*4+['Missing order ID']})
     def render(curve,n,path,subtitle):
         path.write_bytes(b'png')
