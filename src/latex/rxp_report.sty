@@ -14,6 +14,34 @@
 \RequirePackage{needspace}
 \RequirePackage{lscape}
 \RequirePackage[left]{lineno}
+\RequirePackage{listings}
+\lstdefinestyle{verification-sql}{%
+  language=SQL,
+  basicstyle=\ttfamily\fontsize{8}{10}\selectfont,
+  keywordstyle=\color{reportnavy}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{green!35!black},
+  backgroundcolor=\color{gray!5},
+  frame=single,
+  rulecolor=\color{gray!40},
+  framerule=0.3pt,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=6pt,
+  xleftmargin=1.5em,
+  framexleftmargin=0.3em,
+  breaklines=true,
+  breakatwhitespace=false,
+  breakindent=1em,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  upquote=true,
+  tabsize=4,
+  aboveskip=0.5\baselineskip,
+  belowskip=\baselineskip,
+  morekeywords={IFF,COUNT_IF,TRY_TO_NUMBER,TRY_TO_DOUBLE,TO_JSON,TYPEOF,IS_NULL_VALUE,ARRAY_SIZE,FILTER,FLATTEN,TRANSLATE,CONVERT_TIMEZONE}
+}
 
 \geometry{left=0.7in,right=0.6in,top=0.55in,bottom=0.55in}
 \definecolor{reportnavy}{HTML}{003366}

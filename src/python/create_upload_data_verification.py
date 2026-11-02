@@ -22,7 +22,7 @@ def latex_escape(value):
     return ''.join(replacements.get(c, c) for c in str(value))
 
 
-def comparison(frame):
+def comparison(frame, count_column='entry_count'):
     """Reconcile separately queried source totals before rendering any output."""
     frame = frame.copy()
     frame.columns = frame.columns.str.lower()
@@ -34,11 +34,14 @@ def comparison(frame):
         raise ValueError('Expected one independent total per source')
     if groups.duplicated(['source_table', 'associated_resource_type']).any():
         raise ValueError('Duplicate resource-type groups')
-    if (frame.entry_count < 0).any() or (frame.entry_count % 1 != 0).any():
+    values = frame[count_column]
+    if values.isna().any() or (values < 0).any() or (values % 1 != 0).any():
         raise ValueError('Counts must be nonnegative integers')
+    if 'entries_with_nonzero_rx_id' in frame and (frame.entries_with_nonzero_rx_id > frame.entry_count).any():
+        raise ValueError('Prescription-linked entry counts exceed total entries')
     for source in SOURCES:
-        actual = int(groups.loc[groups.source_table == source, 'entry_count'].sum())
-        expected = int(totals.loc[totals.source_table == source, 'entry_count'].iloc[0])
+        actual = int(groups.loc[groups.source_table == source, count_column].sum())
+        expected = int(totals.loc[totals.source_table == source, count_column].iloc[0])
         if actual != expected:
             raise ValueError(f'Grouped counts do not reconcile for {source}')
     def resource_type(value):
@@ -49,10 +52,10 @@ def comparison(frame):
     # Always expose SQL NULL, including when both sources have zero NULL entries.
     if None not in types:
         types.append(None)
-    lookup = {(row.source_table, resource_type(row.associated_resource_type)): int(row.entry_count)
+    lookup = {(row.source_table, resource_type(row.associated_resource_type)): int(getattr(row, count_column))
               for row in groups.itertuples()}
     rows = [(kind, *[lookup.get((source, kind), 0) for source in SOURCES]) for kind in types]
-    total_counts = [int(totals.loc[totals.source_table == source, 'entry_count'].iloc[0])
+    total_counts = [int(totals.loc[totals.source_table == source, count_column].iloc[0])
                     for source in SOURCES]
     timestamps = frame.extracted_at_utc.unique()
     if len(timestamps) != 1:
@@ -62,21 +65,30 @@ def comparison(frame):
 
 def render(frame):
     rows, totals, timestamp = comparison(frame)
+    rx_rows, rx_totals, _ = comparison(frame, 'entries_with_nonzero_rx_id')
+    rx_counts = {kind: (first, second) for kind, first, second in rx_rows}
     formatted = [[('[SQL NULL]' if kind is None else '[empty string]' if kind == '' else kind),
-                  f'{first:,}', f'{second:,}'] for kind, first, second in rows]
-    formatted.append(['Total', *[f'{value:,}' for value in totals]])
+                  f'{first:,}', f'{rx_counts[kind][0]:,}', f'{second:,}', f'{rx_counts[kind][1]:,}']
+                 for kind, first, second in rows]
+    formatted.append(['Total', f'{totals[0]:,}', f'{rx_totals[0]:,}', f'{totals[1]:,}', f'{rx_totals[1]:,}'])
     md = (f'# Upload source verification\n\nExtracted: {timestamp} UTC. '
           'All available physical rows, without filters or deduplication. '
-          'Grouped counts reconcile to independently queried source totals.\n\n' +
-          markdown_table(pd.DataFrame(formatted, columns=['associated_resource_type', *SOURCES])) + '\n')
-    lines = [r'\begin{longtable}{@{}p{0.30\linewidth}rr@{}}',
-             r'\caption{Upload-source entries by associated resource type.}',
+          'With Rx ID means at least one populated, non-zero ID in HCDM RX_ID or notification '
+          'ASSOCIATED_RESOURCE_IDS; NULL, blank, empty-list and numeric-zero tokens are excluded. '
+          'Each entry counts once regardless of ID count. Grouped counts reconcile to '
+          'independently queried source totals for both metrics.\n\n' +
+          markdown_table(pd.DataFrame(formatted, columns=['associated_resource_type',
+              f'{SOURCES[0]}: all entries', f'{SOURCES[0]}: with Rx ID',
+              f'{SOURCES[1]}: all entries', f'{SOURCES[1]}: with Rx ID'])) + '\n')
+    lines = [r'\begin{longtable}{@{}lrrrr@{}}',
+             r'\caption{Upload-source entries and entries with a non-zero prescription ID, by associated resource type.}',
              r'\label{tab:upload-source-resource-types}\\', r'\toprule',
-             r'\texttt{associated\_resource\_type} & '
-             r'\shortstack{\texttt{EDLDB.BT\_HCA\_HCDM.}\\\texttt{rxp\_upload\_entity}} & '
-             r'\shortstack{\texttt{rxp\_notification\_service.}\\\texttt{upload\_entity}} \\',
+             r' & \multicolumn{2}{c}{\shortstack{\texttt{EDLDB.BT\_HCA\_HCDM.}\\\texttt{rxp\_upload\_entity}}} & '
+             r'\multicolumn{2}{c}{\shortstack{\texttt{rxp\_notification\_service.}\\\texttt{upload\_entity}}} \\',
+             r'\cmidrule(lr){2-3}\cmidrule(lr){4-5}',
+             r'\texttt{associated\_resource\_type} & All entries & With Rx ID & All entries & With Rx ID \\',
              r'\midrule', r'\endfirsthead',
-             r'\toprule Resource type & HCDM entries & Notification-service entries \\',
+             r'\toprule Resource type & HCDM total & With Rx ID & Notification total & With Rx ID \\',
              r'\midrule', r'\endhead']
     for row in formatted:
         if row[0] == 'Total' and row is formatted[-1]:

@@ -1,4 +1,9 @@
-\subsection{Reproducing the Numerical Results}
+\subsection{How do I reproduce the results and the report?}
 The code to reproduce all the results is in \ref{ref:analysis-repository}. Follow the instructions in the HOWTO.md file to generate the figures, models and analyses. You will need to clone the repository to run the code. The code uses make and python.
 
-The tables and grains are TBD.
+To recreate all six upload-source verification tables and their SQL listings,
+run \texttt{make upload-data-verification-all}, then \texttt{make report} to
+rebuild this report. Fresh extraction requires Snowflake access. To regenerate
+the tables from retained extracts, use
+\texttt{make upload-data-verification-all CACHED=1} instead; see HOWTO.md for
+cache requirements and validation details.

@@ -220,3 +220,9 @@
   - Added reproducible Make/SQL/Python workflow, fingerprint-verified cache, bounded Markdown export, generated LaTeX table, documentation and four focused tests. Generated extracts and table files remain ignored.
   - Report rebuilt without LaTeX warnings and page 3 visually inspected. Before commit approval, 625 tests and 16 subtests passed in 33.19s. No tests rerun during committing, as explicitly requested; commit hooks disabled for this operation.
   - Committed on feat/upload-data-verification. Pre-existing diagram TODO left uncommitted; no merge or remote push requested.
+* 2026-11-02 Reproducible upload-source verification and report expansion
+  - User accepted the pending upload-verification work and authorized committing. Added six source-backed appendix tables covering resource types/non-zero Rx IDs, UTC creation-time coverage, vet-diet approval channels, CUSTOMER_UPLOAD coverage by prescription source/status, diet-upload cancellation reasons and NULL-resource context/order analysis.
+  - Added the source and independent validation SQL, retained-input renderers, readable SQL listings, nested data-source headings, reproduction instructions and rebuilt PDF. make upload-data-verification-all recreates the six tables and SQL listings; CACHED=1 reuses retained inputs. HOWTO documents commands and validation limits.
+  - Verified cached aggregate regeneration, existing reconciliation checks, PDF build, visual layout and git diff --check. No tests or fresh warehouse queries run for this task; commit hooks disabled as requested. Generated data, tables and SQL listings remain ignored.
+  - Committed on feat/upload-data-verification. Unrelated diagram TODO and editor artifacts left out; no merge or push requested.
+

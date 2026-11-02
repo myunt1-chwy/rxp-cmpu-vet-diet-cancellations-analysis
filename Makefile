@@ -6,8 +6,17 @@ LATEXMK ?= latexmk
 upload-data-verification:
 	.venv/bin/python -m src.python.create_upload_data_verification $(if $(filter 1,$(CACHED)),--cached)
 
+.PHONY: upload-data-verification-all
+upload-data-verification-all:
+	.venv/bin/python -m src.python.recreate_upload_data_verification $(if $(filter 1,$(CACHED)),--cached)
+	$(MAKE) --no-print-directory report-sql-listings
+
+.PHONY: report-sql-listings
+report-sql-listings:
+	.venv/bin/python -m src.python.create_report_sql_listings
+
 .PHONY: report
-report:
+report: report-sql-listings
 	@command -v "$(LATEXMK)" >/dev/null 2>&1 || { echo 'Error: latexmk is required. Install a TeX distribution with latexmk and pdflatex, or set LATEXMK=/path/to/latexmk.' >&2; exit 1; }
 	mkdir -p build/latex outputs/pdf
 	cd src/latex && "$(LATEXMK)" -pdf -interaction=nonstopmode -halt-on-error -file-line-error -outdir="$(CURDIR)/build/latex" main.tex
