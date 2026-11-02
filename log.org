@@ -226,3 +226,10 @@
   - Verified cached aggregate regeneration, existing reconciliation checks, PDF build, visual layout and git diff --check. No tests or fresh warehouse queries run for this task; commit hooks disabled as requested. Generated data, tables and SQL listings remain ignored.
   - Committed on feat/upload-data-verification. Unrelated diagram TODO and editor artifacts left out; no merge or push requested.
 
+* 2026-11-02 Report source connections and customer contact analysis
+  - User accepted the report changes and authorized committing. Implementation committed as 0a0fdb5 on feat/data-source-connections, including the rebuilt PDF.
+  - Added reproducible Mermaid source-connection diagrams and a separate contact-matching diagram, combined the four financial follow-up comparisons with yellow customer columns, highlighted Aged order, omitted the computed order-frequency section and placed financial SQL at the end of the financial section.
+  - Added creation-relative daily contacts for shipped SQL-NULL-reason orders and a customer contact summary by cancellation reason. At the user's request, removed the summary's creation-relative -2..+11 bounds while retaining the observed shipment/cancellation endpoint and original order/customer inbound matching. Daily-table windows remain unchanged.
+  - Final Table 11, section 2.3.2, page 34: 101,227 distinct contacting customers of 225,434 (44.90%). All 484,374 order/reason cohort records are unchanged, all previously qualifying contacts remain, and 56 additional contact records qualify. Independent DuckDB calculations reconcile all reason and overall metrics. Earlier windowed and shipped-daily results also have retained independent Snowflake reconciliations.
+  - Reproduction targets, source/cache fingerprints, bounded Markdown exports, SQL and documentation are retained. Generated data/figures remain ignored; tracked generators reproduce them. PDF rebuilt and visually inspected, final LaTeX log and git diff --check clean. No test-suite run; commit hooks disabled to preserve the user's instruction. Editor artifacts excluded; no merge or push requested.
+
