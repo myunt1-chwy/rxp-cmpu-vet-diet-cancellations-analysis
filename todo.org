@@ -728,3 +728,11 @@
 * DONE Prepare committed analysis changes and PDF for main
   - User authorizes committing and merging the current feature branch. Track outputs/pdf, preserve other generated-output exclusions, rebuild/verify report and run final checks before fast-forwarding local main.
   - Updated .gitignore to track outputs/pdf while retaining other generated-output exclusions. Rebuilt the current report and visually inspected it; no LaTeX warnings. Final checks: 621 passed, 16 subtests passed in 32.74s. Current feature work is committed and ready for a fast-forward into local main with the PDF. User explicitly authorizes commit and merge.
+
+* DONE Add self-contained upload data verification to the report appendix
+  - Accepted plan: add Data Verification after reproduction instructions, with first subsection "Where is the prescription upload data coming from?".
+  - Verify source schemas and count all rows by associated_resource_type in EDLDB.BT_HCA_HCDM.rxp_upload_entity and rxp_notification_service.upload_entity. Include NULL, absent-type zeros and independently reconciled totals.
+  - Add reproducible SQL/Python and Make target, retained extracts, bounded Markdown and generated LaTeX table; document in HOWTO.md. Build and visually inspect the report before user review.
+  - Verified both source schemas via DESCRIBE VIEW and extracted all-row counts on 2026-11-02 15:28:36 UTC. HCDM: diet 176,401, drug 39,941, NULL 1, total 216,343. Notification service: diet 179,177, drug 40,516, NULL 40,451, total 260,144. Both grouped sums reconcile to independent COUNT(*) queries.
+  - Added reproducible SQL/Python, Make target, fingerprint-checked cached rendering, Markdown and generated LaTeX tables, and four focused tests on feat/upload-data-verification. Fixed bracket-prefixed row labels exposed by the real LaTeX build. Report rebuilt without LaTeX warnings and page 3 visually inspected; cached rerender succeeds. User accepted the changes and authorized committing on 2026-11-02, explicitly requesting no further test runs.
+  - Final verification: 625 tests and 16 subtests pass in 33.19s; git diff --check passes.

@@ -213,3 +213,10 @@
   - Committed the rebuilt report PDF and .gitignore exception in 2b6c5e0 (docs: track compiled analysis report PDF). Other generated analysis outputs and raw data remain ignored.
   - make report succeeds without LaTeX warnings; rebuilt PDF visually inspected. Full final suite: 621 passed, 16 subtests passed in 32.74s. git diff --check passed.
   - Feature branch is ready for fast-forward integration; no remote push was requested.
+
+* 2026-11-02 Upload source data verification appendix
+  - User accepted and authorized committing the self-contained Data Verification appendix, including the rebuilt PDF. First subsection compares all physical rows by associated_resource_type in EDLDB.BT_HCA_HCDM.rxp_upload_entity and EDLDB.rxp_notification_service.upload_entity.
+  - Both source schemas verified. Extracted 2026-11-02 15:28:36 UTC: HCDM total 216,343; notification-service total 260,144. Both grouped sums reconcile to independent source totals; SQL NULL and source-only resource types are retained.
+  - Added reproducible Make/SQL/Python workflow, fingerprint-verified cache, bounded Markdown export, generated LaTeX table, documentation and four focused tests. Generated extracts and table files remain ignored.
+  - Report rebuilt without LaTeX warnings and page 3 visually inspected. Before commit approval, 625 tests and 16 subtests passed in 33.19s. No tests rerun during committing, as explicitly requested; commit hooks disabled for this operation.
+  - Committed on feat/upload-data-verification. Pre-existing diagram TODO left uncommitted; no merge or remote push requested.

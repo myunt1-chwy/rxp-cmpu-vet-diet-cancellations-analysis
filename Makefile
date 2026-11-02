@@ -2,6 +2,10 @@
 
 LATEXMK ?= latexmk
 
+.PHONY: upload-data-verification
+upload-data-verification:
+	.venv/bin/python -m src.python.create_upload_data_verification $(if $(filter 1,$(CACHED)),--cached)
+
 .PHONY: report
 report:
 	@command -v "$(LATEXMK)" >/dev/null 2>&1 || { echo 'Error: latexmk is required. Install a TeX distribution with latexmk and pdflatex, or set LATEXMK=/path/to/latexmk.' >&2; exit 1; }
