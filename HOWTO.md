@@ -1441,7 +1441,7 @@ All earlier customer/order/line counts and the original aged cohort are unchange
 
 ### Same-pet, same-product customer order-frequency percentages
 
-`make opportunity-follow-up-sales` also creates a table of follow-up days (7 through 70) against the exact number of qualifying orders per returning customer (1, 2, 3, and so on, without grouping the tail). Run `make opportunity-follow-up-sales CACHED=1` to generate it from the existing verified snapshots. It appears at the end of Financial Opportunity Analysis immediately before the SQL, with label `tab:financial-opportunity-customer-order-frequency`.
+`make opportunity-follow-up-sales` also creates a table of follow-up days (7 through 70) against the exact number of qualifying orders per returning customer (1, 2, 3, and so on, without grouping the tail). Run `make opportunity-follow-up-sales CACHED=1` to generate it from the existing verified snapshots. This computation and its exports remain available, but the frequency table is excluded from the published report. Its standalone LaTeX retains label `tab:financial-opportunity-customer-order-frequency`.
 
 Each cell is `100 × customers with exactly N distinct qualifying orders ÷ final 70-day returning customers (7,944)`. Every row uses the same final 70-day Customers value from the original same-part/pet follow-up table. No zero-order column is shown. Orders match the original customer, pet ID and product part number, using the same non-cancellation rules. Counts pool all qualifying matching pairs and cancellation windows per customer; each order counts once despite multiple matching lines, shipments or aged associations. Earlier rows total the percentage of the final 70-day customers who had reordered by that day; only the final row totals 100% before rounding. N/A means the final customer count is zero. If running a different set of follow-up windows, the last configured window supplies the fixed denominator.
 
@@ -1572,16 +1572,37 @@ The same denominator and unrounded percentages are exported as `cohort_customers
 
 ### Interleaved cohort follow-up tables in the report
 
-Financial Opportunity Analysis groups each study consecutively, with the whole aged-customer cohort first, the first-CUSTOMER_UPLOAD cohort second, and the first-vet-diet cohort third:
+Financial Opportunity Analysis groups each study consecutively, with the whole aged-customer cohort first, the first-CUSTOMER_UPLOAD cohort second, and the first-vet-diet cohort third. All four studies combine these cohorts side by side in landscape tables in sections 2.1.2--2.1.5, with shared follow-up days and yellow customer-count columns:
 
 1. Same pet and product part number.
 2. Same pet, different product part number (vet diet).
 3. Any vet-diet purchase.
 4. Any Chewy purchase.
 
-The customer order-frequency matrix follows all four study groups, at the end of the subsection. It retains the final 70-day returning-customer denominator. Table labels and data are unchanged; LaTeX renumbers references automatically.
+The customer order-frequency matrix is computed and exported separately, using the final 70-day returning-customer denominator, but is excluded from the report. The report-order helper preserves this exclusion on reruns. LaTeX renumbers the remaining tables automatically.
 
-The follow-up generators now write per-study fragments using `financial_opportunity_follow_up_<study>.tex` for the whole cohort and `financial_opportunity_new_upload_follow_up_<study>.tex` for the first-upload cohort (hyphens in study names become underscores). All-Chewy files retain their existing names. Frequency is `src/latex/appendix/financial_opportunity_customer_order_frequency.tex`. Aggregate RxP files remain available as compatibility outputs, while the report includes the individual fragments in paired order. The shared ordering helper is `src/python/opportunity_report_tables.py`; baseline, whole-cohort and first-upload generators preserve this order on reruns.
+The follow-up generators write per-study fragments using `financial_opportunity_follow_up_<study>.tex` for the whole cohort and `financial_opportunity_new_upload_follow_up_<study>.tex` for the first-upload cohort (hyphens in study names become underscores). All-Chewy files retain their existing names. Frequency is `src/latex/appendix/financial_opportunity_customer_order_frequency.tex`. Aggregate RxP files remain available as compatibility outputs. The shared ordering helper is `src/python/opportunity_report_tables.py`; baseline, whole-cohort and first-upload generators preserve all four combined report inclusions and the frequency exclusion on reruns.
+
+`make combined-follow-up-table` prepares all four combined comparisons from each study's three original
+LaTeX fragments, preserving their displayed values and checking
+that follow-up days, cancellation periods and observation cutoffs agree. It runs
+automatically before `make report`, without tests or warehouse queries. The tracked
+generator is `src/python/create_combined_follow_up_table.py`; generated LaTeX is
+under `src/autogenerated/combined-follow-up/`; Markdown comparisons are
+`outputs/tables/opportunity/combined-follow-up/same-pet-product.md`,
+`outputs/tables/opportunity/combined-follow-up/same-pet-different-product.md`,
+`outputs/tables/opportunity/combined-follow-up/any-vet-diet.md` and
+`outputs/tables/opportunity/combined-follow-up/all-chewy.md`. Each combined
+caption retains its three original table labels, so existing references resolve
+to the corresponding comparison table. The different-product endpoint still requires
+a later vet-diet line with the same pet and a different nonblank part number.
+The any-vet-diet endpoint matches customer ID and a later-line vet-diet flag,
+without requiring the same pet or product.
+The all-Chewy endpoint matches customer ID only across all categories in
+`EDLDB.ECOM.ORDER_LINE`, with no later pet/product/vet-diet restriction, and sums
+`NET_SALES` once per physical line rather than per shipment.
+Cohort denominators and anchor rules remain explicit;
+the later sections and tables renumber automatically.
 
 To regenerate all tables and the PDF from the verified sources:
 
@@ -1618,7 +1639,126 @@ The new cohort, first-order IDs and anchor lines are subsets of the first-upload
 
 Separate data roots are `data/opportunity/new-vet-diet-customer-follow-up-studies/2026-05-01_2026-08-01_7d-70d_as-of-2026-10-28/` and `new-vet-diet-customer-follow-up-chewy/` with the same dated subdirectory. Templates are `src/sql/opportunity_new_vet_diet_customer_follow_up.sql` and `src/sql/opportunity_new_vet_diet_customer_chewy_follow_up.sql`; standalone executed queries are query.sql in each cache. Markdown summaries are `new-vet-diet-customers-all-studies-follow-up.md` and `new-vet-diet-customers-all-chewy-follow-up.md` under `outputs/tables/opportunity/2026-05-01_2026-07-31/`. Full original/match/reorder/customer-outcome data, exact money, fingerprints and reconciliation audits remain alongside the source files.
 
-Financial Opportunity Analysis groups each study as whole aged cohort, first CUSTOMER_UPLOAD cohort, then first vet-diet cohort. New table fragments use `financial_opportunity_new_vet_diet_follow_up_<study>.tex`; Chewy uses `financial_opportunity_new_vet_diet_chewy_follow_up.tex`. Labels start `tab:financial-opportunity-new-vet-diet-`. The frequency matrix remains last. The shared report-order helper preserves this arrangement on all generator reruns. Run `make report` to rebuild the PDF; the cached target updates its own LaTeX tables automatically.
+Financial Opportunity Analysis groups each study as whole aged cohort, first CUSTOMER_UPLOAD cohort, then first vet-diet cohort. New table fragments use `financial_opportunity_new_vet_diet_follow_up_<study>.tex`; Chewy uses `financial_opportunity_new_vet_diet_chewy_follow_up.tex`. Labels start `tab:financial-opportunity-new-vet-diet-`. The frequency matrix is computed/exported but excluded from the report. The shared report-order helper preserves this arrangement on all generator reruns. Run `make report` to rebuild the PDF; the cached target updates its own LaTeX tables automatically.
+
+### Contacting customers by cancellation reason
+
+```sh
+make opportunity-customer-contacts-by-cancel-reason
+make opportunity-customer-contacts-by-cancel-reason CACHED=1
+make opportunity-customer-contacts-by-cancel-reason PRINT_SQL=1
+make report
+```
+
+This adds `tab:customer-contacts-by-cancellation-reason` to the same contact
+section as the shipped-order daily table. The parent heading covers CMPU order
+customers generally; the aged-contact section and daily shipped table remain.
+The table shows all eligible customers, distinct customers with an inbound
+contact, and the contacting percentage for each current cancellation reason.
+The Aged order row is highlighted yellow. TOTAL deduplicates customers globally;
+customers can appear in multiple reason rows, so rows must not be summed.
+
+Use the financial cohort: qualifying CMPU vet-diet CUSTOMER_UPLOAD lines with
+shipment or cancellation activity in `[START_DATE,END_DATE)` UTC, default
+May 1--July 31, 2026 inclusive. Match prescriptions by RX_ID and numeric customer
+ID. Reasons are trimmed and grouped case-insensitively, with SQL NULL and blank
+strings kept distinct. Each order/reason pair has one creation timestamp and
+an endpoint at the latest observed qualifying shipment or cancellation event;
+for mixed/split outcomes, use the later event, including qualifying rows outside
+the reporting window.
+
+All reasons include contacts at any available earlier timestamp, capped
+inclusively at that endpoint. No creation-relative lower or upper day bound applies.
+Require matching original order ID and numeric customer ID and inbound direction
+across all categories; all handled states are included by default, with
+`HANDLED_ONLY=1` available. Exact duplicates collapse and source conflicts fail
+validation. Count customers once per reason across all orders and days.
+Percentages use all eligible customers in each reason, including non-contacting
+customers. These endpoint-capped shares use a different window from the
+cancellation-relative aged-contact table. The NULL row includes cancellation-only
+orders and can have a cancellation endpoint, so it is broader than the shipped-only
+NULL-reason daily table. Inbound direction is a source proxy, not proof of human initiation.
+
+The SQL template is `src/sql/opportunity_customer_contacts_by_cancel_reason.sql`
+and the module is `src/python/create_opportunity_contacts_by_cancel_reason.py`.
+Raw queries/source fingerprints and extraction logs are under
+`data/opportunity/customer-contacts-by-cancel-reason/<start>_<exclusive-end>/event-capped/`.
+Earlier exports with the -2..+11 restriction remain in the parent date directory.
+Mode-specific directories retain full order/reason and contact details, summaries,
+audits, local DuckDB verification and standalone Snowflake `summary.sql`.
+DuckDB independently recomputes reason and global counts/percentages. A separately
+executed warehouse summary can be retained with a fingerprinted reconciliation
+receipt, which cached runs recheck when the query/source identities agree.
+The historical financial cohort reconciliation is retained alongside these exports.
+Markdown is under `outputs/tables/opportunity/<start>_<inclusive-end>/` and LaTeX is
+`src/latex/appendix/customer_contacts_by_cancellation_reason.tex`. `make report`
+uses retained results without warehouse requests. Fresh extraction requires
+Snowflake browser SSO; PRINT_SQL prints the standalone final-table query only.
+
+### Contacts for shipped orders with NULL cancellation reason
+
+```sh
+make opportunity-shipped-customer-contacts
+make opportunity-shipped-customer-contacts CACHED=1
+make opportunity-shipped-customer-contacts PRINT_SQL=1
+make report
+```
+
+This independent target creates the creation-relative companion to
+`tab:aged-customer-contacts-by-cancellation-day`, with label
+`tab:shipped-customer-contacts-by-creation-day`. It uses CMPU vet-diet
+CUSTOMER_UPLOAD orders with at least one qualifying shipment in
+`[START_DATE, END_DATE)` UTC (default May 1--July 31, 2026 inclusive) and strict
+SQL NULL cancellation reasons on all qualifying RxP rows. Blank reasons are not
+NULL. Match line RX_ID and numeric customer ID to the prescription registry.
+No prescription-creation or first-order restriction applies.
+
+Order creation is `ORDER_PLACED_DTTM`. Rows -2 through +11 are elapsed UTC
+24-hour bins: day -2 is `[creation - 2 days, creation - 1 day)` and day 0 starts
+at creation. Contacts must match the original order and numeric customer ID and
+have inbound direction, across all categories. All handled states are included;
+`HANDLED_ONLY=1` restricts to handled inbound contacts. Each customer and order
+counts once per day, regardless of contact legs/sessions or shipment rows.
+
+Observation stops at the latest observed `ORDER_LINE_SHIPPED_DTTM` among the
+order's qualifying RxP rows, inclusive, including split shipments outside the
+reporting window. Day +11 ends at creation +12 days or shipment, whichever is
+earlier; orders do not have to ship within 11 days. An observed qualifying
+shipment is required, but this does not imply every line shipped. Cancellation
+evidence and missing shipment times on other qualifying rows remain audited;
+they do not erase observed shipped rows. Customers can belong to both this
+cohort and the aged cohort through different orders. Later days have fewer
+orders under observation; counts are not contact rates.
+
+Source SQL is `src/sql/opportunity_shipped_customer_contacts.sql`; the generator
+is `src/python/create_opportunity_shipped_customer_contacts.py`. Raw extraction,
+SQL history and a SQL/source fingerprint manifest live under
+`data/opportunity/shipped-customer-contacts/<start>_<exclusive-end>/`.
+Mode-specific `all-inbound/` and `handled-inbound/` directories retain complete
+candidate/order/contact Parquets, exclusions, daily exposure denominators,
+DuckDB verification SQL, the standalone Snowflake `summary.sql`, audit metadata
+and LaTeX. DuckDB recomputes each daily distinct count independently from the
+retained contacts. The standalone warehouse summary can be executed separately
+with the existing query runner and reconciled to `daily_summary.parquet`.
+
+Markdown is written under `outputs/tables/opportunity/<start>_<inclusive-end>/`.
+The target writes `src/latex/appendix/shipped_customer_contacts.tex` and includes
+it immediately after the aged contact analysis, in its own shipped-order
+subsection. It does not rerun the aged analysis or change its manual headings.
+`make report` rebuilds the PDF from retained results. Fresh extraction requires
+Snowflake browser SSO; CACHED=1 verifies the retained query/source fingerprints
+and makes no warehouse requests. PRINT_SQL=1 prints the final 14-row warehouse
+summary without querying. Dates are configurable with START_DATE and END_DATE.
+
+The initial November 2, 2026 extraction contains 387,273 orders and 172,621
+customers. Every order ID matches the strict-NULL, observed-shipment subset of
+the retained financial baseline exactly. The new table has 51,705 distinct
+contacting customers. All 14 daily rows reconcile to both DuckDB and a separately
+executed Snowflake summary; warehouse result fingerprints and the reconciliation
+receipt are retained under `all-inbound/`. Cached regeneration rechecks a receipt
+only when its source and summary-SQL fingerprints match the current analysis.
+There are 2,117 cohort orders with cancellation evidence and missing shipment
+times on other qualifying rows; their observed shipped rows remain eligible.
 
 ### Customer-initiated contacts around aged cancellation
 
@@ -1666,7 +1806,43 @@ Current default results: one contact day — 3,376 returning customers out of 27
 
 The contact-frequency reorder target also refreshes `src/latex/appendix/contact_frequency_reorders.tex`, included below the contact-day frequency table in `contact_analysis.tex`, with caption, reference and label `tab:contact-frequency-same-pet-part-reorders`. Contact-table reruns preserve the inclusion. The selected mode exports its own `reorder-table.tex`; run `make report` to rebuild the PDF.
 
-Data Verification includes formatted SQL listings beneath each of its six tables. Other report sections omit SQL listings; executable source/summary SQL remains in the analysis data directories (including the financial baseline `summary-report.sql`), and PRINT_SQL=1 remains available. Financial report generators emit tables and notes without embedding SQL.
+Data Verification includes formatted SQL listings beneath each of its six tables.
+Financial Analysis includes its SQL at the end of section 2.1, under "SQL used in
+the financial analysis" (2.1.6), after all four combined follow-up tables.
+Other report sections omit SQL listings. PRINT_SQL=1 remains available for the
+underlying analysis targets.
+
+### Financial SQL listings
+
+```sh
+make financial-sql-listings
+make report
+```
+
+`make report` automatically prepares nine financial listings using the existing
+SQL style, line numbers, syntax highlighting and wrapped long lines. The tracked
+generator is `src/python/create_financial_sql_listings.py`. It reads the retained
+May--July 2026 baseline `summary-report.sql`, two first-order cohort history
+queries, three RxP follow-up extracts and three all-Chewy follow-up extracts from
+`data/opportunity/`. The follow-up queries use the report's 70-day extraction
+window and October 28 observation cutoff. Source files remain unchanged; copies
+and an include file are generated under `src/autogenerated/financial-sql/`, with
+source paths and SHA-256 provenance in `source-hashes.json`.
+
+Each retained extraction is checked against its source/analysis manifest's SQL
+fingerprint, allowing the one export newline added by the existing baseline and
+whole-cohort writers. The baseline summary must embed the matching extraction.
+Formatting verifies unchanged SQL tokens. Missing or changed retained queries
+fail preparation; recreate the appropriate analysis cache before rebuilding.
+Preparing or compiling listings runs no SQL, tests or warehouse refresh.
+
+The baseline listing includes extraction and aggregation. Follow-up listings
+extract broad candidate populations; Python then applies endpoint/window rules,
+deduplicates customers/orders/sales and calculates cohort percentages. The report
+names the downstream modules and distinguishes RxP shipment/line sales from
+ECOM physical-line sales. Per-window local verification SQL remains alongside the
+analysis exports. The report-order helper keeps SQL last when financial table
+generators rerun; the omitted order-frequency table remains excluded.
 
 The existing first-order-line survival PNG is included in `src/latex/appendix/survival_anaysis.tex` under Survival Analysis, with label `fig:first-order-line-survival`. The appendix is included after Study Population Analysis. Run `make report` to rebuild the PDF; adding this figure does not rerun the underlying survival analysis.
 
@@ -1674,6 +1850,37 @@ Contact Analysis also includes `src/latex/appendix/contact_window_reorders.tex`,
 
 The appendix contents lists numbered subsubsections and the nested data-source questions. The four prescription-upload analyses are paragraph-level children of "Where is the prescription upload data coming from?", numbered 2.2.1.1--2.2.1.4. SQL headings are unnumbered so they do not consume child numbers or clutter the contents. Financial follow-up and contact detail headings remain subsubsections, and their generators retain this structure on reruns. Run `make report` to refresh the contents and PDF links.
 # Upload source data verification
+
+## Report data-source connections
+
+```sh
+make data-source-diagrams
+make report
+```
+
+Section 2.2.2, "How are data sources connected?", follows all four numbered
+children of section 2.2.1. It documents the current report's source grains,
+join fields, conversions, duplicate handling and analysis-specific windows.
+The tracked definitions are in `src/python/create_data_source_diagrams.py`.
+Editable `.mmd` files and transparent PNGs are generated at stable paths under
+`outputs/diagrams/data-source-connections/`: `overview`, `upload-verification`,
+`prescription-first-order` and `financial-reorder-contact`. The compact source
+grain table is also exported to `outputs/tables/data-source-connections/source-grains.md`.
+
+The same target also generates a separate `contact-matching.mmd` and transparent
+`contact-matching.png` in that diagram directory. It traces aged-line eligibility,
+the SQL LEFT JOIN on order ID and cancellation-relative time, Python customer and
+inbound checks, duplicate handling, and distinct daily/customer-frequency counts.
+This diagram is also included on its own landscape page in report section 2.2.2,
+after the contact-matching notes. Run `make report` to refresh the PDF.
+
+Rendering uses `.agents/skills/mermaid-diagrams/scripts/render.py` and Docker's
+`minlag/mermaid-cli:latest` image. Docker must be running. `make report` generates
+missing or outdated diagrams automatically; unchanged definitions and current
+PNGs are reused. Changing the tracked generator or renderer invalidates the PNGs.
+This preparation reads local definitions only and runs neither warehouse queries
+nor tests. Diagram and table outputs remain ignored; the existing report PDF
+continues at `outputs/pdf/cmpu-aged-order-analysis.pdf`.
 
 ## Recreate all six upload-source tables
 

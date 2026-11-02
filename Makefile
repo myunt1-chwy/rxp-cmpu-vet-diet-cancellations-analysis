@@ -16,12 +16,24 @@ report-sql-listings:
 	.venv/bin/python -m src.python.create_report_sql_listings
 
 .PHONY: report
-report: report-sql-listings
+report: report-sql-listings data-source-diagrams combined-follow-up-table financial-sql-listings
 	@command -v "$(LATEXMK)" >/dev/null 2>&1 || { echo 'Error: latexmk is required. Install a TeX distribution with latexmk and pdflatex, or set LATEXMK=/path/to/latexmk.' >&2; exit 1; }
 	mkdir -p build/latex outputs/pdf
 	cd src/latex && "$(LATEXMK)" -pdf -interaction=nonstopmode -halt-on-error -file-line-error -outdir="$(CURDIR)/build/latex" main.tex
 	cp build/latex/main.pdf outputs/pdf/cmpu-aged-order-analysis.pdf
 	@echo "Report: outputs/pdf/cmpu-aged-order-analysis.pdf"
+
+.PHONY: data-source-diagrams
+data-source-diagrams:
+	.venv/bin/python -m src.python.create_data_source_diagrams
+
+.PHONY: combined-follow-up-table
+combined-follow-up-table:
+	.venv/bin/python -m src.python.create_combined_follow_up_table
+
+.PHONY: financial-sql-listings
+financial-sql-listings:
+	.venv/bin/python -m src.python.create_financial_sql_listings
 
 .PHONY: cmpu-upload-time-ratio-distribution
 cmpu-upload-time-ratio-distribution:
@@ -203,6 +215,14 @@ opportunity-new-vet-diet-customer-chewy-follow-up:
 .PHONY: opportunity-aged-customer-contacts
 opportunity-aged-customer-contacts:
 	.venv/bin/python -m src.python.create_opportunity_aged_customer_contacts --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(HANDLED_ONLY)),--handled-only) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-shipped-customer-contacts
+opportunity-shipped-customer-contacts:
+	.venv/bin/python -m src.python.create_opportunity_shipped_customer_contacts --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" $(if $(filter 1,$(HANDLED_ONLY)),--handled-only) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-customer-contacts-by-cancel-reason
+opportunity-customer-contacts-by-cancel-reason:
+	.venv/bin/python -m src.python.create_opportunity_contacts_by_cancel_reason --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" $(if $(filter 1,$(HANDLED_ONLY)),--handled-only) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
 
 .PHONY: opportunity-contact-frequency-reorders
 opportunity-contact-frequency-reorders:

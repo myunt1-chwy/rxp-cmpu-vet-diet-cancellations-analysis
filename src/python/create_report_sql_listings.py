@@ -38,6 +38,19 @@ TABLES = {
 }
 
 
+def format_sql(sql, source_name):
+    """Format SQL for listings without changing literals, expressions or comments."""
+    formatted = sqlparse.format(sql, keyword_case='upper', reindent=False).rstrip() + '\n'
+
+    def tokens(text):
+        return [token.normalized for statement in sqlparse.parse(text)
+                for token in statement.flatten() if not token.is_whitespace]
+
+    if tokens(sql) != tokens(formatted):
+        raise ValueError(f'SQL formatting changed tokens in {source_name}')
+    return formatted
+
+
 def main():
     DESTINATION.mkdir(parents=True, exist_ok=True)
     hashes = {}
@@ -73,13 +86,7 @@ def main():
             # Preserve the source's deliberate CTE/function indentation. Automatic
             # reindentation creates very deep alignment in Snowflake lambdas and
             # scalar subqueries; listings wraps long lines for the printed page.
-            formatted = sqlparse.format(sql, keyword_case='upper', reindent=False).rstrip() + '\n'
-            # Formatting must not change SQL string literals or expressions.
-            def tokens(text):
-                return [token.normalized for statement in sqlparse.parse(text)
-                        for token in statement.flatten() if not token.is_whitespace]
-            if tokens(sql) != tokens(formatted):
-                raise ValueError(f'SQL formatting changed tokens in {source.name}')
+            formatted = format_sql(sql, source.name)
             write_text(DESTINATION/f'{filename}.sql', formatted)
             hashes[source.name] = hashlib.sha256(sql.encode()).hexdigest()
             lines.extend([r'\Needspace{6\baselineskip}',

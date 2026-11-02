@@ -1,0 +1,65 @@
+\clearpage
+\subsection{What is the contact pattern of CMPU order customers?}
+\label{subsec:shipped-customer-contact-analysis}
+\subsubsection{When did customers contact us between order creation and shipment?}
+Table~\ref{tab:shipped-customer-contacts-by-creation-day} follows CMPU vet-diet
+\texttt{CUSTOMER\_UPLOAD} orders with SQL NULL cancellation reason and at least
+one qualifying shipment from May 1, 2026 through July 31, 2026, inclusive, UTC.
+The cohort contains 172,621 customers and 387,273 orders.
+
+\begin{table}[!htbp]
+\centering
+\caption{Inbound contacts for shipped orders with NULL cancellation reason, relative to order creation: distinct customers contacting and distinct order IDs, from day $-2$ through $+11$, stopping at shipment. A total of 51,705 distinct customers contacted in this window.}
+\label{tab:shipped-customer-contacts-by-creation-day}
+\begin{tabular}{@{}rrr@{}}
+\toprule
+Days relative to creation & Customers contacting & Shipped order IDs \\
+\midrule
+-2 & 5 & 5 \\
+-1 & 694 & 703 \\
+0 & 50,203 & 52,630 \\
+1 & 3,975 & 3,998 \\
+2 & 3,020 & 3,036 \\
+3 & 1,967 & 1,973 \\
+4 & 1,326 & 1,329 \\
+5 & 1,005 & 1,009 \\
+6 & 716 & 718 \\
+7 & 532 & 534 \\
+8 & 411 & 413 \\
+9 & 240 & 241 \\
+10 & 74 & 74 \\
+11 & 2 & 2 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Same inbound direction and order/customer matching rules as
+Table~\ref{tab:aged-customer-contacts-by-cancellation-day}, across all contact
+categories. Include handled, unhandled and unknown-handled inbound attempts.
+Day 0 begins at UTC \texttt{ORDER\_PLACED\_DTTM}, used as order creation;
+day $n$ is the elapsed 24-hour bin $[n,n+1)$, so day $-2$ is creation minus
+two days through creation minus one day. Count only contacts at or before
+the latest \texttt{ORDER\_LINE\_SHIPPED\_DTTM} across qualifying RxP lines
+on that order, including split-shipment rows outside the shipment cohort window.
+Day $+11$ ends at creation plus 12 days, or shipment if earlier. This does not
+restrict orders to shipping within 11 days. It does not establish that every
+line on the order shipped. NULL means SQL NULL, excluding blank strings;
+orders with any non-NULL reason on qualifying lines are excluded.
+An observed shipment is required; a NULL reason alone is not shipment evidence.
+2,117 cohort orders also have cancellation evidence on
+other qualifying line/shipment rows; their observed shipped rows still qualify.
+Each customer and order counts once per relative day, regardless of repeated
+legs, sessions, lines or shipments. Counts overlap across days. Missing or
+mismatching contact customers, missing contact times, outbound and unknown
+directions are excluded and audited. Later days cover fewer orders because
+observation ends at shipment; these are counts, not contact rates. There is
+no first-order or prescription-creation restriction. Current source snapshots
+and the shipment-date cohort differ from the aged-cancellation comparison.
+Customers may appear in both tables through different orders.
+Extraction time (UTC): 2026-11-02T20:20:41.285035+00:00.
+SQL and full order/contact audits are retained under
+\path{data/opportunity/shipped-customer-contacts/};
+the source template is \path{src/sql/opportunity_shipped_customer_contacts.sql}.
+\end{minipage}
+\end{table}

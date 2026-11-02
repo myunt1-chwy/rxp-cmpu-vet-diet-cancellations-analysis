@@ -344,6 +344,8 @@ def financial_opportunity_latex(summary, params):
         amount='Incomplete' if pd.isna(row.actual_net_sales) else f'{row.actual_net_sales:,.2f}'
         if row.row_type == 'reason' and row.cancellation_reason != MISSING_REASON:
             amount = r'\textcolor{gray}{'+amount+'}'
+        if row.row_type == 'reason' and str(row.cancellation_reason).strip().casefold() == 'aged order':
+            rows.append(r'\rowcolor{yellow!35}')
         rows.append('{'+escape(row.cancellation_reason)+'} & '+f'{row.customers:,} & {row.orders:,} & {row.line_items:,} & {amount}'+r' \\')
     text = r'''\clearpage
 \subsection{Financial Opportunity Analysis}\label{subsec:financial-opportunity-analysis}

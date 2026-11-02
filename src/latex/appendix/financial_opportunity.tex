@@ -1,5 +1,5 @@
 \clearpage
-\subsection{Financial Opportunity Analysis}\label{subsec:financial-opportunity-analysis}
+\subsection{What is the financial impact of CMPU aged orders?}\label{subsec:financial-opportunity-analysis}
 Table~\ref{tab:financial-opportunity-cancellations} reports distinct customer and order counts,
 qualifying order-line counts and recorded net sales by cancellation reason
 for orders shipped or cancelled from May 1, 2026 through July 31, 2026, inclusive, UTC
@@ -9,7 +9,7 @@ customer ID to vet-diet prescriptions with
 \texttt{PRESCRIPTION\_SOURCE = CMPU} and
 \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD}.
 
-\subsubsection{Orders by cancellation reason}
+\subsubsection{What is the estimated net sales lost from CMPU aged orders?}
 \begin{table}[htbp]
 \centering
 \caption{Financial opportunity baseline: cancellation reasons, customers, orders, qualifying order lines and net sales for CMPU vet-diet customer-upload orders shipped or cancelled May 1, 2026 through July 31, 2026, inclusive, UTC.}
@@ -21,6 +21,7 @@ customer ID to vet-diet prescriptions with
 Cancellation reason & Customers & Orders & Order lines & Net sales \\
 \midrule
 {[No recorded cancellation reason]} & 172,878 & 387,707 & 433,051 & 35,821,384.85 \\
+\rowcolor{yellow!35}
 {Aged order} & 30,382 & 38,314 & 41,713 & \textcolor{gray}{3,470,380.19} \\
 {Customer initiated cancellation} & 29,455 & 32,939 & 37,959 & \textcolor{gray}{2,945,818.13} \\
 {Customer request} & 11,382 & 11,948 & 13,662 & \textcolor{gray}{1,042,195.19} \\
@@ -62,16 +63,8 @@ recoverable revenue from cancelled orders.
 \end{minipage}
 \end{table}
 
-\input{appendix/financial_opportunity_follow_up_same_part_pet}
-\input{appendix/financial_opportunity_new_upload_follow_up_same_part_pet}
-\input{appendix/financial_opportunity_new_vet_diet_follow_up_same_part_pet}
-\input{appendix/financial_opportunity_follow_up_same_pet_different_part}
-\input{appendix/financial_opportunity_new_upload_follow_up_same_pet_different_part}
-\input{appendix/financial_opportunity_new_vet_diet_follow_up_same_pet_different_part}
-\input{appendix/financial_opportunity_follow_up_any_vet_diet}
-\input{appendix/financial_opportunity_new_upload_follow_up_any_vet_diet}
-\input{appendix/financial_opportunity_new_vet_diet_follow_up_any_vet_diet}
-\input{appendix/financial_opportunity_chewy_follow_up}
-\input{appendix/financial_opportunity_new_upload_chewy_follow_up}
-\input{appendix/financial_opportunity_new_vet_diet_chewy_follow_up}
-\input{appendix/financial_opportunity_customer_order_frequency}
+\input{appendix/financial_opportunity_same_part_pet_comparison}
+\input{appendix/financial_opportunity_same_pet_different_part_comparison}
+\input{appendix/financial_opportunity_any_vet_diet_comparison}
+\input{appendix/financial_opportunity_all_chewy_comparison}
+\input{appendix/financial_opportunity_sql}
