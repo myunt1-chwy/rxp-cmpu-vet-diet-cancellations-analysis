@@ -1,0 +1,33 @@
+\clearpage
+\subsubsection{Section Reproduction Steps}\label{subsubsec:reproduce-upload-delays}
+After \texttt{make setup}, ensure Docker is running and accessible for the
+Mermaid Sankey renderer. From the repository root, run:
+\begin{lstlisting}[basicstyle=\ttfamily\small,breaklines=true]
+make reproduce-upload-delay-section
+make report
+\end{lstlisting}
+This replays the retained August 15 inclusive--October 15 exclusive prescription
+cohort, August 1--October 25 upload discovery window, and October 27, 2026 aged
+cancellation cutoff. The section target runs:
+\begin{itemize}[leftmargin=*]
+\item \path{study-population-tables}: validates and renders
+Tables~\ref{tab:study-population-counts} and
+\ref{tab:study-population-prescription-decisions}, then invokes
+\path{prescription-cohort-order-comparison} for
+Table~\ref{tab:first-all-order-cancellations}.
+\item \path{cmpu-first-order-line-status}: regenerates the
+\texttt{CUSTOMER\_UPLOAD} Sankey in Figure~\ref{fig:first-order-lines-customer-upload}.
+\item \path{cmpu-upload-entity-order-creation-distributions}: regenerates
+Figure~\ref{fig:entity-upload-vs-order-creation}.
+\item \path{cmpu-upload-entity-state-change-distributions}: regenerates
+Figures~\ref{fig:entity-upload-state-time-overall} and
+\ref{fig:entity-upload-state-time-aged}.
+\item \path{cmpu-upload-to-approval-distribution}: regenerates
+Figure~\ref{fig:accepted-upload-to-approval-cumulative}.
+\end{itemize}
+All inputs are fingerprint-checked retained snapshots under \path{data/}; no
+warehouse refresh occurs. The two population tables retain their frozen
+first-order membership, while the financial comparison uses its documented
+later snapshot. Exact replay requires these ignored extracts and manifests.
+See HOWTO.md for source SQL and extraction steps; new snapshots can change
+membership and must be reconciled before replacing the frozen populations.

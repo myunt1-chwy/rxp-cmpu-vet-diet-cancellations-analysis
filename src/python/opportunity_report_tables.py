@@ -17,7 +17,8 @@ COMBINED_DIFFERENT_PART='financial_opportunity_same_pet_different_part_compariso
 COMBINED_ANY_VET_DIET='financial_opportunity_any_vet_diet_comparison'
 COMBINED_ALL_CHEWY='financial_opportunity_all_chewy_comparison'
 SQL_LISTINGS='financial_opportunity_sql'
-KNOWN_FILES=list(WHOLE_FILES.values())+list(UPLOAD_FILES.values())+list(VET_FILES.values())+[VET_CHEWY,LEGACY_VET,FREQUENCY,CHEWY,UPLOAD_CHEWY,LEGACY_WHOLE,LEGACY_UPLOAD,COMBINED_SAME_PART,COMBINED_DIFFERENT_PART,COMBINED_ANY_VET_DIET,COMBINED_ALL_CHEWY,SQL_LISTINGS]
+REPRODUCTION='reproduction_financial'
+KNOWN_FILES=list(WHOLE_FILES.values())+list(UPLOAD_FILES.values())+list(VET_FILES.values())+[VET_CHEWY,LEGACY_VET,FREQUENCY,CHEWY,UPLOAD_CHEWY,LEGACY_WHOLE,LEGACY_UPLOAD,COMBINED_SAME_PART,COMBINED_DIFFERENT_PART,COMBINED_ANY_VET_DIET,COMBINED_ALL_CHEWY,SQL_LISTINGS,REPRODUCTION]
 
 
 def follow_up_inputs(appendix):
@@ -41,6 +42,7 @@ def follow_up_inputs(appendix):
     for name in chewy_files:
         if (appendix/(name+'.tex')).exists():names.append(name)
     if (appendix/(SQL_LISTINGS+'.tex')).exists():names.append(SQL_LISTINGS)
+    if (appendix/(REPRODUCTION+'.tex')).exists():names.append(REPRODUCTION)
     return '\n'.join('\\input{appendix/'+name+'}' for name in names)
 
 

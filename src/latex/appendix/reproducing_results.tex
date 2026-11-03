@@ -1,6 +1,14 @@
 \subsection{How do I reproduce the results and the report?}
 The code to reproduce all the results is in \ref{ref:analysis-repository}. Follow the instructions in the HOWTO.md file to generate the figures, models and analyses. You will need to clone the repository to run the code. The code uses make and python.
 
+Section-specific commands and table/figure mappings are in
+Sections~\ref{subsubsec:reproduce-financial}, \ref{subsubsec:reproduce-contacts},
+\ref{subsubsec:reproduce-upload-delays} and \ref{subsubsec:reproduce-survival}.
+Those commands replay retained, fingerprint-checked extracts; the ignored
+\path{data/} files are required in addition to the repository checkout.
+Run \texttt{make setup} first and \texttt{make report} after regenerating results.
+The latter also prepares the data-source Mermaid diagrams and SQL listings.
+
 To recreate all six upload-source verification tables and their SQL listings,
 run \texttt{make upload-data-verification-all}, then \texttt{make report} to
 rebuild this report. Fresh extraction requires Snowflake access. To regenerate

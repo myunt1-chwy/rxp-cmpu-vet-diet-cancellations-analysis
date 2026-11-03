@@ -1,5 +1,4 @@
-\clearpage
-\subsubsection{How many customers contacted us by order cancellation reason?}
+\subsubsection{What is the distribution of CMPU customers with APPROVAL CHANNEL = CUSTOMER\_UPLOAD that contacted Chewy by cancellation reason?}
 Table~\ref{tab:customer-contacts-by-cancellation-reason} compares customers with
 inbound contacts across CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} orders with
 qualifying shipment or cancellation activity from May 1, 2026 through July 31, 2026, inclusive, UTC.
@@ -48,10 +47,9 @@ appear in multiple reason rows; TOTAL independently counts each customer once
 overall and is not the sum of the reason rows. Reasons reflect the current
 snapshot, grouped case-insensitively after trimming. SQL NULL is explicit;
 blank strings, if present, form a separate row. NULL does not imply no cancellation.
-This broader cohort includes 434
+This cohort includes 434
 NULL-reason order/reason records with observed cancellation but no qualifying
-shipment, which are absent from Table~\ref{tab:shipped-customer-contacts-by-creation-day}.
-Unlike the daily contact tables, this summary has no creation-relative day bounds.
+shipment. This summary has no creation-relative day bounds.
 Observation ends at each order's observed
 event, so exposure varies; these are descriptive contact shares, not causal effects.
 Exact duplicate contacts collapse; missing or mismatching contact customers,

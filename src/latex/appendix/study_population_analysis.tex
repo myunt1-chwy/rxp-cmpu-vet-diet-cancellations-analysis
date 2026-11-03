@@ -1,7 +1,7 @@
 % Generate the CUSTOMER_UPLOAD input with the cached first-order-line target in HOWTO.md.
 \clearpage
 \nolinenumbers
-\subsection{Aged Order Delay  Analysis}\label{app:aged-order-analysis}
+\subsection{What are the delays in processing uploaded prescriptions?}\label{app:aged-order-analysis}
 An order becomes an aged order when canceled automatically after the
 time between order creation and time of shipment or any other
 cancellation exceeds 11 days. A detailed breakdown of cancellation
@@ -55,14 +55,6 @@ From the available entity upload data, it takes less than a minute to
 approve an accepted prescription document see Figure
 \ref{fig:accepted-upload-to-approval-cumulative}.
 
-We look at the chance of an order becoming an aged order in Section
-\ref{subsec:survival-analysis}. Here, we build a survival
-curve. Survival means that an order has yet to encounter a document
-upload or cancellation. One can see in Figure
-\ref{fig:first-order-line-survival} that after day 3, the change of an
-order becoming an aged order is about ~50\% (28.90%/55.80%).
-
-
 \begin{table}[htbp]
 \centering
 \caption{Study population and uploaded-document counts. Counts are distinct within each population.}
@@ -74,14 +66,9 @@ order becoming an aged order is about ~50\% (28.90%/55.80%).
 \cmidrule(lr){6-7}
 Population & Prescriptions & Orders & \shortstack[r]{Order\\lines} & Customers & Total & Accepted \\
 \midrule
-All approval channels, matched to first-order lines
-    & 103,516 & 95,533 & 103,516 & 80,649 & 30,735 & 26,254 \\
-\addlinespace
-\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines
-    & 95,073 & 87,724 & 95,073 & 73,905 & 29,715 & 25,606 \\
-\addlinespace
-\texttt{CUSTOMER\_UPLOAD} aged-cancellation subset
-    & 26,443 & 24,408 & 26,443 & 20,587 & 782 & 52 \\
+All approval channels, matched to first-order lines & 103,516 & 95,533 & 103,516 & 80,649 & 30,735 & 26,254 \\
+\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines & 95,073 & 87,724 & 95,073 & 73,905 & 29,715 & 25,606 \\
+\texttt{CUSTOMER\_UPLOAD} aged-cancellation subset & 26,443 & 24,408 & 26,443 & 20,587 & 782 & 52 \\
 \bottomrule
 \end{tabular}
 
@@ -107,14 +94,9 @@ shared by prescriptions count once per row. Accepted documents have current
 \toprule
 Population & Prescriptions & Approved & Unknown & Rejected \\
 \midrule
-All approval channels, matched to first-order lines
-    & 103,516 & 36,874 & 66,595 & 47 \\
-\addlinespace
-\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines
-    & 95,073 & 30,504 & 64,569 & 0 \\
-\addlinespace
-\texttt{CUSTOMER\_UPLOAD} aged-cancellation subset
-    & 26,443 & 6 & 26,437 & 0 \\
+All approval channels, matched to first-order lines & 103,516 & 36,874 & 66,595 & 47 \\
+\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines & 95,073 & 30,504 & 64,569 & 0 \\
+\texttt{CUSTOMER\_UPLOAD} aged-cancellation subset & 26,443 & 6 & 26,437 & 0 \\
 \bottomrule
 \end{tabular}
 
@@ -193,6 +175,5 @@ line/order relative to the earlier frozen population in Table~\ref{tab:study-pop
 \clearpage
 \linenumbers
 
-\input{appendix/survival_analysis}
 \input{appendix/entity_upload_analysis}
 \input{appendix/approval_analysis}

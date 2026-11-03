@@ -342,13 +342,16 @@ def financial_opportunity_latex(summary, params):
     for row in summary.itertuples(index=False):
         if row.row_type=='total': rows.append(r'\midrule')
         amount='Incomplete' if pd.isna(row.actual_net_sales) else f'{row.actual_net_sales:,.2f}'
-        if row.row_type == 'reason' and row.cancellation_reason != MISSING_REASON:
+        if row.row_type == 'total' or row.cancellation_reason != MISSING_REASON:
             amount = r'\textcolor{gray}{'+amount+'}'
         if row.row_type == 'reason' and str(row.cancellation_reason).strip().casefold() == 'aged order':
             rows.append(r'\rowcolor{yellow!35}')
-        rows.append('{'+escape(row.cancellation_reason)+'} & '+f'{row.customers:,} & {row.orders:,} & {row.line_items:,} & {amount}'+r' \\')
+        label = str(row.cancellation_reason)
+        if row.row_type == 'reason' and row.cancellation_reason == MISSING_REASON:
+            label += ' (actual net sales)'
+        rows.append('{'+escape(label)+'} & '+f'{row.customers:,} & {row.orders:,} & {row.line_items:,} & {amount}'+r' \\')
     text = r'''\clearpage
-\subsection{Financial Opportunity Analysis}\label{subsec:financial-opportunity-analysis}
+\subsection{What is the financial impact of CMPU aged orders?}\label{subsec:financial-opportunity-analysis}
 Table~\ref{tab:financial-opportunity-cancellations} reports distinct customer and order counts,
 qualifying order-line counts and recorded net sales by cancellation reason
 for orders placed from '''+first+' through '+last+r''', inclusive, UTC
@@ -358,7 +361,7 @@ customer ID to vet-diet prescriptions with
 \texttt{PRESCRIPTION\_SOURCE = CMPU} and
 \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD}.
 
-\subsubsection{Orders by cancellation reason}
+\subsubsection{What is the estimated net sales lost from CMPU aged orders?}
 \begin{table}[htbp]
 \centering
 \caption{Financial opportunity baseline: cancellation reasons, customers, orders, qualifying order lines and net sales for CMPU vet-diet customer-upload orders placed '''+first+' through '+last+r''', inclusive, UTC.}
@@ -367,7 +370,7 @@ customer ID to vet-diet prescriptions with
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.40\linewidth}rrrr@{}}
 \toprule
-Cancellation reason & Customers & Orders & Order lines & Net sales \\
+Cancellation reason & Customers & Orders & Order lines & \shortstack{Estimated\\net sales} \\
 \midrule
 '''+ '\n'.join(rows)+r'''
 \bottomrule
@@ -389,8 +392,9 @@ decimals; exports retain five. Current cancellation reasons are grouped
 case-insensitively; a missing reason does not establish an uncancelled order.
 Orders can appear in multiple reason rows if their lines have different
 reasons; TOTAL counts each order once. Line counts and sales are additive.
-Gray net-sales amounts have a recorded cancellation reason and represent
-unrealized sales, not realized revenue. TOTAL includes these gray amounts.
+Gray reason-row net-sales amounts have a recorded cancellation reason and represent
+unrealized sales, not realized revenue. The gray TOTAL combines these amounts
+with the no-recorded-cancellation-reason amount.
 Recorded net sales are a baseline for opportunity sizing, not an estimate of
 recoverable revenue from cancelled orders.
 \end{minipage}

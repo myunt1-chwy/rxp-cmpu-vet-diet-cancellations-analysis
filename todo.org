@@ -728,6 +728,44 @@
 * DONE Prepare committed analysis changes and PDF for main
   - User authorizes committing and merging the current feature branch. Track outputs/pdf, preserve other generated-output exclusions, rebuild/verify report and run final checks before fast-forwarding local main.
   - Updated .gitignore to track outputs/pdf while retaining other generated-output exclusions. Rebuilt the current report and visually inspected it; no LaTeX warnings. Final checks: 621 passed, 16 subtests passed in 32.74s. Current feature work is committed and ready for a fast-forward into local main with the PDF. User explicitly authorizes commit and merge.
+* DONE Limit HOWTO to report targets and explicitly retained computations
+  - Keep current report reproduction/build/setup targets and required source/cohort prerequisites. Keep the order-frequency computation explicitly retained when removed from the report. Remove unrelated analysis/skill-management documentation and stale instructions; audit documented targets against the Makefile and report dependencies. Documentation only; no data refresh or test-suite run, commit only after approval.
+  - Pruned legacy reorder/WISMO/history/clinic, unrelated timing/ratio and skill-management sections. Retained report targets, first-order cohort/event-time prerequisites and the explicitly retained same-pet/product order-frequency matrix. Updated study-table Make instructions, report paths/layout notes and current baseline styling/date settings. All 33 documented target names exist and map to the report dependency chain or required inputs; explicit frequency retention, excluded families and Markdown fences verified. HOWTO reduced from 2,110 to 1,151 lines relative to the start of this cleanup. Makefile/code/data/PDF untouched by this task; git diff --check passes. No tests or warehouse queries run; uncommitted pending approval.
+
+* DONE Add section reproduction steps and complete report Make coverage
+  - Add a Section Reproduction Steps subsubsection to appendix sections 2.1--2.4. Trace every report table/figure to Make, add missing table renderers/targets, and document retained-snapshot prerequisites and exact commands. Verify cached reproduction, rebuild and inspect the PDF; no warehouse refresh or test-suite run. Commit only after approval.
+  - Added reproducible section targets and subsection entries 2.1.7 (page 30), 2.2.6 (page 35), 2.3.4 (page 41), and 2.4.1 (page 43), preserving existing analysis child numbering. Documented exact snapshot dates, required ignored extracts/manifests, Docker prerequisite, constituent table/figure targets and fresh-snapshot limits in the PDF and HOWTO.
+  - Added Make-driven renderers for both study-population tables and the previously manual contact-window reorder table. Fingerprint checks, existing cohort validation and independent DuckDB aggregations reproduce all displayed counts, including the 1,184/237 versus 29,198/3,595 timing comparison. Preserved report titles/styling on regeneration. Financial follow-ups, contact results, study tables, Sankey, upload charts and survival replay all pass using retained inputs. Docker rendering retried outside the sandbox after socket permissions prevented the first attempt; no warehouse queries or tests run.
+  - Verified all reachable LaTeX inputs and 11 figure assets exist, all four contents entries resolve, and rebuilt/visually checked the PDF reproduction pages. Survival output hash unchanged after replay. Final LaTeX log and git diff --check clean. Changes remain uncommitted pending approval.
+
+* DONE Rename sections 2.2.4 and 2.2.5 to contact/reorder propensity questions
+  - Apply the requested titles, with "more frequent contact" completing the first question grammatically. Update the existing frequency generator; rebuild and inspect both headings and contents. No data refresh or test-suite run; commit only after approval.
+  - Updated both report headings and the frequency generator. Rebuilt and visually checked pages 32--33; contents, final LaTeX log and git diff --check clean. Uncommitted pending approval.
+
+* DONE Clarify Table 1 estimated and actual net sales styling
+  - Rename the sales column Estimated net sales, make the TOTAL sales amount gray, and append (actual net sales) to the no-cancellation-reason row label. Persist in the generator, rebuild and visually check the PDF. No data refresh or test-suite run; commit only after approval.
+  - Applied all three changes to Table 1 and its generator. Clarified that the gray TOTAL includes both reason-row estimates and the no-recorded-reason amount. Rebuilt PDF and visually checked page 3; final LaTeX log and git diff --check clean. Uncommitted pending approval.
+
+* DONE Rename section 2.2.3 to the requested contact frequency question
+  - Update report and generator to "What was the frequency of contacting Chewy for CMPU aged order customers?" Rebuild and check the PDF title and contents. No data refresh or test-suite run; commit only after approval.
+  - PDF rebuilt; section 2.2.3 heading and contents verified on page 32. Visual layout, final LaTeX log and git diff --check clean. Uncommitted pending approval.
+
+* DONE Rename section 2.2.2 to the CMPU aged-order customer contact timing question
+  - Updated the report fragment and generator heading to "When did the CMPU aged order customers contact Chewy relative to the cancellation date?" Rebuilt the PDF and checked section/contents numbering. No data refresh or test-suite run; uncommitted pending approval.
+
+* DONE Rename section 2.2.1 to the requested CMPU customer contact distribution title
+  - Update the report fragment and generator to use the requested title with APPROVAL CHANNEL = CUSTOMER_UPLOAD; rebuild and check heading/contents layout. No data refresh or test-suite run; commit only after approval.
+  - Updated both title definitions and rebuilt the PDF. Section 2.2.1 remains on page 30; wrapped heading visually checked, contents updated, final LaTeX log and git diff --check clean. Uncommitted pending approval.
+  - Added the requested trailing question mark to the report and generator title.
+
+* DONE Remove shipped-order contact section and its dedicated code
+  - Remove the current section 2.3, its Python/SQL/LaTeX files, Make target, HOWTO and source notes. Preserve the cancellation-reason summary now under 2.2.1. Remove stale cross-references and rebuild/inspect the PDF; no data refresh or test-suite run. Commit only after approval.
+  - Deleted the dedicated shipped-contact implementation and removed all live references. Section 2.2.1 remains on page 30; Aged Order Delay Analysis now follows as 2.3 on page 34. Rebuilt PDF and visually checked the following section; no undefined references, LaTeX warnings or overfull boxes, and git diff --check passes. Historical ignored extracts and task/log records retained. Uncommitted pending approval.
+
+* DONE Move cancellation-reason contact summary to section 2.2.1
+  - Place the former 2.3.2 first under 2.2, before its existing first child; preserve this placement on regeneration. Rebuild and visually verify PDF section numbering and contents. No data refresh or test-suite run; commit only after approval.
+  - Moved the include into the start of contact_analysis.tex and updated both contact publishers to preserve it. Removed the now-unneeded leading page break. PDF confirms new 2.2.1 on page 30 (Table 6), followed by former 2.2.1 as 2.2.2 on page 31. Contents and cross-references regenerated; page 30 visually inspected, final LaTeX log and git diff --check clean. Counts unchanged; uncommitted pending approval.
+
 * DONE Remove creation-relative day bounds from cancellation-reason contact summary
   - Include all available matching inbound contacts through the existing observed shipment/cancellation endpoint. Refresh data in a separate cache, reconcile cohort keys and expanded contact counts, update documentation and rebuild/inspect Table 11. Preserve daily-table windows; no test-suite run; commit only after approval.
   - Removed both creation-relative bounds from SQL and Python validation; retained the observed endpoint and matching/inbound rules. Fresh event-capped exports retain all prior contact keys and exactly the same 484,374 order/reason cohort records. Added 56 qualifying contact records involving 32 customers; the distinct contacting total increased by four to 101,227 of 225,434 (44.90%). All reason/global counts reconcile independently in DuckDB. Updated notes/HOWTO, regenerated Table 11 and visually inspected page 34; git diff --check passes. No test-suite run; uncommitted pending approval.

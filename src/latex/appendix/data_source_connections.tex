@@ -169,16 +169,6 @@ orders. The contact-frequency and $-7$ through $+3$ contact-window comparisons
 join customer-level segments to verified 14-day same-pet/part outcomes by
 \texttt{CUSTOMER\_ID}, retaining customers without a reorder in the denominator.
 
-The shipped-order companion in Table~\ref{tab:shipped-customer-contacts-by-creation-day}
-uses the same prescription/line and contact order/customer joins, with SQL NULL
-cancellation reasons and qualifying shipment activity in May--July 2026.
-Its day origin is \texttt{ORDER\_PLACED\_DTTM}; contacts are observed from day
-$-2$ through $+11$, capped at the latest qualifying line shipment on the order.
-Split shipments collapse to one order endpoint. Customers may occur in both
-contact cohorts through different orders; observed shipment does not establish
-that every order line shipped. The implementation is
-\path{src/sql/opportunity_shipped_customer_contacts.sql} and
-\path{src/python/create_opportunity_shipped_customer_contacts.py}.
 Table~\ref{tab:customer-contacts-by-cancellation-reason} uses the broader financial
 shipment/cancellation cohort and the same contact order/customer joins, grouping
 distinct contacting customers by current reason. No creation-relative day bounds

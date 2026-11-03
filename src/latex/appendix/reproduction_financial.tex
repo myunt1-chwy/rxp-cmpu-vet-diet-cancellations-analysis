@@ -1,0 +1,26 @@
+\clearpage
+\subsubsection{Section Reproduction Steps}\label{subsubsec:reproduce-financial}
+From the repository root, after \texttt{make setup}, replay the retained May--July
+2026 extracts and rebuild the PDF:
+\begin{lstlisting}[basicstyle=\ttfamily\small,breaklines=true]
+make reproduce-financial-section
+make report
+\end{lstlisting}
+The section target uses cached inputs only. It recreates
+Table~\ref{tab:financial-opportunity-cancellations} with
+\path{opportunity-order-cancellation-summary} using
+\path{DATE_BASIS=shipped-or-cancelled} and \texttt{WRITE\_LATEX=1}.
+The four follow-up comparisons use
+\path{opportunity-follow-up-sales},
+\path{opportunity-new-upload-customer-follow-up} and
+\path{opportunity-new-vet-diet-customer-follow-up}, including their Chewy-wide
+companions, then \path{combined-follow-up-table}.
+\path{financial-sql-listings} recreates the executable SQL listings.
+All use the displayed May 1 inclusive--August 1 exclusive cohort and October 28,
+2026 observation cutoff; follow-up windows are 7 through 70 days.
+
+Retained Parquet extracts, manifests and first-order cohort inputs under
+\path{data/opportunity/} are required and are not stored in Git.
+Fingerprints are checked before reuse. To obtain a new warehouse snapshot,
+run the underlying targets without \texttt{CACHED=1}, following HOWTO.md for the
+first-order history prerequisites. New snapshots may change counts.

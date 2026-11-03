@@ -1,0 +1,20 @@
+\clearpage
+\subsubsection{Section Reproduction Steps}\label{subsubsec:reproduce-survival}
+From the repository root, after \texttt{make setup}, run:
+\begin{lstlisting}[basicstyle=\ttfamily\small,breaklines=true]
+make reproduce-survival-section
+make report
+\end{lstlisting}
+The target runs \path{cmpu-first-order-line-survival}, which validates the
+retained event-time source and regenerates
+Figure~\ref{fig:first-order-line-survival}. It uses prescriptions created
+August 15 inclusive--October 15 exclusive, 2026, and upload discovery starting
+August 1. The retained source defines an exclusive October 26 upload endpoint
+and the same October 26, 2026, 00:00 UTC right-censoring cutoff.
+
+Retained event-time Parquet extracts and manifests under
+\path{data/cmpu-first-order-line-event-times/} are required and are not in Git.
+The plotting target checks the source query, dates and fingerprint, and performs
+no extraction. To obtain a new snapshot, run
+\texttt{make cmpu-first-order-line-event-times} first with the same dates;
+then rerun the section target. New snapshots may change the curve.

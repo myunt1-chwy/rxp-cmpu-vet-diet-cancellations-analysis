@@ -135,8 +135,8 @@ def latex_table(daily,audit,start,end,as_of,handled_only):
     rows=[f'{r.relative_day} & {r.distinct_customers:,} & {r.distinct_aged_orders:,}'+r' \\' for r in daily.itertuples()]
     handled_note=r'Require \texttt{HANDLED\_FLAG=TRUE}.' if handled_only else 'Include handled, unhandled and unknown-handled inbound attempts.'
     return r"""\clearpage
-\subsection{Contact Analysis}\label{subsec:contact-analysis}
-\subsubsection{Contacts by day relative to cancellation}
+\subsection{What is the contact pattern of CMPU aged order customers?}\label{subsec:contact-analysis}
+\subsubsection{When did the CMPU aged order customers contact Chewy relative to the cancellation date?}
 Table~\ref{tab:aged-customer-contacts-by-cancellation-day} summarizes inbound
 contacts linked to CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged orders cancelled
 from """+first+' through '+last+r""", inclusive, UTC.
@@ -184,7 +184,7 @@ def frequency_latex(frequency,audit):
     rows=[f'{r.days_contacted} & {r.distinct_customers:,}'+r' \\' for r in frequency.itertuples()]
     return r"""
 \clearpage
-\subsubsection{Customer contact-day frequency}
+\subsubsection{What was the frequency of contacting Chewy for CMPU aged order customers?}
 Table~\ref{tab:aged-customer-contact-day-frequency} groups customers by the
 number of distinct relative days on which they contacted during the same
 $-13$ through $+3$ window.
@@ -220,6 +220,9 @@ the full cohort; positive-day rows sum to the distinct contacting customers.
 
 def publish_latex(text):
     appendix=ROOT/'src/latex/appendix';appendix.mkdir(parents=True,exist_ok=True)
+    if (appendix/'customer_contacts_by_cancellation_reason.tex').exists():
+        anchor=r'\label{subsec:contact-analysis}'
+        text=text.replace(anchor,anchor+'\n'+r'\input{appendix/customer_contacts_by_cancellation_reason}'+'\n'+r'\clearpage',1)
     for name in ['contact_frequency_reorders','contact_window_reorders']:
         if (appendix/(name+'.tex')).exists():text=text.rstrip()+'\n\n'+r'\input{appendix/'+name+'}\n'
     write_text(appendix/'contact_analysis.tex',text)

@@ -35,6 +35,39 @@ combined-follow-up-table:
 financial-sql-listings:
 	.venv/bin/python -m src.python.create_financial_sql_listings
 
+# Replay the report's retained snapshots; these targets never refresh Snowflake.
+.PHONY: reproduce-financial-section reproduce-contact-section reproduce-upload-delay-section reproduce-survival-section study-population-tables opportunity-contact-window-reorders
+reproduce-financial-section:
+	$(MAKE) --no-print-directory opportunity-order-cancellation-summary CACHED=1 WRITE_LATEX=1 DATE_BASIS=shipped-or-cancelled START_DATE=2026-05-01 END_DATE=2026-08-01
+	$(MAKE) --no-print-directory opportunity-follow-up-sales CACHED=1 START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
+	$(MAKE) --no-print-directory opportunity-new-upload-customer-follow-up CACHED=1 START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
+	$(MAKE) --no-print-directory opportunity-new-vet-diet-customer-follow-up CACHED=1 START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
+	$(MAKE) --no-print-directory combined-follow-up-table financial-sql-listings
+
+reproduce-contact-section:
+	$(MAKE) --no-print-directory opportunity-aged-customer-contacts CACHED=1 START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28 HANDLED_ONLY=0
+	$(MAKE) --no-print-directory opportunity-customer-contacts-by-cancel-reason CACHED=1 START_DATE=2026-05-01 END_DATE=2026-08-01 HANDLED_ONLY=0
+	$(MAKE) --no-print-directory opportunity-contact-window-reorders
+
+opportunity-contact-window-reorders:
+	$(MAKE) --no-print-directory opportunity-contact-frequency-reorders CACHED=1 START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28 FOLLOWUP_DAYS=14 HANDLED_ONLY=0
+	.venv/bin/python -m src.python.create_opportunity_contact_window_reorders
+
+study-population-tables:
+	.venv/bin/python scripts/summarize_study_population_uploaded_documents.py --export
+	.venv/bin/python scripts/summarize_study_population_prescription_decisions.py
+	.venv/bin/python -m src.python.create_study_population_report_tables
+	$(MAKE) --no-print-directory prescription-cohort-order-comparison CACHED=1
+
+reproduce-upload-delay-section:
+	$(MAKE) --no-print-directory study-population-tables
+	$(MAKE) --no-print-directory cmpu-first-order-line-status CACHED=1 START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
+	$(MAKE) --no-print-directory cmpu-upload-entity-order-creation-distributions cmpu-upload-entity-state-change-distributions CACHED=1 START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01 AS_OF_DATE=2026-10-27
+	$(MAKE) --no-print-directory cmpu-upload-to-approval-distribution CACHED=1 START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
+
+reproduce-survival-section:
+	$(MAKE) --no-print-directory cmpu-first-order-line-survival START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
+
 .PHONY: cmpu-upload-time-ratio-distribution
 cmpu-upload-time-ratio-distribution:
 	.venv/bin/python -m src.python.create_cmpu_upload_time_ratio_distribution --start-date "$(or $(START_DATE),2026-08-15)" --end-date "$(or $(END_DATE),2026-10-15)" --upload-start-date "$(or $(UPLOAD_START_DATE),2026-08-01)" $(if $(filter 1,$(PRINT_SQL)),--print-sql) $(if $(filter 1,$(CACHED)),--cached)
@@ -215,10 +248,6 @@ opportunity-new-vet-diet-customer-chewy-follow-up:
 .PHONY: opportunity-aged-customer-contacts
 opportunity-aged-customer-contacts:
 	.venv/bin/python -m src.python.create_opportunity_aged_customer_contacts --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(HANDLED_ONLY)),--handled-only) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
-
-.PHONY: opportunity-shipped-customer-contacts
-opportunity-shipped-customer-contacts:
-	.venv/bin/python -m src.python.create_opportunity_shipped_customer_contacts --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" $(if $(filter 1,$(HANDLED_ONLY)),--handled-only) $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
 
 .PHONY: opportunity-customer-contacts-by-cancel-reason
 opportunity-customer-contacts-by-cancel-reason:

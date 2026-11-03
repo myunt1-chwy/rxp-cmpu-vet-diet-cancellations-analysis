@@ -105,18 +105,32 @@
 \noindent\textbf{Date:} \today\par\medskip
 \section{Executive Summary}\label{abstract}
 
+In CMPU (Customer Must Pickup and Upload) vet diet orders require that
+the customer pick up the their prescriptions and upload them to Chewy
+to get approval as a result of the approving vets preference.
 
-In CMPU (Customer Must Upload) vet diet orders shipped or canceled
-between May 1, 2026 and July 31, 2026, 38,314 orders were canceled due
-to aging. In this context, aging means the time between order creation
-and order shipment or cancellation exceeded 11 days. CMPU orders are
-particular in  that the customers must upload the
-prescription documents themselves for approval.
+This order group suffers from high cancellation rates; the top
+cancellation reason begin ``aged order''; an automatic cancellation
+that happens if the order has not been shipped or otherwise been
+canceled by the customer after ten days from order creation. This type
+of cancellation is followed by explicit cancellations by the customer
+(``customer initiated cancellation'' and ``customer request''). The glaring
+issue is that cancellation reasons do not provide actionable root
+causes and require further investigative actions and analyses.
+Possible root causes are; the inconvenience of picking up the
+prescription, issues in uploading the vet prescription, wrong order,
+ability to fulfill the order at the vet.
 
-The number of aging orders was  about 10\% of the orders that were
-actually shipped with an estimated loss of 3,5 million, again about
-10\% of the net sales of the actually shipped orders (Table
-\ref{tab:financial-opportunity-cancellations}).
+This report focuses on aged order cancellations. Among CMPU vet diet
+orders shipped or canceled between May 1, 2026 and July 31, 2026,
+38,314 orders were canceled due to aging. The number of aging orders
+was about 10\% of the orders that were actually shipped with an
+estimated loss of 3,5 million, again about 10\% of the net sales of
+the actually shipped orders (Table
+\ref{tab:financial-opportunity-cancellations}). We note that customer
+initiated cancellations and customer requested cancellations combined
+comprise a comparable-sized loss.
+
 
 In the following seven days after a cancellation, 2,316 out of 30,382
 customers return to shop the same part number for the same pet and
@@ -132,10 +146,8 @@ worst segment is the new to vet diet customers; and their 70 day
 reorder rate is only 15\% (5K customers, see Table
 \ref{tab:financial-opportunity-new-vet-diet-follow-up}). The rate of
 reorder in Chewy of these cohorts follows the same order 61\%, 58\%
-and 50\%. A subsequent study will analyze longer time frames.
+and 50\%.
 
-It is alarming that new vet diet customers suffer attrition
-significantly more.
 
 All of the customers seem to have contacted Chewy, most of them at the
 creation of the order (Table
@@ -204,9 +216,11 @@ a reminder.
 \localtableofcontents
 \input{appendix/financial_opportunity}
 \input{appendix/contact_analysis}
-\input{appendix/shipped_customer_contacts}
-\input{appendix/customer_contacts_by_cancellation_reason}
+\input{appendix/reproduction_contacts}
 \input{appendix/study_population_analysis}
+\input{appendix/reproduction_upload_delays}
+\input{appendix/survival_analysis}
+\input{appendix/reproduction_survival}
 \input{appendix/reproducing_results}
 \input{appendix/data_verification}
 

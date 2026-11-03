@@ -144,8 +144,7 @@ def latex_table(summary, audit, start, end):
                     + f'{row.cohort_customers:,} & {row.contacting_customers:,} & {percentage}' + r' \\')
     first = date.fromisoformat(start).strftime('%B %-d, %Y')
     last = (date.fromisoformat(end)-timedelta(days=1)).strftime('%B %-d, %Y')
-    return r'''\clearpage
-\subsubsection{How many customers contacted us by order cancellation reason?}
+    return r'''\subsubsection{What is the distribution of CMPU customers with APPROVAL CHANNEL = CUSTOMER\_UPLOAD that contacted Chewy by cancellation reason?}
 Table~\ref{tab:customer-contacts-by-cancellation-reason} compares customers with
 inbound contacts across CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} orders with
 qualifying shipment or cancellation activity from ''' + first + ' through ' + last + r''', inclusive, UTC.
@@ -180,10 +179,9 @@ appear in multiple reason rows; TOTAL independently counts each customer once
 overall and is not the sum of the reason rows. Reasons reflect the current
 snapshot, grouped case-insensitively after trimming. SQL NULL is explicit;
 blank strings, if present, form a separate row. NULL does not imply no cancellation.
-This broader cohort includes ''' + f"{audit['sql_null_pairs_with_cancellation_but_no_shipment']:,}" + r'''
+This cohort includes ''' + f"{audit['sql_null_pairs_with_cancellation_but_no_shipment']:,}" + r'''
 NULL-reason order/reason records with observed cancellation but no qualifying
-shipment, which are absent from Table~\ref{tab:shipped-customer-contacts-by-creation-day}.
-Unlike the daily contact tables, this summary has no creation-relative day bounds.
+shipment. This summary has no creation-relative day bounds.
 Observation ends at each order's observed
 event, so exposure varies; these are descriptive contact shares, not causal effects.
 Exact duplicate contacts collapse; missing or mismatching contact customers,
@@ -201,13 +199,17 @@ Executable SQL and complete order/contact records are under
 def publish_latex(text):
     write_text(ROOT / 'src/latex/appendix/customer_contacts_by_cancellation_reason.tex', text)
     main = ROOT / 'src/latex/main.tex'
-    body = main.read_text()
     include = r'\input{appendix/customer_contacts_by_cancellation_reason}'
+    parent = ROOT / 'src/latex/appendix/contact_analysis.tex'
+    body = parent.read_text()
     if include not in body:
-        anchor = r'\input{appendix/shipped_customer_contacts}'
+        anchor = r'\label{subsec:contact-analysis}'
         if anchor not in body:
-            raise ValueError('Cannot locate companion contact section')
-        write_text(main, body.replace(anchor, anchor + '\n' + include, 1))
+            raise ValueError('Cannot locate parent contact section')
+        write_text(parent, body.replace(anchor, anchor + '\n' + include + '\n' + r'\clearpage', 1))
+    body = main.read_text()
+    if include in body:
+        write_text(main, body.replace(include + '\n', ''))
 
 
 @click.command()

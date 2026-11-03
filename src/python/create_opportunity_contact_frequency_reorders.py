@@ -90,7 +90,7 @@ def latex_table(summary,start,end,as_of,days,handled_only):
         rows.append(f'{r.days_contacted} & {r.segment_customers:,} & {r.reordered_customers:,} & {percentage}'+r' \\')
     handled=r'Require \texttt{HANDLED\_FLAG=TRUE}.' if handled_only else 'Include handled, unhandled and unknown-handled inbound attempts.'
     return r"""
-\subsubsection{Reorders by contact-day frequency}
+\subsubsection{Does more frequent contact imply higher propensity to re-order successfully for the same pet and part number in 14 days?}
 Table~\ref{tab:contact-frequency-same-pet-part-reorders} applies the contact-day
 frequency segments in Table~\ref{tab:aged-customer-contact-day-frequency}
 to same-pet, same-product reorders.

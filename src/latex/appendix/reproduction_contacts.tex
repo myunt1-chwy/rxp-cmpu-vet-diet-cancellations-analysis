@@ -1,0 +1,28 @@
+\clearpage
+\subsubsection{Section Reproduction Steps}\label{subsubsec:reproduce-contacts}
+From the repository root, after \texttt{make setup}, run:
+\begin{lstlisting}[basicstyle=\ttfamily\small,breaklines=true]
+make reproduce-contact-section
+make report
+\end{lstlisting}
+The target reuses fingerprint-checked May--July 2026 inputs and the October 28,
+2026 observation cutoff; no warehouse refresh occurs. It runs:
+\begin{itemize}[leftmargin=*]
+\item \path{opportunity-customer-contacts-by-cancel-reason} for
+Table~\ref{tab:customer-contacts-by-cancellation-reason}; matching inbound
+contacts have no creation-relative day bounds and end at the observed order endpoint.
+\item \path{opportunity-aged-customer-contacts} for
+Tables~\ref{tab:aged-customer-contacts-by-cancellation-day} and
+\ref{tab:aged-customer-contact-day-frequency}, using elapsed cancellation days
+$-13$ through $+3$ and all handled states.
+\item \path{opportunity-contact-frequency-reorders} for
+Table~\ref{tab:contact-frequency-same-pet-part-reorders} and
+\path{opportunity-contact-window-reorders} for
+Table~\ref{tab:contact-window-same-pet-part-reorders}. Both use successful
+same-customer, same-pet and same-part-number reorders within 14 days.
+\end{itemize}
+The last target also regenerates the frequency study from its verified cache
+before calculating the contact-window comparison. Retained inputs under
+\path{data/opportunity/} are required; they are not in Git. For new Snowflake
+snapshots, run the underlying extraction targets without \texttt{CACHED=1}
+using the same dates, then regenerate the comparisons. See HOWTO.md.

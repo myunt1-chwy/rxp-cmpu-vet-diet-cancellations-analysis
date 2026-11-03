@@ -18,9 +18,9 @@ customer ID to vet-diet prescriptions with
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.40\linewidth}rrrr@{}}
 \toprule
-Cancellation reason & Customers & Orders & Order lines & Net sales \\
+Cancellation reason & Customers & Orders & Order lines & \shortstack{Estimated\\net sales} \\
 \midrule
-{[No recorded cancellation reason]} & 172,878 & 387,707 & 433,051 & 35,821,384.85 \\
+{[No recorded cancellation reason] (actual net sales)} & 172,878 & 387,707 & 433,051 & 35,821,384.85 \\
 \rowcolor{yellow!35}
 {Aged order} & 30,382 & 38,314 & 41,713 & \textcolor{gray}{3,470,380.19} \\
 {Customer initiated cancellation} & 29,455 & 32,939 & 37,959 & \textcolor{gray}{2,945,818.13} \\
@@ -36,7 +36,7 @@ Cancellation reason & Customers & Orders & Order lines & Net sales \\
 {Prescription issue} & 5,051 & 5,329 & 5,822 & \textcolor{gray}{480,281.17} \\
 {Restricted availability} & 1 & 1 & 1 & \textcolor{gray}{25.64} \\
 \midrule
-{TOTAL} & 225,434 & 484,374 & 541,190 & 44,519,634.43 \\
+{TOTAL} & 225,434 & 484,374 & 541,190 & \textcolor{gray}{44,519,634.43} \\
 \bottomrule
 \end{tabular}
 
@@ -56,8 +56,9 @@ decimals; exports retain five. Current cancellation reasons are grouped
 case-insensitively; a missing reason does not establish an uncancelled order.
 Orders can appear in multiple reason rows if their lines have different
 reasons; TOTAL counts each order once. Line counts and sales are additive.
-Gray net-sales amounts have a recorded cancellation reason and represent
-unrealized sales, not realized revenue. TOTAL includes these gray amounts.
+Gray reason-row net-sales amounts have a recorded cancellation reason and represent
+unrealized sales, not realized revenue. The gray TOTAL combines these amounts
+with the no-recorded-cancellation-reason amount.
 Recorded net sales are a baseline for opportunity sizing, not an estimate of
 recoverable revenue from cancelled orders.
 \end{minipage}
@@ -68,3 +69,4 @@ recoverable revenue from cancelled orders.
 \input{appendix/financial_opportunity_any_vet_diet_comparison}
 \input{appendix/financial_opportunity_all_chewy_comparison}
 \input{appendix/financial_opportunity_sql}
+\input{appendix/reproduction_financial}
