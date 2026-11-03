@@ -254,3 +254,8 @@
   - Verified default draft, final and return-to-draft builds, text/package checks and rendered first pages. Rebuilt once more before committing to match the latest report source, verified PDF bytes against the compiler output and confirmed the report remains a draft as requested. Final LaTeX log and git diff --check clean.
   - No data refresh or test-suite run; commit hooks disabled. No merge or remote push requested.
 
+* 2026-11-03 Ignore generated Emacs auto metadata
+  - User approved committing the editor-file cleanup. Committed as f156a07 on feat/data-source-connections: removed seven previously committed .el files beneath auto directories from tracking and added **/auto/**/*.el to .gitignore.
+  - Local copies of all seven files remain. Verified no matching files are tracked, direct/nested auto metadata are ignored, and .el files outside auto remain eligible for tracking. git diff --check clean; no tests or data operations needed.
+  - Used an isolated index to commit only the cleanup and task record, preserving the user's staged main.tex and report PDF contents exactly. No report changes included, no history rewrite, merge or remote push requested; commit hooks disabled.
+
