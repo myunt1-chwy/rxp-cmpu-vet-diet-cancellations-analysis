@@ -111,21 +111,17 @@
 \noindent\textbf{Date:} \today\par\medskip
 \section{Executive Summary}\label{abstract}
 
-In CMPU (Customer Must Pickup and Upload) vet diet orders require that
-the customer pick up the their prescriptions and upload them to Chewy
-to get approval as a result of the approving vets preference.
-
-This order group suffers from high cancellation rates; the top
-cancellation reason begin ``aged order''; an automatic cancellation
-that happens if the order has not been shipped or otherwise been
-canceled by the customer after ten days from order creation. This type
-of cancellation is followed by explicit cancellations by the customer
-(``customer initiated cancellation'' and ``customer request''). The glaring
-issue is that cancellation reasons do not provide actionable root
-causes and require further investigative actions and analyses.
-Possible root causes are; the inconvenience of picking up the
-prescription, issues in uploading the vet prescription, wrong order,
-ability to fulfill the order at the vet.
+For CMPU (Customer Must Pickup and Upload) vet diet orders; the
+customer is required to pick up the their prescriptions and upload
+them to Chewy. This order group suffers from high cancellation rates;
+the top cancellation reason begin ``aged order''; an automatic
+cancellation that happens if the order has not been shipped or
+otherwise been canceled by the customer after ten days from order
+creation. Aged order cancellation is followed by explicit
+cancellations by the customer (``customer initiated cancellation'' and
+``customer request''). Unfortunately, cancellation reasons
+do not provide actionable root causes and require further
+investigation.
 
 This report focuses on aged order cancellations. Among CMPU vet diet
 orders shipped or canceled between May 1, 2026 and July 31, 2026,
@@ -133,13 +129,11 @@ orders shipped or canceled between May 1, 2026 and July 31, 2026,
 was about 10\% of the orders that were actually shipped with an
 estimated loss of 3,5 million, again about 10\% of the net sales of
 the actually shipped orders (Table
-\ref{tab:financial-opportunity-cancellations}). We note that customer
-initiated cancellations and customer requested cancellations combined
-comprise a comparable-sized loss.
+\ref{tab:financial-opportunity-cancellations}). On a similar note,
+customer initiated cancellations and customer requested cancellations
+combined comprise a comparable-sized loss.
 
-Compared to the whole customer group, the percent of the customers
-whose first order was the aged vet diet order that return to shop for
-vet diets is significantly lower. In the following seven days after a
+In the following seven days after an aged order
 cancellation, 2,316 out of 30,382 customers return to shop the same
 part number for the same pet and successfully reorder for a total net
 sales of 221 thousand (Table
@@ -166,47 +160,48 @@ reorder rate (Table \ref{tab:contact-window-same-pet-part-reorders}).
 
 Most (> 95\%) of the prescriptions of CMPU aged orders do not have a
 prescription document uploaded (Table \ref{tab:study-population-counts}).  Of those prescriptions with uploads, the time between order creation and upload does not significantly differ from the rest of the study group
-(Figure \ref{fig:entity-upload-vs-order-creation}). Less than 1\% of the uploaded prescriptions for aged orders get accepted and these are mostly accepted late; after 10 days (Figure \ref{fig:entity-upload-state-time-aged}). Finally, Chewy can expect that if the customer does not upload a prescription in 3 days after order creation; there is more than 50\% chance that the order will be canceled as an aged order (Figure \ref{fig:first-order-line-survival}).
+(Figure \ref{fig:entity-upload-vs-order-creation}). Less than 1\% of the uploaded prescriptions for aged orders get accepted and these are mostly accepted late; after 10 days (Figure \ref{fig:entity-upload-state-time-aged}). Approval after acceptance is not a significant contributor to the age of the order; it takes less than a minute after acceptance. (Figure \ref{fig:accepted-upload-to-approval-cumulative}). Finally, Chewy can expect that if the customer does not upload a prescription in 3 days after order creation; there is more than 50\% chance that the order will be canceled as an aged order (Figure \ref{fig:first-order-line-survival}).
 
 So what can be done to reduce aged orders?  One suggestion to increase
 the upload rate (communication with Courtney Gleede) is to send
-reminder emails to customer. At this point, Chewy does not contact
-customers in case there is a chance that their order might become
-aged. There is no Chewy relevant out-bound contact data for a
-comparative/causal analysis. The only contact happens when the
-customer is notified that their order has been canceled.  Assuming
-that people who receive an email before cancellation, react similarly
-to the cohort that reorders within 7 days after cancellation, we
-expect that out of 30K people considered in the opportunity study with
-aged cancellations, 2.3K would react before order cancellation
-corresponding to 221K sales. The best effort guess is that Chewy
-prevents people from skipping one reorder for this cohort for an
-additional gain of 221K net sales.  The upper bound on the best effort
-estimate is 390K corresponding to the 14 day cohort. This represents
-about 1\% increase in net sales for CMPU vet diet orders.
+reminder emails to customer. At this point, Chewy does not contact the
+at risk orders' customers. There is no Chewy relevant out-bound
+contact data for a comparative/causal analysis. The only contact
+happens when the customer is notified that their order has been
+canceled.  Assuming that people who receive an email before
+cancellation react similarly to the cohort that reorders within 7 days
+after cancellation, we expect that out of 30K people considered in the
+opportunity study with aged cancellations, 2.3K would react before
+order cancellation corresponding to 221K sales. The best effort guess
+is that Chewy prevents people from skipping one reorder for this
+cohort for an additional gain of 221K net sales.  The upper bound on
+the best effort estimate is 390K corresponding to the 14 day reorder
+window cohort. This represents about 1\% increase in net sales for
+CMPU vet diet orders.
 
 The effect of reminder emails on long term retention is an open
-question. Picking up a prescription and uploading a prescription is
+question. Picking up and uploading a prescription is
 still an onus with or without a getting a reminder.
 
 \subsection{What should we do next?}
 \begin{enumerate}
-\item The root cause of aged orders and the other customer
-  initiated/requested cancellations is not known. We know that highly
+\item The root causes of aged orders and the other customer
+  initiated/requested cancellations are not known. We know that highly
   likely they did not upload their prescriptions but why they have not
   uploaded is still unknown. In order to get more insight into the
   root causes; Chewy should
 \begin{enumerate}
-\item design and apply a survey to customers with orders canceled due
-  to aging or by the customers either in person or via AI (AI calls or
-  emails) to figure out root causes and how Chewy can help them such
-  as a prescription pick-up service; focusing on first time vet diet
-  customers, as their retention is the worst.
+\item design and apply a survey to customers with canceled orders
+  (aged or customer requested/initiated) either in person or via AI
+  (AI calls or emails) to understand cancellation root causes and how
+  Chewy can help them; such as a prescription pick-up service;
+  focusing on first time vet diet customers, as their retention is the
+  worst.
 \item analyze the customer contact logs for plausible insights into
-  cancellation root causes.
+  order cancellation root causes.
 \end{enumerate}
 \item design and execute a controlled experiment where Chewy sends
-  reminder emails to a group of customers who have not uploaded their
+  reminder emails to a group of customers who have not yet uploaded their
   prescriptions 3 days after order creation to estimate the uplift
   from reminder emails.
 \end{enumerate}
