@@ -1,3 +1,21 @@
+* 2026-11-03 Financial line-status breakdown and restored join diagrams
+  - User approved committing both pending report updates. Implementation committed
+    as 57d90c6 on feat/financial-line-status, including the rebuilt draft PDF.
+  - Table 1 in section 2.1.1 now splits cancellation reasons by line-item status.
+    No-recorded-reason D: 432,587 lines and 35,784,664.08 net sales. No-recorded-
+    reason X: 464 lines and 36,720.77, shown gray as unrealized sales. Retained
+    customer/order counts, yellow aged-order highlighting and 44,519,634.43 total.
+  - Added status-summary exports and independent raw-source DuckDB verification;
+    updated executable financial SQL and reproduction documentation. Original
+    reason summary, line, shipment and association Parquets remained byte-identical.
+  - Restored the data_source_connections input removed in c498386. The 67-page
+    report includes section 2.6.6 from page 58, its source-grain and join notes,
+    and all five diagrams on pages 58, 60, 61, 63 and 65.
+  - Cached regeneration, independent exact-decimal reconciliation, make report,
+    visual PDF inspection and git diff --check passed. No warehouse refresh or
+    test suite; commit hooks disabled to preserve that constraint. Editor and
+    system artifacts excluded. No merge or push performed for this update.
+
 * 2026-11-03 Prescription upload status tables and reproduction
   - User approved committing the pending report updates. Implementation committed
     as 03c9479 on feat/data-source-connections, including the current report prose,
