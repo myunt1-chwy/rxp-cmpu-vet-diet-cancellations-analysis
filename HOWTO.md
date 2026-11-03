@@ -587,7 +587,7 @@ Add `CACHED=1` to either analysis command to verify/reuse its saved extract. Fol
 
 May–July baseline: 225,434 distinct customers, 484,374 orders, 541,190 qualifying lines and 44,519,634.43 net sales. Aged order: 30,382 customers, 38,314 orders, 41,713 lines and 3,470,380.19 net sales. Source, exact-decimal exports, SQL and fingerprints are under `data/opportunity/order-cancellation-summary/2026-05-01_2026-08-01/shipped-or-cancelled/`. The original aged order/line/customer/cancellation-timestamp membership reconciles exactly to the follow-up extract; all matching keys and all 70-day follow-ups are complete. The reconciliation audit is beside the new follow-up exports.
 
-### Estimated net sales by cancellation reason
+### Estimated net sales by cancellation reason and line-item status
 
 ```sh
 make opportunity-order-cancellation-summary CACHED=1 WRITE_LATEX=1 DATE_BASIS=shipped-or-cancelled
@@ -605,7 +605,9 @@ prescriptions by trimmed RX_ID and numeric customer ID.
 
 Count distinct customers, physical orders and order lines. Current cancellation
 reasons are trimmed and grouped case-insensitively; blank/null reasons form the
-no-recorded-reason category. TOTAL independently deduplicates customers/orders
+no-recorded-reason category. Split each reason by normalized
+`ORDER_ORDER_LINE_STATUS`, validating consistency across shipment rows.
+TOTAL independently deduplicates customers/orders
 rather than summing overlapping groups. A missing reason alone does not prove an
 uncancelled order. Conflicting customer/reason/placement evidence fails validation.
 
@@ -617,8 +619,11 @@ missing sales make the affected total incomplete. DuckDB independently verifies
 distinct counts and exact sums before publication.
 
 Table 1 uses the **Estimated net sales** header, yellow Aged order row, gray
-reason-row estimates and gray TOTAL. The no-recorded-reason row is labeled
-**(actual net sales)**; TOTAL combines that amount with the estimates. These
+reason-row estimates and gray TOTAL. Status X amounts are gray even when the
+cancellation reason is missing. The non-X no-recorded-reason row is labeled
+**(actual net sales)**; TOTAL combines that amount with the estimates. The retained
+snapshot splits the no-reason group into D (432,587 lines; 35,784,664.08) and X
+(464 lines; 36,720.77), with the overall 44,519,634.43 unchanged. These
 source-field amounts do not establish recoverable revenue from cancelled orders.
 `WRITE_LATEX=1` updates the baseline while preserving the combined follow-ups,
 financial SQL and Section Reproduction Steps.
@@ -628,6 +633,11 @@ audits and independent verification are under
 `data/opportunity/order-cancellation-summary/2026-05-01_2026-08-01/shipped-or-cancelled/`.
 Markdown is under the corresponding
 `outputs/tables/opportunity/2026-05-01_2026-07-31/shipped-or-cancelled/`.
+The displayed split is exported as `status-summary.parquet` and
+`order-cancellation-status-summary.md`; reason-only `summary.parquet` and original
+line/shipment exports remain unchanged for downstream analyses. Both aggregations
+are independently reconciled to the raw extract. `summary-report.sql` includes the
+line-status grouping shown in the report.
 `CACHED=1` checks source/query/definition identities and performs no warehouse
 requests. PRINT_SQL prints the executable query without extraction.
 

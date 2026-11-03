@@ -16,7 +16,7 @@ FIRST_WINDOWS = PERIOD + '_7d-70d_as-of-2026-10-28'
 BASELINE = 'order-cancellation-summary/' + PERIOD + '/shipped-or-cancelled'
 QUERIES = [
     ('baseline', BASELINE, 'summary-report.sql', 'source.json',
-     'Baseline extraction and cancellation-reason aggregation',
+     'Baseline extraction and cancellation-reason/line-status aggregation',
      r'Table~\ref{tab:financial-opportunity-cancellations}. This complete report SQL embeds the source extraction '
      'and applies prescription/customer eligibility, shipment deduplication, event-window sales selection and distinct totals.'),
     ('first-upload-history', 'aged-first-customer-upload-vet-diet-order-customers/' + PERIOD, 'query.sql', 'analysis.json',

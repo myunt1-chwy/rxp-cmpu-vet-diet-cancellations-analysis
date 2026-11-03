@@ -201,7 +201,40 @@ def summarize(raw, start, end, date_basis="placed"):
                 summary=summary, audit=pd.DataFrame(audit.items(), columns=['measure', 'count']))
 
 
-def independent_verify(raw, summary, start, end, date_basis="placed"):
+def summarize_line_status(results):
+    """Split the financial table without changing downstream baseline exports."""
+    associations = results['associations']
+    statuses = associations[KEYS].copy()
+    statuses['line_status'] = (associations.line_status.astype('string').str.strip()
+                               .str.upper().replace('', pd.NA).fillna('[Missing]'))
+    if statuses.groupby(KEYS).line_status.nunique().gt(1).any():
+        raise ValueError('Conflicting line-item statuses across shipment/association rows')
+    lines = results['order_lines'].merge(statuses.drop_duplicates(), on=KEYS,
+                                        how='left', validate='one_to_one')
+    if lines.line_status.isna().any():
+        raise ValueError('Missing line-item status match')
+
+    def totals(group, reason, status, kind):
+        missing = int(group.missing_revenue_records.sum())
+        known = decimal_sum(group.known_net_sales)
+        return dict(row_type=kind, cancellation_reason=reason, line_status=status,
+            customers=group.customer_id.nunique(), orders=group.order_id.nunique(),
+            line_items=len(group), actual_net_sales=None if missing else known,
+            known_net_sales=known, missing_revenue_lines=int((~group.revenue_complete).sum()),
+            missing_revenue_records=missing, revenue_complete=missing == 0)
+
+    rows = [totals(group, MISSING_REASON if reason == MISSING_REASON else reason.capitalize(), status, 'reason')
+            for (reason, status), group in lines.groupby(['reason_key', 'line_status'], sort=True)]
+    rows.append(totals(lines, 'TOTAL', 'All', 'total'))
+    result = pd.DataFrame(rows)
+    for row in results['summary'].itertuples():
+        subset = result.loc[result.row_type.eq(row.row_type) & result.cancellation_reason.eq(row.cancellation_reason)]
+        if int(subset.line_items.sum()) != row.line_items or decimal_sum(subset.known_net_sales) != row.known_net_sales:
+            raise ValueError('Line-status groups do not reconcile to the reason-only baseline')
+    return result
+
+
+def independent_verify(raw, summary, start, end, date_basis="placed", by_status=False):
     """Recompute the final table directly from the raw extract in another engine."""
     import duckdb
     sql = """WITH eligible_keys AS (
@@ -237,11 +270,19 @@ def independent_verify(raw, summary, start, end, date_basis="placed"):
               AND CAST(s.cancelled_at_utc AS TIMESTAMP_NS)<CAST(? AS TIMESTAMP_NS)))
     ) SELECT 'reason'""")
         bindings = [start, end, start, end]
+    if by_status:
+        sql = sql.replace('CAST(s.order_line_net_sales AS DECIMAL(38,5)) AS sales',
+            "COALESCE(NULLIF(UPPER(TRIM(s.line_status)),''),'[Missing]') AS line_status,\n"
+            '               CAST(s.order_line_net_sales AS DECIMAL(38,5)) AS sales')
+        sql = sql.replace("AS row_type,reason,COUNT", "AS row_type,reason,line_status,COUNT")
+        sql = sql.replace('GROUP BY reason', 'GROUP BY reason,line_status')
+        sql = sql.replace("SELECT 'total','TOTAL',COUNT", "SELECT 'total','TOTAL','All',COUNT")
     with duckdb.connect() as connection:
         connection.register('source', raw.rename(columns=str.lower))
         rows = connection.execute(sql, bindings).fetchall()
-    observed = {(kind, reason.casefold()):(customers, orders, lines, amount) for kind, reason, customers, orders, lines, amount in rows}
-    expected = {(row.row_type, row.cancellation_reason.casefold()):
+    observed = {(row[0], row[1].casefold(), row[2] if by_status else 'All'): tuple(row[3:] if by_status else row[2:])
+                for row in rows}
+    expected = {(row.row_type, row.cancellation_reason.casefold(), row.line_status if by_status else 'All'):
                 (row.customers, row.orders, row.line_items, None if pd.isna(row.actual_net_sales) else row.actual_net_sales)
                 for row in summary.itertuples()}
     if observed != expected:
@@ -258,12 +299,13 @@ def write_parquet(frame, path):
 
 
 def display_summary(summary):
-    displayed = summary[['cancellation_reason', 'customers', 'orders', 'line_items', 'actual_net_sales']].copy()
+    columns = ['cancellation_reason'] + (['line_status'] if 'line_status' in summary else [])
+    displayed = summary[columns + ['customers', 'orders', 'line_items', 'actual_net_sales']].copy()
     displayed['actual_net_sales'] = displayed.actual_net_sales.map(
         lambda value: 'Incomplete (missing sales)' if pd.isna(value) else f'{value:,.2f}')
     for column in ['customers', 'orders', 'line_items']:
         displayed[column] = displayed[column].map(lambda n: f'{n:,}')
-    return displayed.rename(columns=dict(cancellation_reason='Order cancellation reason', customers='Customers', orders='Orders',
+    return displayed.rename(columns=dict(cancellation_reason='Order cancellation reason', line_status='Line-item status', customers='Customers', orders='Orders',
         line_items='Line items', actual_net_sales='Net sales'))
 
 
@@ -294,6 +336,12 @@ def write_outputs(results, metadata, directory, tables):
                  'Split-shipment contributions outside the window are excluded; records meeting both dates count once.\n\n')
     write_text(tables/'order-cancellation-summary.md', '# Opportunity Analysis: order cancellation summary\n\n'
         + note + markdown_table(display_summary(results['summary']))+'\n')
+    if 'status_summary' in results:
+        write_text(tables/'order-cancellation-status-summary.md',
+            '# Opportunity Analysis: cancellation reason and line-item status\n\n' + note
+            + 'Status is ORDER_ORDER_LINE_STATUS; conflicting statuses across shipment rows fail validation. '
+            'Status X sales are unrealized even if cancellation reason is missing.\n\n'
+            + markdown_table(display_summary(results['status_summary'])) + '\n')
     write_text(tables/'order-cancellation-audit.md', '# Opportunity Analysis: audit\n\n'
         + note + markdown_table(results['audit'])+'\n')
     # Explicit preview avoids creating enormous line-detail Markdown files.
@@ -307,7 +355,8 @@ def write_outputs(results, metadata, directory, tables):
     write_text(directory/'analysis.json', json.dumps(dict(metadata, definition=note,
         implementation_sha256=digest(Path(__file__)), generated_at_utc=datetime.now(timezone.utc).isoformat(),
         exports={p.name:digest(p) for p in directory.glob('*.parquet') if p.name != 'source.parquet'}), indent=2)+'\n')
-    return tables/'order-cancellation-summary.md'
+    return tables/('order-cancellation-status-summary.md' if 'status_summary' in results
+                   else 'order-cancellation-summary.md')
 
 
 def financial_opportunity_report_sql(source_sql, verification):
@@ -327,7 +376,8 @@ def financial_opportunity_report_sql(source_sql, verification):
     return ('-- Financial opportunity table; UTC dates; includes TOTAL.\n'
             '-- Source validation rejects conflicting line/shipment values before publication.\n'
             'WITH source AS (\n'+source_sql.strip().rstrip(';')+'\n),\n'
-            +aggregate.removeprefix('WITH ')+'\nORDER BY row_type, reason;\n')
+            +aggregate.removeprefix('WITH ')+'\nORDER BY row_type, reason'
+            + (', line_status' if 'AS line_status' in aggregate else '') + ';\n')
 
 
 def financial_opportunity_latex(summary, params):
@@ -340,20 +390,21 @@ def financial_opportunity_latex(summary, params):
     last = (end-timedelta(days=1)).strftime('%B %-d, %Y')
     rows=[]
     for row in summary.itertuples(index=False):
+        line_status = getattr(row, 'line_status', 'All')
         if row.row_type=='total': rows.append(r'\midrule')
         amount='Incomplete' if pd.isna(row.actual_net_sales) else f'{row.actual_net_sales:,.2f}'
-        if row.row_type == 'total' or row.cancellation_reason != MISSING_REASON:
+        if row.row_type == 'total' or row.cancellation_reason != MISSING_REASON or line_status == 'X':
             amount = r'\textcolor{gray}{'+amount+'}'
         if row.row_type == 'reason' and str(row.cancellation_reason).strip().casefold() == 'aged order':
             rows.append(r'\rowcolor{yellow!35}')
         label = str(row.cancellation_reason)
-        if row.row_type == 'reason' and row.cancellation_reason == MISSING_REASON:
+        if row.row_type == 'reason' and row.cancellation_reason == MISSING_REASON and line_status != 'X':
             label += ' (actual net sales)'
-        rows.append('{'+escape(label)+'} & '+f'{row.customers:,} & {row.orders:,} & {row.line_items:,} & {amount}'+r' \\')
+        rows.append('{'+escape(label)+'} & '+escape(line_status)+' & '+f'{row.customers:,} & {row.orders:,} & {row.line_items:,} & {amount}'+r' \\')
     text = r'''\clearpage
 \subsection{What is the financial impact of CMPU aged orders?}\label{subsec:financial-opportunity-analysis}
 Table~\ref{tab:financial-opportunity-cancellations} reports distinct customer and order counts,
-qualifying order-line counts and recorded net sales by cancellation reason
+qualifying order-line counts and recorded net sales by cancellation reason and line-item status
 for orders placed from '''+first+' through '+last+r''', inclusive, UTC
 (\texttt{['''+params['start_date']+', '+params['end_date']+r''')}, with an exclusive end date).
 The population requires vet-diet lines matched by prescription ID and numeric
@@ -364,13 +415,13 @@ customer ID to vet-diet prescriptions with
 \subsubsection{What is the estimated net sales lost from CMPU aged orders?}
 \begin{table}[htbp]
 \centering
-\caption{Financial opportunity baseline: cancellation reasons, customers, orders, qualifying order lines and net sales for CMPU vet-diet customer-upload orders placed '''+first+' through '+last+r''', inclusive, UTC.}
+\caption{Financial opportunity baseline by cancellation reason and line-item status: customers, orders, qualifying order lines and net sales for CMPU vet-diet customer-upload orders placed '''+first+' through '+last+r''', inclusive, UTC.}
 \label{tab:financial-opportunity-cancellations}
 \small
 \setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.40\linewidth}rrrr@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.33\linewidth}lrrrr@{}}
 \toprule
-Cancellation reason & Customers & Orders & Order lines & \shortstack{Estimated\\net sales} \\
+Cancellation reason & \shortstack{Line-item\\status} & Customers & Orders & Order lines & \shortstack{Estimated\\net sales} \\
 \midrule
 '''+ '\n'.join(rows)+r'''
 \bottomrule
@@ -383,18 +434,20 @@ there is no prescription-creation, order-status or cancellation-date cutoff.
 This differs from the prescription-creation cohort and aged-cancellation cutoff
 used in Table~\ref{tab:study-population-counts}.
 Counts are distinct customers, orders and physical order lines. Customers may
-appear in multiple reason rows; TOTAL counts each customer once. Sales include only
+appear in multiple reason/status rows; TOTAL counts each customer once. Sales include only
 qualifying lines, summed from \texttt{ORDER\_LINE\_NET\_SALES} in
 \texttt{EDLDB.BT\_HCA\_HCDM.ORDER\_LINE\_COST\_MEASURES\_RXP},
 once per shipment-and-line record. Zero and negative sales remain included;
 any missing sales make the group total incomplete. Display rounds to two
 decimals; exports retain five. Current cancellation reasons are grouped
 case-insensitively; a missing reason does not establish an uncancelled order.
-Orders can appear in multiple reason rows if their lines have different
-reasons; TOTAL counts each order once. Line counts and sales are additive.
-Gray reason-row net-sales amounts have a recorded cancellation reason and represent
+Line-item status is \texttt{ORDER\_ORDER\_LINE\_STATUS}; codes are shown as recorded.
+Conflicting statuses across shipment rows for a physical line fail validation.
+Orders can appear in multiple reason/status rows if their lines differ;
+TOTAL counts each order once. Line counts and sales are additive.
+Gray reason-row net-sales amounts have a recorded cancellation reason or status X and represent
 unrealized sales, not realized revenue. The gray TOTAL combines these amounts
-with the no-recorded-cancellation-reason amount.
+with the no-recorded-cancellation-reason, non-X amount.
 Recorded net sales are a baseline for opportunity sizing, not an estimate of
 recoverable revenue from cancelled orders.
 \end{minipage}
@@ -481,10 +534,13 @@ def main(start_date, end_date, cached, print_sql, date_basis, write_latex):
             return
         raw, metadata, directory = load_source(params, sql, cached)
         results = summarize(raw, start_date, end_date, date_basis)
-        verification = independent_verify(raw, results['summary'], start_date, end_date, date_basis)
+        baseline_verification = independent_verify(raw, results['summary'], start_date, end_date, date_basis)
+        results['status_summary'] = summarize_line_status(results)
+        verification = independent_verify(raw, results['status_summary'], start_date, end_date, date_basis, by_status=True)
         if not cached:
             write_text(directory/'source.json', json.dumps(metadata, indent=2)+'\n')
-        metadata = dict(metadata, independent_verification=verification)
+        metadata = dict(metadata, independent_verification=verification,
+                        baseline_verification=baseline_verification)
         dated = f'{start_date}_{date.fromisoformat(end_date)-timedelta(days=1)}'
         tables = ROOT/'outputs/tables/opportunity'/dated
         if date_basis != 'placed': tables = tables/date_basis
@@ -494,8 +550,8 @@ def main(start_date, end_date, cached, print_sql, date_basis, write_latex):
         if write_latex:
             (ROOT/'src/latex/appendix').mkdir(parents=True, exist_ok=True)
             write_text(ROOT/'src/latex/appendix/financial_opportunity.tex',
-                       financial_opportunity_latex(results['summary'], params))
-        click.echo(display_summary(results['summary']).to_string(index=False))
+                       financial_opportunity_latex(results['status_summary'], params))
+        click.echo(display_summary(results['status_summary']).to_string(index=False))
         click.echo(f'Table: {path}\nComplete source and details: {directory}')
     except (ValueError, OSError, KeyError, InvalidOperation, subprocess.CalledProcessError) as error:
         raise click.ClickException(str(error)) from error

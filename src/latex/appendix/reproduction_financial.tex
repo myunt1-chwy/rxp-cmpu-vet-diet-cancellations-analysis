@@ -7,7 +7,8 @@ make reproduce-financial-section
 make report
 \end{lstlisting}
 The section target uses cached inputs only. It recreates
-Table~\ref{tab:financial-opportunity-cancellations} with
+Table~\ref{tab:financial-opportunity-cancellations}, split by cancellation reason
+and line-item status, with
 \path{opportunity-order-cancellation-summary} using
 \path{DATE_BASIS=shipped-or-cancelled} and \texttt{WRITE\_LATEX=1}.
 The four follow-up comparisons use

@@ -1,7 +1,7 @@
 \clearpage
 \subsection{What is the financial impact of CMPU aged orders?}\label{subsec:financial-opportunity-analysis}
 Table~\ref{tab:financial-opportunity-cancellations} reports distinct customer and order counts,
-qualifying order-line counts and recorded net sales by cancellation reason
+qualifying order-line counts and recorded net sales by cancellation reason and line-item status
 for orders shipped or cancelled from May 1, 2026 through July 31, 2026, inclusive, UTC
 (\texttt{[2026-05-01, 2026-08-01)}, with an exclusive end date).
 The population requires vet-diet lines matched by prescription ID and numeric
@@ -12,31 +12,32 @@ customer ID to vet-diet prescriptions with
 \subsubsection{What is the estimated net sales lost from CMPU aged orders?}
 \begin{table}[htbp]
 \centering
-\caption{Financial opportunity baseline: cancellation reasons, customers, orders, qualifying order lines and net sales for CMPU vet-diet customer-upload orders shipped or cancelled May 1, 2026 through July 31, 2026, inclusive, UTC.}
+\caption{Financial opportunity baseline by cancellation reason and line-item status: customers, orders, qualifying order lines and net sales for CMPU vet-diet customer-upload orders shipped or cancelled May 1, 2026 through July 31, 2026, inclusive, UTC.}
 \label{tab:financial-opportunity-cancellations}
 \small
 \setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.40\linewidth}rrrr@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.33\linewidth}lrrrr@{}}
 \toprule
-Cancellation reason & Customers & Orders & Order lines & \shortstack{Estimated\\net sales} \\
+Cancellation reason & \shortstack{Line-item\\status} & Customers & Orders & Order lines & \shortstack{Estimated\\net sales} \\
 \midrule
-{[No recorded cancellation reason] (actual net sales)} & 172,878 & 387,707 & 433,051 & 35,821,384.85 \\
+{[No recorded cancellation reason] (actual net sales)} & D & 172,621 & 387,273 & 432,587 & 35,784,664.08 \\
+{[No recorded cancellation reason]} & X & 432 & 434 & 464 & \textcolor{gray}{36,720.77} \\
 \rowcolor{yellow!35}
-{Aged order} & 30,382 & 38,314 & 41,713 & \textcolor{gray}{3,470,380.19} \\
-{Customer initiated cancellation} & 29,455 & 32,939 & 37,959 & \textcolor{gray}{2,945,818.13} \\
-{Customer request} & 11,382 & 11,948 & 13,662 & \textcolor{gray}{1,042,195.19} \\
-{Duplicate order} & 161 & 165 & 188 & \textcolor{gray}{14,763.64} \\
-{Fraud} & 36 & 38 & 45 & \textcolor{gray}{4,339.97} \\
-{Inventory issue} & 5 & 5 & 5 & \textcolor{gray}{583.24} \\
-{No response} & 1,035 & 1,229 & 1,329 & \textcolor{gray}{111,509.37} \\
-{Other} & 784 & 809 & 940 & \textcolor{gray}{71,158.59} \\
-{Payment declined} & 4,242 & 5,533 & 6,067 & \textcolor{gray}{523,931.07} \\
-{Payment issue} & 46 & 47 & 57 & \textcolor{gray}{4,207.82} \\
-{Pharmacy rejection} & 278 & 310 & 351 & \textcolor{gray}{29,055.56} \\
-{Prescription issue} & 5,051 & 5,329 & 5,822 & \textcolor{gray}{480,281.17} \\
-{Restricted availability} & 1 & 1 & 1 & \textcolor{gray}{25.64} \\
+{Aged order} & X & 30,382 & 38,314 & 41,713 & \textcolor{gray}{3,470,380.19} \\
+{Customer initiated cancellation} & X & 29,455 & 32,939 & 37,959 & \textcolor{gray}{2,945,818.13} \\
+{Customer request} & X & 11,382 & 11,948 & 13,662 & \textcolor{gray}{1,042,195.19} \\
+{Duplicate order} & X & 161 & 165 & 188 & \textcolor{gray}{14,763.64} \\
+{Fraud} & X & 36 & 38 & 45 & \textcolor{gray}{4,339.97} \\
+{Inventory issue} & X & 5 & 5 & 5 & \textcolor{gray}{583.24} \\
+{No response} & X & 1,035 & 1,229 & 1,329 & \textcolor{gray}{111,509.37} \\
+{Other} & X & 784 & 809 & 940 & \textcolor{gray}{71,158.59} \\
+{Payment declined} & X & 4,242 & 5,533 & 6,067 & \textcolor{gray}{523,931.07} \\
+{Payment issue} & X & 46 & 47 & 57 & \textcolor{gray}{4,207.82} \\
+{Pharmacy rejection} & X & 278 & 310 & 351 & \textcolor{gray}{29,055.56} \\
+{Prescription issue} & X & 5,051 & 5,329 & 5,822 & \textcolor{gray}{480,281.17} \\
+{Restricted availability} & X & 1 & 1 & 1 & \textcolor{gray}{25.64} \\
 \midrule
-{TOTAL} & 225,434 & 484,374 & 541,190 & \textcolor{gray}{44,519,634.43} \\
+{TOTAL} & All & 225,434 & 484,374 & 541,190 & \textcolor{gray}{44,519,634.43} \\
 \bottomrule
 \end{tabular}
 
@@ -47,23 +48,24 @@ shipment or cancellation records must fall in the reporting window. There is no 
 This differs from the prescription-creation cohort and aged-cancellation cutoff
 used in Table~\ref{tab:study-population-counts}.
 Counts are distinct customers, orders and physical order lines. Customers may
-appear in multiple reason rows; TOTAL counts each customer once. Sales include only
+appear in multiple reason/status rows; TOTAL counts each customer once. Sales include only
 qualifying lines, summed from \texttt{ORDER\_LINE\_NET\_SALES} in
 \texttt{EDLDB.BT\_HCA\_HCDM.ORDER\_LINE\_COST\_MEASURES\_RXP},
 once per shipment-and-line record with a shipment or cancellation timestamp in the window. Split-shipment sales outside the window are excluded; records meeting both dates count once. Zero and negative sales remain included;
 any missing sales make the group total incomplete. Display rounds to two
 decimals; exports retain five. Current cancellation reasons are grouped
 case-insensitively; a missing reason does not establish an uncancelled order.
-Orders can appear in multiple reason rows if their lines have different
-reasons; TOTAL counts each order once. Line counts and sales are additive.
-Gray reason-row net-sales amounts have a recorded cancellation reason and represent
+Line-item status is \texttt{ORDER\_ORDER\_LINE\_STATUS}; codes are shown as recorded.
+Conflicting statuses across shipment rows for a physical line fail validation.
+Orders can appear in multiple reason/status rows if their lines differ;
+TOTAL counts each order once. Line counts and sales are additive.
+Gray reason-row net-sales amounts have a recorded cancellation reason or status X and represent
 unrealized sales, not realized revenue. The gray TOTAL combines these amounts
-with the no-recorded-cancellation-reason amount.
+with the no-recorded-cancellation-reason, non-X amount.
 Recorded net sales are a baseline for opportunity sizing, not an estimate of
 recoverable revenue from cancelled orders.
 \end{minipage}
 \end{table}
-
 \input{appendix/financial_opportunity_same_part_pet_comparison}
 \input{appendix/financial_opportunity_same_pet_different_part_comparison}
 \input{appendix/financial_opportunity_any_vet_diet_comparison}
