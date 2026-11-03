@@ -223,7 +223,7 @@ def publish_latex(text):
     if (appendix/'customer_contacts_by_cancellation_reason.tex').exists():
         anchor=r'\label{subsec:contact-analysis}'
         text=text.replace(anchor,anchor+'\n'+r'\input{appendix/customer_contacts_by_cancellation_reason}'+'\n'+r'\clearpage',1)
-    for name in ['contact_frequency_reorders','contact_window_reorders']:
+    for name in ['contact_frequency_reorders','contact_window_reorders','reproduction_contacts']:
         if (appendix/(name+'.tex')).exists():text=text.rstrip()+'\n\n'+r'\input{appendix/'+name+'}\n'
     write_text(appendix/'contact_analysis.tex',text)
     main=ROOT/'src/latex/main.tex';include=r'\input{appendix/contact_analysis}'

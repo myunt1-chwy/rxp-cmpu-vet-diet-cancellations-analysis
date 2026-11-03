@@ -61,12 +61,17 @@ study-population-tables:
 
 reproduce-upload-delay-section:
 	$(MAKE) --no-print-directory study-population-tables
+	$(MAKE) --no-print-directory study-upload-coverage-by-cancel-reason
 	$(MAKE) --no-print-directory cmpu-first-order-line-status CACHED=1 START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
 	$(MAKE) --no-print-directory cmpu-upload-entity-order-creation-distributions cmpu-upload-entity-state-change-distributions CACHED=1 START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01 AS_OF_DATE=2026-10-27
 	$(MAKE) --no-print-directory cmpu-upload-to-approval-distribution CACHED=1 START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
 
 reproduce-survival-section:
 	$(MAKE) --no-print-directory cmpu-first-order-line-survival START_DATE=2026-08-15 END_DATE=2026-10-15 UPLOAD_START_DATE=2026-08-01
+
+.PHONY: study-upload-coverage-by-cancel-reason
+study-upload-coverage-by-cancel-reason:
+	.venv/bin/python -m src.python.create_study_upload_coverage_by_cancel_reason
 
 .PHONY: cmpu-upload-time-ratio-distribution
 cmpu-upload-time-ratio-distribution:

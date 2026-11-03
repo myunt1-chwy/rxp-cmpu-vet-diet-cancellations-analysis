@@ -256,6 +256,7 @@ subsubsections contain the commands and figure/table references.
 | Contact frequency versus 14-day same-pet/part successful reorders | `opportunity-contact-frequency-reorders CACHED=1` |
 | Contact timing versus 14-day same-pet/part successful reorders | `opportunity-contact-window-reorders` (replays the frequency-study inputs first) |
 | Study population/upload counts and prescription decisions | `study-population-tables` |
+| First-order upload coverage by cancellation reason | `study-upload-coverage-by-cancel-reason` |
 | First/all-order cancellation and net-sales comparison | `prescription-cohort-order-comparison CACHED=1` (also included in `study-population-tables`) |
 | CUSTOMER_UPLOAD first-order-line Sankey | `cmpu-first-order-line-status CACHED=1` |
 | Upload/order-creation boxplots | `cmpu-upload-entity-order-creation-distributions CACHED=1` |
@@ -414,6 +415,56 @@ make prescription-cohort-order-comparison CACHED=1
 
 Omitting `CACHED=1` on that individual comparison target refreshes its read-only
 financial extract while retaining the frozen physical-line membership.
+
+## Prescription-upload coverage by cancellation reason
+
+```sh
+make study-upload-coverage-by-cancel-reason
+make report
+```
+
+This cached-only target creates the new first child of the upload-delay section,
+**What is the percentage of prescription upload?**, and is included in
+`reproduce-upload-delay-section`. It preserves the frozen CUSTOMER_UPLOAD
+population of 87,724 first orders and 95,073 first-order lines for CMPU vet-diet
+prescriptions created August 15–October 14, 2026, inclusive, UTC.
+
+For each cancellation reason, show distinct first orders and physical first-order
+line items, line items with at least one matching upload, their percentage, and
+distinct total/accepted/rejected upload entities. Coverage is **100 × lines with
+at least one upload ÷ all study lines in that reason**, including lines without
+uploads. This is not upload count divided by line count. Match expanded
+prescription IDs and numeric customer IDs, then both first-order keys. Collapse
+duplicate associations and shipment rows. An upload can match several lines or
+reason groups; TOTAL independently deduplicates orders and upload IDs.
+
+Upload discovery is August 1–October 25, 2026, inclusive, UTC; unknown creation
+dates follow the existing study rule and are audited. Do not require upload to
+precede cancellation. Accepted/rejected mean current entity STATE_NAME values
+ACCEPTED/REJECTED, not prescription approval/denial. Other states remain in total
+uploads. The retained totals are 29,715 uploads, 25,606 accepted and 914 rejected.
+Reasons are trimmed and case-insensitive; missing/blank reasons are explicit.
+Aged order uses cancellation at/before October 27, 2026, 00:00 UTC; later or
+undated aged reasons stay in a separate outside-cutoff row.
+
+Sources are the fingerprint-checked first-order-line-status baseline and the
+retained `cmpu-study-population-prescription-decisions` and
+`cmpu-study-population-uploaded-documents` extracts. Freeze membership to the
+baseline; use cancellation reasons/times from the decision extract, requiring
+agreement with the upload extract. Originally blank reasons populated in that
+later snapshot are exported as differences; changes to known baseline reasons
+fail validation. No warehouse queries occur. Missing or mismatched caches fail
+instead of silently refreshing.
+
+The generator is `src/python/create_study_upload_coverage_by_cancel_reason.py`.
+Complete study lines, deduplicated upload associations, summary, excluded newly
+linked prescriptions, reason-snapshot differences, audit, independent DuckDB
+verification SQL and provenance/export fingerprints are under
+`data/study-upload-coverage-by-cancel-reason/2026-08-15_2026-10-14/`.
+Bounded Markdown is under the matching `outputs/tables/` date folder. The tracked
+LaTeX fragment is `src/latex/appendix/study_upload_coverage_by_cancel_reason.tex`;
+its table label is `tab:study-upload-coverage-by-cancellation-reason`. Existing
+analysis subsubsections renumber automatically after the new 2.3.1.
 
 ## Financial and contact analysis
 
