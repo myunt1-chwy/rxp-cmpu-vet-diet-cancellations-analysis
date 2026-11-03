@@ -247,3 +247,10 @@
   - Fixed the fatal extra closing brace in Suggested Next Steps. Included contact/upload-delay/survival reproduction fragments from their parent sections and preserved the contact include on generator reruns, resolving all three missing references. make report now succeeds with no warnings, undefined references or overfull boxes; PDF and contents visually checked and git diff --check clean.
   - No warehouse refresh or test-suite run. Commit hooks disabled to preserve the user's instruction; no merge or remote push requested.
 
+* 2026-11-03 Draft/final report modes and publication filename
+  - User approved committing the pending mode/path/filename changes. Committed as 2d64716 on feat/data-source-connections, including the current report prose and rebuilt draft PDF; editor artifacts excluded.
+  - Added FINAL ?= 0. make report FINAL=1 omits both the watermark package and opening red DRAFT label; default/FINAL=0 retains both. An ignored generated LaTeX boolean input changes only when the mode changes, allowing latexmk to rebuild correctly without cleaning.
+  - Moved and renamed the tracked report to outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf. Both modes publish to this same path; updated Make status/copying, HOWTO and nested Git ignore exceptions. Other generated analysis/report formats remain ignored.
+  - Verified default draft, final and return-to-draft builds, text/package checks and rendered first pages. Rebuilt once more before committing to match the latest report source, verified PDF bytes against the compiler output and confirmed the report remains a draft as requested. Final LaTeX log and git diff --check clean.
+  - No data refresh or test-suite run; commit hooks disabled. No merge or remote push requested.
+
