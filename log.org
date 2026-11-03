@@ -1,3 +1,27 @@
+* 2026-11-03 Prescription upload status tables and reproduction
+  - User approved committing the pending report updates. Implementation committed
+    as 03c9479 on feat/data-source-connections, including the current report prose,
+    product-manager review/task records and rebuilt draft PDF.
+  - Table 14 now groups upload coverage by cancellation reason and line-item
+    status, with distinct prescriptions. Frozen totals remain 87,724 orders,
+    95,073 prescriptions/lines and 29,715 upload entities.
+  - Added Table 15 for the original 40,864 no-recorded-reason prescriptions:
+    40,841 still have no reason in the November 3 status extraction; 23 newly
+    populated reasons are audited. Retained lines: 26,272 with uploads and
+    14,569 without. Added source SQL, fresh extraction and validated cached replay.
+  - Table 16 uses the same status columns and counting rules for aged orders:
+    26,443 prescriptions/lines, 777 with uploads and 25,666 without. Retained
+    prescription statuses: APPROVED 5, CLOSED 1, SYSTEM_CLOSED 26,436 and
+    VET_REVIEW 1. Archived the earlier status extract and SQL with fingerprints.
+  - Added make study-upload-tables to regenerate Tables 14--16 sequentially from
+    retained inputs. make report and the upload-section reproduction target use
+    it automatically. Updated HOWTO and the report reproduction instructions.
+  - Fresh no-reason extraction, cached regeneration, independent DuckDB count
+    reconciliation and PDF build passed. Visually checked tables on pages 39--40
+    and reproduction instructions on page 43; git diff --check passed. No test
+    suite or unrelated warehouse refresh; hooks disabled to retain that constraint.
+    Ignored extracts/outputs and editor backup files excluded; no merge or push.
+
 * Clinic shipment history and vet-analysis retirement
   - User approved committing and merging to main. Implementation committed as
     63e62cb (feat: add prior clinic history and 21-day reorder distribution).
