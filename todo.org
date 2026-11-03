@@ -728,6 +728,10 @@
 * DONE Prepare committed analysis changes and PDF for main
   - User authorizes committing and merging the current feature branch. Track outputs/pdf, preserve other generated-output exclusions, rebuild/verify report and run final checks before fast-forwarding local main.
   - Updated .gitignore to track outputs/pdf while retaining other generated-output exclusions. Rebuilt the current report and visually inspected it; no LaTeX warnings. Final checks: 621 passed, 16 subtests passed in 32.74s. Current feature work is committed and ready for a fast-forward into local main with the PDF. User explicitly authorizes commit and merge.
+* DONE Stop tracking generated .el files inside auto directories
+  - Remove all tracked .el files beneath auto directories from the Git index while keeping local copies. Add a repository ignore rule and verify no matching files remain tracked. Preserve unrelated report/editor changes; no tests needed. Commit only after approval.
+  - Removed seven previously committed .el files from the index with git rm --cached; all seven local copies remain. Added **/auto/**/*.el and verified both direct/nested auto metadata are ignored, while .el files outside auto remain eligible for tracking. No matching tracked files remain; git diff --check passes. Unrelated report/PDF edits preserved; uncommitted pending approval.
+
 * DONE Rename the published report to phds-cmpu-aged-orders-analysis.pdf
   - Update Make/HOWTO and rename the existing PDF under outputs/reports/pdf. Verify FINAL=1 publishes the requested filename; no data refresh or tests. Commit only after approval.
   - Renamed the existing PDF and updated build copying/status output plus HOWTO references. make report FINAL=1 succeeds; published bytes match build/latex/main.pdf and the previous filename is absent. Compiler log and git diff --check clean. Uncommitted pending approval.
