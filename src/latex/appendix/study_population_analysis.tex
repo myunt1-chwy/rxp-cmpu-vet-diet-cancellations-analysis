@@ -30,18 +30,22 @@ prescription upload by the customer, delay in processing the upload,
 and delay in approving the prescription after the uploaded
 prescription document is accepted.
 
-The data for uploaded documents/entities does not cover all the
-prescriptions, the coverage is about 31\% in this study. The number of
-prescription documents uploaded for 26,443 aged order prescriptions is
-782 (~3\%) compared to 33,336 uploads for 95,073 prescriptions overall
-(~35\%) pointing to a severe non-response by the customers. See Table
-\ref{tab:study-population-counts}.
+Matched upload coverage is 29,623 of 95,073 study first-order lines
+(31.16\%), compared with 777 of 26,443 aged first-order lines (2.94\%);
+25,666 aged lines (97.06\%) have no matched upload in the retained window
+(Table \ref{tab:study-upload-coverage-by-cancellation-reason}).
+The matched lines link to 29,715 distinct upload entities overall and
+782 in the aged subset (Table \ref{tab:study-population-counts}).
+These are different counting units: one entity can link to multiple
+prescriptions or lines. Unmatched evidence does not establish customer
+non-response, and uploads are not required to precede cancellation.
 
-Only 6 aged order related prescription were approved out of 52
-accepted/782 uploaded (See Table
-\ref{tab:study-population-prescription-decisions} for comparison with
-the rest of the order line population.) The median time for these
-prescriptions to become accepted was 10 days after upload, as a result
+Of the 782 matched aged-order upload entities, 52 (6.65\%) are currently
+ACCEPTED. Separately, 6 of 26,443 aged prescriptions (0.02\%) have a
+recorded approval (Table \ref{tab:study-population-prescription-decisions}).
+These snapshot counts do not form a same-grain conversion funnel from
+upload through approval. The median time for the accepted entities
+to become accepted was 10 days after upload, as a result
 missing the aged order cancellation deadline (Figure
 \ref{fig:entity-upload-state-time-aged}).  For comparison, the
 distributions of the time difference between upload of the documents

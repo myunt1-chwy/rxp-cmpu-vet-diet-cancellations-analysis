@@ -6,14 +6,29 @@ Mermaid Sankey renderer. From the repository root, run:
 make reproduce-upload-delay-section
 make report
 \end{lstlisting}
+To regenerate only Tables~\ref{tab:study-upload-coverage-by-cancellation-reason},
+\ref{tab:study-no-cancellation-upload-details} and
+\ref{tab:study-aged-order-upload-coverage}, run
+\texttt{make study-upload-tables}. This replays the retained snapshots in dependency
+order without querying Snowflake. \texttt{make report} runs this target automatically.
 This replays the retained August 15 inclusive--October 15 exclusive prescription
 cohort, August 1--October 25 upload discovery window, and October 27, 2026 aged
 cancellation cutoff. The section target runs:
 \begin{itemize}[leftmargin=*]
 \item \path{study-upload-coverage-by-cancel-reason}: regenerates
 Table~\ref{tab:study-upload-coverage-by-cancellation-reason} from the frozen
-first-order study and upload-entity inputs, including line-item coverage and
+first-order study and upload-entity inputs, split by cancellation reason and
+frozen line-item status, including line-item coverage and
 distinct total, accepted and rejected entity counts.
+\item \path{study-aged-order-upload-coverage}: renders the aged-order status
+breakdown in Table~\ref{tab:study-aged-order-upload-coverage}, using the same
+columns and counting rules as the no-recorded-reason detail table. Retains the
+November 3 aged-status extraction and frozen study upload associations.
+\item \texttt{study-no-cancellation-upload-details CACHED=1}: validates the retained
+status snapshot and frozen upload associations, then renders
+Table~\ref{tab:study-no-cancellation-upload-details} for lines whose cancellation
+reason was still missing at that extraction. To deliberately refresh only these
+statuses, run \texttt{make study-no-cancellation-upload-details} separately.
 \item \path{study-population-tables}: validates and renders
 Tables~\ref{tab:study-population-counts} and
 \ref{tab:study-population-prescription-decisions}, then invokes

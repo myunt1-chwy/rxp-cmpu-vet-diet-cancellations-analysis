@@ -1,32 +1,201 @@
-* DONE Retired: VDAM upload distribution
+* DONE Add one make target for Tables 14--16
+  - Add make study-upload-tables to regenerate the coverage, no-recorded-reason detail and aged-order detail tables sequentially from retained snapshots. Integrate with make report and section reproduction, document the command, and verify generation/PDF build without a warehouse refresh or test suite.
+  - Added the aggregate target with explicit CACHED=1 for the status replay, preserving source-before-detail ordering even under parallel make. make report and reproduce-upload-delay-section now use it; removed the redundant internal cached-only alias. Documented the aggregate and individual targets in HOWTO and report reproduction steps.
+  - make study-upload-tables and make report succeeded with every group's existing independent validation. Checked reproduction instructions on page 43 and git diff --check; no warehouse queries or test suite. Changes await commit approval.
+
+* DONE Change Table 16 to match Table 15
+  - Replace the aged-only coverage row with RX_STATUS, order status, cancellation reason, line-item status, prescriptions, line items, with upload and without upload. Use the retained aged-order status extraction and frozen upload associations, shared Table 15 validation and distinct counting. Rebuild and visually inspect the draft PDF; no warehouse refresh or test suite.
+  - Reused the November 3 18:56:48 UTC extraction with archived SQL and fingerprints. Four RX_STATUS groups: APPROVED 5, CLOSED 1, SYSTEM_CLOSED 26,436, VET_REVIEW 1. Totals reconcile independently to 26,443 prescriptions/lines, 777 with uploads and 25,666 without. All order and line statuses are X and reasons aged order.
+  - Shared Table 15 identity checks, grouping, distinct-count verification and row rendering; Table 15's cached results unchanged. Updated HOWTO and reproduction notes. make study-aged-order-upload-coverage and make report passed; both tables fit page 40 with no clipping. git diff --check passed. No warehouse refresh, test suite or commit.
+
+* DONE Add a separate aged-order table with Table 14's columns
+  - Use the frozen eligible aged-order subset and identical prescription/order/line/upload metrics, retaining yellow highlighting. Add a cached-only make target, bounded Markdown/Parquet/provenance and report/reproduction integration; reconcile independently and inspect the rebuilt draft PDF. No warehouse refresh or test suite.
+  - Added Table 16 below Table 15 on page 40 in section 2.3.1. One status-X row: 24,408 orders; 26,443 prescriptions/lines; 777 lines with uploads (2.94%); 782 entities, 52 accepted and 188 rejected. All counts reconcile independently to the retained study; yellow highlight preserved.
+  - make study-aged-order-upload-coverage and make report passed. Visually checked both tables and notes on page 40 without clipping; git diff --check passed. Added HOWTO and section reproduction instructions, with cached-only report generation. No warehouse refresh, test suite or commit.
+
+* DONE Add prescription counts to Table 15
+  - Add distinct RX_ID counts by the existing status groups and overall, preserving the retained no-current-cancellation-reason cohort. Reconcile independently, replay cached data and visually inspect the rebuilt draft PDF; no warehouse refresh or test suite.
+  - Added Prescriptions column with distinct RX_ID counts, independently reconciled each group and the 40,841 total; counts equal first-order lines in this cohort. Updated notes, audit, Markdown/Parquet exports and HOWTO. Cached target and make report passed; page 40 visually checked with no overflow or unresolved references. git diff --check passed; no commit.
+
+* DONE Add prescription counts to Table 14
+  - Add distinct RX_ID counts for each cancellation-reason/line-item-status group and the overall total. Validate independently with DuckDB, regenerate the table and inspect the rebuilt draft PDF; no warehouse refresh or test suite.
+  - Added Prescriptions column using distinct RX_ID, independently reconciled every group and the total of 95,073 (26,443 aged-order prescriptions). Counts equal first-order-line counts in this frozen cohort; documented the grain in table notes and HOWTO. Rebuilt and visually checked page 39; totals and yellow highlight retained, no overflow or unresolved references. git diff --check passed; no commit.
+
+* DONE Split Table 14 by line-item status
+  - Add line-item status from the retained first-order-line snapshot to the cancellation-reason groups. Preserve all upload metrics, overall distinct totals and yellow aged-order highlighting. Keep the frozen cohort and upload-association exports unchanged for Table 15.
+  - Regenerate with make study-upload-coverage-by-cancel-reason, reconcile every reason/status group independently, rebuild and visually inspect the draft PDF. No warehouse refresh or test suite.
+  - Split all reasons by ORDER_ORDER_LINE_STATUS from the retained October 28 snapshot, with identity and shipment-consistency checks. No-recorded-reason statuses are C/D/R/S/X; aged order remains X and yellow. Overall 87,724 orders, 95,073 lines and 29,715 upload entities unchanged; reason/status groups reconcile independently in DuckDB.
+  - Preserved the original study-lines/upload-association fingerprints, so Table 15 cached replay passes. Updated HOWTO, reproduction notes and Table 15's reference to the multiple no-reason rows. make report succeeded; Table 14 remains on page 39 and was visually checked without clipping or overflow. git diff --check passed; no warehouse refresh, test suite or commit.
+
+* DONE Add no-current-cancellation-reason upload details to section 2.3.1
+  - Accepted plan: add make study-no-cancellation-upload-details, tracked SQL and generator, with fresh status extraction and CACHED=1 replay. Start from the frozen 40,864 prescriptions/first-order lines; retain only currently null/blank cancellation reasons and audit newly populated reasons.
+  - Seven columns: RX_STATUS, order status, order cancellation reason, line-item status, line-item count, with upload and without upload. Omit STATE_CHANGE_REASON. Reuse the frozen upload associations and validate prescription/customer/both first-order keys and shipment consistency.
+  - Preserve the original coverage table; add details in the same 2.3.1 without a new numbered subsection. Export Parquet, bounded Markdown, provenance and LaTeX. Integrate cached-only report/reproduction targets and HOWTO.
+  - Verify fresh extraction, cached replay, independent DuckDB counts, draft PDF placement/layout and git diff --check. No test suite, unrelated refresh or commit before approval.
+  - Implemented and extracted 2026-11-03 19:33:58 UTC: 40,841 retained lines across 38,395 orders; 26,272 lines with upload and 14,569 without. Excluded 23 newly populated reasons (12 pharmacy rejection, 10 payment declined, 1 customer initiated cancellation); complete excluded-line audit retained.
+  - Fresh target, fingerprint-validated cached replay, independent DuckDB reconciliation of every group and make report succeeded. Visually checked Table 15 on page 40 between the unchanged coverage table and section 2.3.2; draft watermark retained, no overflow or unresolved references. git diff --check passed. No test suite, unrelated refresh or commit; awaiting approval.
+
+* Product manager review: CMPU aged-order report (2026-11-03)
   :PROPERTIES:
   :REFNUM:   1.
+  :END:
+  - Reviewed: [[file:outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf][Published draft PDF]], its LaTeX sources and supporting table/figure definitions at commit c498386. These are review comments and proposed follow-up tasks, not changes to the report or authorization to execute new research.
+  - Second review: reread the current 66-page PDF (built November 3, 2026 at 11:10 EST), checked the narrative against source definitions and retained statistics, and visually inspected pages 1, 40 and 43. The previous 12 items remain open; added two specific upload-timing findings and refined the existing evidence/actions below. No warehouse refresh or report rebuild was performed.
+  - PM assessment: the report supports prioritizing customer discovery and a controlled reminder experiment. It does not yet establish the incremental sales benefit of reminders or a validated day-three cancellation-risk rule. Keep the cohort breakdowns, reproducible tables and explicit source caveats; bring the material caveats into the executive conclusions.
+  - Priority A: address before decision-making circulation. Priority B: specify before committing to a pilot or broader product investment. Priority C: publication/readability cleanup.
+  - Review order: correct numerical and outcome claims first, then define the decision and the eligible intervention population, then specify discovery/experiment work. A confirmed mismatch is a correction; an unmeasured mechanism or proposed experiment is a follow-up, not a proven defect in customer behavior.
+
+** DONE [#A] Correct the executive-summary percentages and their denominators
+   :PROPERTIES:
+   :REFNUM:   1.1.
+   :END:
+   - Completed 2026-11-03: corrected the executive-summary customer, sales-baseline, upload-coverage and acceptance percentages with explicit units, counts and windows. Observed follow-up sales are distinguished from incremental recovery; the first-vet-diet 70-day rate is 15.70%. Section 2.3 now separates line coverage, upload entities and prescription approvals rather than presenting a mixed-grain funnel.
+   - Verification: independently reconciled 18 displayed percentages; make report succeeded in default draft mode; inspected PDF pages 1, 2 and 36; git diff --check passed. No tests or warehouse refresh. The final LaTeX log has two underfull contents-line warnings, no undefined references or overfull boxes. The 57-page rebuild also reflects the pre-existing c498386 cleanup that removed the data-source-diagram section from report inputs. Other PM review tasks remain open; changes await approval to commit.
+   - Comment: the summary currently conflates customer return with sales recovery and upload entities with prescriptions. This can materially change a reader's assessment of the opportunity and process failure.
+   - Evidence: Executive Summary / Tables 1, 2 and 14. 2,316 / 30,382 = 7.62% returning customers, while 221,122.35 / 3,470,380.19 = 6.37% of the recorded aged-order sales baseline, not 7.6%. Also, 52 accepted / 782 uploaded entities = 6.65%, contradicting "less than 1% of the uploaded prescriptions ... get accepted". Dividing 52 entities by all 26,443 aged lines gives a different measure and mixes grains.
+   - Action / done when: reconcile each summary percentage with an explicit numerator, denominator, counting unit and window. Use 777 / 26,443 = 2.94% line-item upload coverage, or 97.06% without a matched upload, when discussing Table 14. Label observed follow-up sales separately from incremental recovery; correct both source text and published PDF.
+   - Second-review clarification: section 2.3 also says "6 ... approved out of 52 accepted/782 uploaded". The six are prescriptions; 52 and 782 are entities. Do not present these as successive funnel conversion rates without a verified same-grain linkage. Table 2's first-vet-diet 70-day rate is 15.70%; use consistent rounding in the summary.
+
+** TODO [#A] Replace the survival-curve interpretation with the outcome it actually estimates
+   :PROPERTIES:
+   :REFNUM:   1.2.
+   :END:
+   - Comment: a day-three intervention may be worth testing, but the current curve does not establish a greater-than-50% probability of an aged cancellation.
+   - Evidence: Executive Summary and section 2.4 / Figure 6. The event combines actual or estimated accepted-entity state change with cancellation; the caption explicitly says survival is neither acceptance nor cancellation. 28.90% / 55.80% describes remaining event-free survival conditional on the earlier landmark, not the cumulative probability of the cancellation cause. Some acceptance times are estimated from later approval/denial using 0.96.
+   - Action / done when: remove or qualify the cancellation-risk claim. Before using day three as an operating risk threshold, define the cause-specific aged-cancellation outcome and measure it among customers eligible using information observable at day three; distinguish uploaded from accepted, handle competing outcomes/censoring and show uncertainty. Otherwise describe day three as an experiment hypothesis.
+   - Second-review clarification: 28.90% / 55.80% = 51.79% remaining event-free at day ten conditional on being event-free at day three; neither this ratio nor its complement isolates aged cancellation. Align the section 2.4 heading, introductory paragraph, chart title and executive takeaway with the accepted-state-change-or-cancellation endpoint. Propose any heading change for author agreement.
+
+** TODO [#A] Qualify the conclusion that approval after acceptance is not a bottleneck
+   :PROPERTIES:
+   :REFNUM:   1.3.
+   :END:
+   - Comment: a chart conditioned on fast successful cases cannot rule out long waits elsewhere in the process.
+   - Evidence: section 2.3.4 / Figure 5 only includes current D-status lines, nonnegative approval gaps of 0--60 seconds, and normalizes to that subset; longer gaps are omitted. The current source executive summary says approval after acceptance is not significant and takes less than a minute. The published PDF omits that summary sentence but already makes the less-than-a-minute claim in section 2.3 on page 36.
+   - Action / done when: label this as a conditional result. Show the full eligible denominator, share omitted above 60 seconds, missing/pending outcomes and relevant upper-tail measures before making a process-wide speed claim. Distinguish acceptance-to-approval from order-to-upload and upload-to-acceptance; prioritize stages only after these exclusions are visible.
+
+** TODO [#A] Replace the unsupported upload-timing significance claim with a descriptive comparison
+   :PROPERTIES:
+   :REFNUM:   1.4.
+   :END:
+   - Comment: similar-looking boxplots do not establish equivalent customer behavior or rule out upload timing as a useful intervention point.
+   - Evidence: page 1 and section 2.3.2 / Figure 2 (page 40) say timing does not differ significantly. The figure compares 782 aged entities with an overall group that includes those same entities, rather than with the "rest" of the study as the summary says. Its generator exports descriptive statistics, not a reported significance/equivalence analysis. Retained medians are 17.32 hours for aged entities and 20.56 hours overall; 3,621 overall entities lack matched placement and are excluded. See [[file:src/python/create_cmpu_upload_entity_order_creation_distributions.py][figure generator]] and [[file:outputs/tables/2026-08-15_2026-10-14/cmpu-upload-entity-order-creation-distributions/statistics.md][retained statistics]].
+   - Action / done when: describe the observed medians/spread and conditional population without claiming statistical equivalence. If a comparison is needed for a product decision, define a disjoint non-aged comparison, meaningful effect size and uncertainty, accounting for repeated customer/order associations. State that these are customers with observed uploads; they cannot explain why most aged lines have no matched upload.
+
+** TODO [#A] Correct the acceptance-delay value and verify whether processing missed the deadline
+   :PROPERTIES:
+   :REFNUM:   1.5.
+   :END:
+   - Comment: the report suggests an operational delay caused cancellation, but time since upload and time since order placement are different clocks. Entering a review state also does not mean the document is ready for approval.
+   - Evidence: section 2.3 (page 36) says the median acceptance delay was ten days after upload, "as a result" missing the deadline. The retained Figure 4 [[file:outputs/tables/2026-08-15_2026-10-14/cmpu-upload-entity-state-change-distributions/aged-order-statistics.md][aged-state statistics]] show 318.79 hours, or 13.28 days, for the 52 currently ACCEPTED entities. Figure 4 measures creation to current state change, is not capped at cancellation, and includes 538 REVIEW_REQUIRED entities whose time to that state is not time spent waiting in review.
+   - Action / done when: reconcile the stated median with the retained figure data. Compare upload and acceptance timestamps with each matched order's actual cancellation timestamp to report how many documents were submitted before cancellation but accepted afterward, versus submitted afterward or still unresolved. Define review entry, review completion and pending time separately; describe deadline timing as an association until an operational trace supports the cause. Do not attribute all aged cancellations to processing delays among this small observed-upload subset.
+
+** TODO [#A] Reframe the contact findings as observed associations and verify human-contact meaning
+   :PROPERTIES:
+   :REFNUM:   1.6.
+   :END:
+   - Comment: the report risks turning recorded contact-direction evidence into a claim about customer behavior and contact effectiveness.
+   - Evidence: Executive Summary / Tables 7--10. Table 7 uses cancellation-relative days, not order-creation-relative bins, so it does not directly prove most contacts occurred at creation. Its notes say inbound is a proxy, not verified human initiation. Table 10's 20.02% versus 12.31% reorder comparison includes contacts through day +3 after cancellation; reorder activity or customer intent can influence group membership.
+   - Action / done when: report the actual counts/windows and distinguish sessions, contact days and human contacts. Validate the large Email/Other-ingress component and compare contact timestamps directly with placement before asserting creation-time contact. Do not infer that more/later contact causes reordering or that reminders will have the same effect. Verify outbound reminder coverage separately before claiming no outbound contact exists.
+   - Second-review clarification: Table 6's 30,304 contacting aged customers (99.74%) and Table 7's 30,299 use different windows and need not reconcile exactly. Table 9 only compares one versus two relative contact-day bins: 12.38% versus 14.10%; it omits 83 zero-contact and 226 three-or-more-day customers, so it does not establish a general frequency-response pattern. Table 10's comparison group is the rest of the cohort, not a no-contact group; the contact and reorder can concern different aged orders for the same customer. Make these limits visible beside the conclusions.
+
+** TODO [#A] Present the reminder business case as an incremental-value hypothesis
+   :PROPERTIES:
+   :REFNUM:   1.7.
+   :END:
+   - Comment: the observed 221K seven-day reorder sales and roughly 390K fourteen-day scenario are not demonstrated incremental gains or a defensible upper bound for reminders. Advancing a purchase that would occur anyway may create little additional revenue.
+   - Evidence: Executive Summary / Tables 1--2 and the financial table notes. The 3.47M aged-order amount is recorded line-sales opportunity, not proven recoverable revenue. The forecast assumes historical post-cancellation returners respond similarly to a pre-cancellation email, and assumes an additional avoided skipped reorder without treatment evidence.
+   - Action / done when: separate observed sales, displaced/delayed purchases and incremental demand. Make assumptions explicit, show sensitivity rather than a single expected uplift, and include contribution margin and reminder/support costs. Define how the experiment will measure incremental fulfilled orders/value over a fixed horizon, net of natural reorders and timing shifts, before using the estimate to justify rollout spend.
+   - Second-review clarification: show which population and sales denominator produce the claimed 1% increase. Distinguish the 221K avoided-cancellation scenario from the additional 221K skipped-reorder assumption and explain whether they overlap. Estimate reachable customers still awaiting action at the chosen trigger; the retrospective 30,382 aged customers are not the prospective day-three eligible audience.
+
+** TODO [#B] Make the product decision and accountable next step explicit
+   :PROPERTIES:
+   :REFNUM:   1.8.
+   :END:
+   - Comment: the research recommendations are sensible, but a decision-maker still needs to know what is being requested now and what evidence will unlock the next investment.
+   - Reference: Executive Summary / "What should we do next?".
+   - Action / done when: open with a concise decision brief: customer problem, evidence confidence, proposed discovery/pilot, target segment, named accountable owner, required partner teams/resources, decision date and go/no-go criteria. Distinguish approval for learning from approval for a scaled reminder program or prescription-pickup service. Do not invent owners, budgets or target lifts; obtain them from the responsible teams.
+
+** TODO [#B] Define retention and measure excess attrition against a suitable baseline
+   :PROPERTIES:
+   :REFNUM:   1.9.
+   :END:
+   - Comment: not buying the same pet/product again within 70 days is not synonymous with leaving Chewy. Purchase cadence, product switching and prior customer experience can explain part of the observed differences.
+   - Evidence: sections 2.1.2--2.1.5 / Tables 2--5. At 70 days, the whole aged cohort has 26.15% same-pet/part return versus 61.12% any-Chewy return. The 30,382 / 11,550 / 5,097 cohorts overlap and are not independent treatment groups.
+   - Action / done when: define the primary retention endpoint and label the other endpoints as distinct behaviors. Compare aged customers with a comparable non-aged/customer-history baseline, accounting for prior activity and plausible replenishment cadence; show uncertainty. Position first-time vet-diet customers as a priority hypothesis until the excess attrition/opportunity is established, rather than attributing the entire difference to aging.
+   - Second-review clarification: all-aged follow-up can qualify against any of a customer's aged cancellations, whereas first-order cohorts use one fixed anchor. The difference in opportunities to qualify is another reason not to read these rates as a causal segment comparison. Describe first-ever status as first observed in available history, and use a common anchor definition for any proposed like-for-like comparison.
+
+** TODO [#B] Make upload observability and the failure-stage funnel actionable
+   :PROPERTIES:
+   :REFNUM:   1.10.
+   :END:
+   - Comment: missing matched upload evidence is not by itself proof that the customer never uploaded, and current entity state is not a complete historical journey.
+   - Evidence: sections 2.3 and 2.6 / Tables 11--14. Table 14 shows only 777 aged lines with a matched upload, but it also permits uploads after cancellation and applies a bounded discovery window. The narrative's 33,336 overall entities, Table 11's 29,715 matched uploads and Table 14's 29,623 covered lines have different grains/matching populations.
+   - Action / done when: reconcile these populations visibly and validate a sample of no-upload and rejected cases against operational evidence and both source systems. Build a same-cohort, event-time funnel at order/line grain: eligible, uploaded before deadline, accepted, approved and fulfilled, with unknown/unlinked records explicit. Separate customer non-response, acquisition difficulty, upload/linkage failure, rejection and review delay before choosing the intervention.
+
+** TODO [#B] Align cohort periods and business definitions across the summary and appendices
+   :PROPERTIES:
+   :REFNUM:   1.11.
+   :END:
+   - Comment: the financial and process analyses answer related questions using different populations; readers should not interpret their metrics as one joined funnel or assume all missing-reason orders shipped.
+   - Evidence: financial/contact analyses use May--July 2026 activity and 30,382 aged customers; upload analysis uses August--October prescription creation and frozen first-order membership. Table 1 says missing cancellation reason does not prove an uncancelled order. The summary describes aging after ten days while the appendix describes an interval exceeding eleven days. "Successful" follow-up currently means non-cancelled/status-qualified, not necessarily verified fulfillment within the window.
+   - Action / done when: add a compact metric/cohort key with dates, counting unit, eligibility, observation cutoff and exact aging/fulfillment definition. Validate the cancellation policy with operations and state the timestamp/time-zone rule consistently. Use an observed-shipment baseline for shipment claims, and explicitly justify any transfer of findings between the financial and process cohorts.
+   - Second-review clarification: Table 6 explicitly documents 434 NULL-reason order/reason records with cancellation but no qualifying shipment, so the missing-reason group is demonstrably not a pure shipped baseline. Section 2.6's source-connection notes also describe an exclusive October 27 survival upload bound, whereas Figure 6 and section 2.4.1 specify exclusive October 26. Reconcile against the retained run manifest; distinguish upload discovery, event censoring and extraction dates rather than silently changing the analysis window.
+
+** TODO [#B] Specify the reminder experiment before implementation
+   :PROPERTIES:
+   :REFNUM:   1.12.
+   :END:
+   - Comment: "email customers after three days" is a starting hypothesis, not yet an executable product experiment.
+   - Reference: Executive Summary action 2 and section 2.4.
+   - Action / done when: define the observable day-three trigger, still-open eligible orders, exclusions for already uploaded/accepted/cancelled cases, and treatment versus current-practice control. Choose a randomization unit that prevents one customer's multiple orders crossing arms; specify segment stratification, attribution and follow-up. Set a primary fulfilled-order/aged-cancellation outcome, incremental value, longer-horizon retention, and customer/support/clinic-workload guardrails. Document sample-size/MDE rationale, duration, accountable owner, monitoring and stop/rollout thresholds before launch; do not assume the existing 221K scenario is treatment lift.
+   - Second-review clarification: define the reminder's customer action, upload destination and help path for customers who cannot obtain a prescription. Separate no-upload customers from submitted-but-pending or rejected customers who need a different action. Log eligibility, assignment, delivery and upload/fulfillment outcomes; use all assigned eligible customers for the primary comparison rather than only email openers or eventual aged customers.
+
+** TODO [#B] Turn customer research into a prioritized problem backlog
+   :PROPERTIES:
+   :REFNUM:   1.13.
+   :END:
+   - Comment: a prescription-pickup service, upload-flow repair and a reminder solve different problems. Contacting only customers who cancelled may miss what successful customers did differently.
+   - Reference: Executive Summary action 1; upload and contact findings in sections 2.2--2.3.
+   - Action / done when: define questions and a sampling plan covering first-time/repeat customers, aged/customer-cancelled orders and comparable successful upload journeys. Separate obtaining the prescription, understanding requirements, finding the upload entry point, technical submission issues and document rejection. Combine interviews/surveys with a coded review of validated contact logs and operational traces; report response/selection limits. Deliver ranked unmet needs, evidence confidence and a smallest next experiment for each, before selecting an expensive service intervention.
+
+** TODO [#C] Prepare a concise, synchronized decision-ready publication
+   :PROPERTIES:
+   :REFNUM:   1.14.
+   :END:
+   - Comment: the auditability is valuable, but the product reader needs the decision, key outcomes and uncertainty before extensive SQL and source documentation.
+   - Evidence: the main story is followed by a long SQL appendix; the current LaTeX executive summary contains an approval-after-acceptance conclusion that is absent from the published draft PDF reviewed here. Page 36 prints the literal label "tab:first-all-order-cancellations" instead of Table 13. Figure 2's axis labels and counts are very small at the published page size; the symmetric-log scale needs to remain readable.
+   - Action / done when: organize the opening around a few supported takeaways, the decision request and prioritized actions; retain detailed SQL/reproduction evidence in the appendix. Put each key denominator and caveat beside its claim, use consistent currency/unit formatting and avoid treating overlapping endpoints as additive. Proofread, regenerate the PDF from the reviewed source, verify links/figures, and record the evidence cutoff and reviewer sign-off before circulation. Do not change existing titles or remove analytical material without author agreement.
+   - Second-review clarification: fix the literal table reference, make Figure 2 readable at normal viewing size, and define D status and ACCEPTED versus prescription approval near their first use. Keep the requested SQL and reproduction sections; do not turn this review into an unrequested report restructure. Retain draft mode until the author requests final publication.
+
+* DONE Retired: VDAM upload distribution
+  :PROPERTIES:
+  :REFNUM:   2.
   :END:
   - Retired at user request; standalone target, cohort SQL, module/tests, VDAM cache and HOWTO instructions removed. Shared histogram/palette support retained by the independent order-cancellation analyses.
 
 * TODO [#B] Distribution of other prescriptions
   :PROPERTIES:
-  :REFNUM:   2.
+  :REFNUM:   3.
   :END:
 * TODO [#B] Distribution of cancelled orders
   :PROPERTIES:
-  :REFNUM:   3.
+  :REFNUM:   4.
   :END:
 * DONE Retired: Aged-order upload lifecycle distribution
   :PROPERTIES:
-  :REFNUM:   4.
+  :REFNUM:   5.
   :END:
   - Retired at user request; standalone target, cohort SQL, module/tests, VDAM cache and HOWTO instructions removed. Shared histogram/palette support retained by the independent order-cancellation analyses.
 
 * DONE Retired: Aged-order cancellation distributions
   :PROPERTIES:
-  :REFNUM:   5.
+  :REFNUM:   6.
   :END:
   - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
 
 * DONE Remove uploaded-file constraint and refresh all analyses
   :PROPERTIES:
-  :REFNUM:   6.
+  :REFNUM:   7.
   :END:
    - Include qualifying uploads regardless of HAS_UPLOADED_FILE; retain all other filters and UTC date bounds.
    - Refresh base extracts, cancellation/state/reason distributions at both grains, quantiles, long-delay details, and upload STATE_ID tables.
@@ -37,49 +206,49 @@
 
 * DONE Retired: Order Rx association analysis
   :PROPERTIES:
-  :REFNUM:   7.
+  :REFNUM:   8.
   :END:
   - Retired at user request; Make target, dedicated code/SQL/tests, caches and HOWTO instructions removed.
 
 * DONE Retired: Missing-order upload cancellation analysis
   :PROPERTIES:
-  :REFNUM:   8.
+  :REFNUM:   9.
   :END:
   - Retired at user request; Make target, dedicated code/SQL/tests, caches and HOWTO instructions removed.
 
 * DONE Retired: CMPU upload-event matching
   :PROPERTIES:
-  :REFNUM:   9.
+  :REFNUM:   10.
   :END:
   - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
 
 * DONE Retired: September CMPU upload-event matching
   :PROPERTIES:
-  :REFNUM:   10.
+  :REFNUM:   11.
   :END:
   - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
 
 * DONE Retired: Segment prescription-ID matching
   :PROPERTIES:
-  :REFNUM:   11.
+  :REFNUM:   12.
   :END:
   - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
 
 * DONE Retired: September CMPU later canceled orders
   :PROPERTIES:
-  :REFNUM:   12.
+  :REFNUM:   13.
   :END:
   - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
 
 * DONE Retired: September prescription-item shipments
   :PROPERTIES:
-  :REFNUM:   13.
+  :REFNUM:   14.
   :END:
   - Retired at user request; dedicated code, SQL, tests, data, outputs and HOWTO instructions removed.
 
 * DONE For the time frame August 15 2026 to October 14 2026, generate the Sankey chart using Mermaid for CMPU vet-diet prescriptions
   :PROPERTIES:
-  :REFNUM:   14.
+  :REFNUM:   15.
   :END:
   - User accepted the current analysis/figure changes and approved committing on 2026-10-26. Follow-up check: all 27,454 lines available in the certified RxP view on the cohort's 24,868 aged orders have status X; 26,957 are cohort-linked first lines. SQL and results retained under ignored data/outputs directories.
   - Non-D visual refinement completed: cancellation stage purple and item-block stage light blue replace gray defaults. Added four aligned column headers and stripped repeated field prefixes only in visible SVG/PNG labels; detailed Mermaid/flow IDs, counts, percentages and status-specific branches remain intact. Regenerated and visually inspected PNG; SVG checks verify four headers, short labels and no gray nodes. All 140 tests (22 subtests) and git diff --check pass. Uncommitted for review.
@@ -152,7 +321,7 @@
 
 * DONE Compare first-order to first-usage approval durations by upload presence
   :PROPERTIES:
-  :REFNUM:   15.
+  :REFNUM:   16.
   :END:
   - Accepted plan: CMPU vet-diet CUSTOMER_UPLOAD prescriptions created August 15–October 14, 2026 UTC; DIET_PRESCRIPTION uploads August 1–October 14 matched by expanded RX_ID and numeric CUSTOMER_ID.
   - Use FIRST_ORDER_ID and current known non-X order status. Calculate FIRST_USAGE_APPROVED_DATETIME minus ORDER_PLACED_DTTM in hours, one observation per prescription with both timestamps. Preserve negative durations and outliers; audit excluded prescriptions and UTC/Eastern order timestamps.
@@ -165,7 +334,7 @@
 
 * DONE First-order-line approval and upload timing distributions
   :PROPERTIES:
-  :REFNUM:   16.
+  :REFNUM:   17.
   :END:
   - Accepted plan: CMPU vet-diet CUSTOMER_UPLOAD prescriptions, August 15–October 14, 2026 UTC; join first-order ID and numeric first-order-item ID to the certified order-line view. Count each distinct D-status line once, collapse shipments using latest populated approval, reject conflicting status/creation timestamps, and validate UTC/Eastern companions. Audit missing keys, unmatched lines and missing endpoints.
   - Implemented latest approval minus line creation overall and with uploads; earliest matching upload entity creation minus line creation; latest approval minus earliest matching upload. Hours use complete-range integer-aligned one-hour bins, unbinned linear quantiles, exact cumulative distributions, and reference verticals at 24/72/144/240 hours. Upload-based Make targets exclude negative durations while retaining them in audit/details; zeros and outliers remain.
@@ -177,7 +346,7 @@
 
 * DONE Update Sankey generation for the extended upload window
   :PROPERTIES:
-  :REFNUM:   17.
+  :REFNUM:   18.
   :END:
   - Accepted request: prescriptions before October 15 and uploads before October 26 UTC. Generated Mermaid sources live in src/diagrams/<inclusive-prescription-date-range>/; PNG/SVG figures use the matching outputs/diagrams date folder and descriptive basenames. Rendered SQL/history use src/autogenerated; data and tables retain their existing roots.
   - Added make cmpu-first-order-line-status; existing cmpu-prescription-first-order-status remains an alias. Updated SQL, metadata/cache identity, timestamp validation, titles, paths and HOWTO. Generated all-channel, CUSTOMER_UPLOAD and non-D CUSTOMER_UPLOAD views.
@@ -186,7 +355,7 @@
 
 * DONE Upload time as a share of approval time
   :PROPERTIES:
-  :REFNUM:   18.
+  :REFNUM:   19.
   :END:
   - Accepted plan: CMPU vet-diet CUSTOMER_UPLOAD D-status first-order lines; ratio = (earliest matching upload - line creation) / (latest approval - line creation). Preserve REFNUM 16 joins, shipment collapse, UTC validation and source audits. Default prescriptions August 15–October 14 and uploads August 1–October 25 inclusive.
   - Require all three timestamps; exclude and audit negative upload durations and zero/negative approval durations. Keep zero ratios, ratios above one and outliers. Use 0.01 histogram bins and exact CDF with percentage axes, plus Markdown association/line details, audits, bins and N/mean/minimum/p25/median/p75/p95/maximum. Added make cmpu-upload-time-ratio-distribution with shared extraction/fingerprint validation, dates, CACHED=1 and PRINT_SQL=1.
@@ -198,7 +367,7 @@
 
 * DONE Flatten table outputs into dated folders
   :PROPERTIES:
-  :REFNUM:   19.
+  :REFNUM:   20.
   :END:
   - User requested outputs/tables to match the flat date-folder chart layout with meaningful filenames. Move existing saved tables without changing data; use inclusive date ranges and filenames identifying analysis, upload window/filter/run variant and table kind. Update all table-producing commands to preserve the layout.
   - Implemented current CMPU timing/ratio prefixes, a shared dated layout helper for other table writers, and default dated output for September summaries (explicit output-dir overrides retained). Migrated all 207 Markdown tables with content-hash checks; old analysis/variant folders removed. Two historical unbounded rolling-window summaries use 2026-10-09_onward with snapshot date in filenames. SQL/data/figures unchanged.
@@ -208,7 +377,7 @@
 
 * TODO Survival Curve Analysis
   :PROPERTIES:
-  :REFNUM:   20.
+  :REFNUM:   21.
   :END:
   - We are going to consider all the prescriptions in the time range August 15 - October 15 for vet diet with prescription source=CMPU, approval = channel customer upload
     - We are going to use all the first order lines
@@ -232,7 +401,7 @@
 
 * DONE Remove and prevent Markdown files larger than 1 MB
   :PROPERTIES:
-  :REFNUM:   27.
+  :REFNUM:   22.
   :END:
   - User requested removing every repo Markdown file over 1 MB and never generating such files again. Use a strict 1,000,000-byte file limit, preserving detailed data in Parquet and bounded, explicitly labeled Markdown previews/summaries.
   - Removed 86 oversized generated Markdown files totaling 1,467,798,359 bytes (all ignored/untracked output tables); preserved raw/derived data and figures. Updated 10 derived export manifests to omit deleted Markdown paths. Removal inventory retained outside the repo under /private/tmp/rxp-removed-large-markdown.json.
@@ -243,7 +412,7 @@
 
 * DONE Remove three retired analysis targets and their artifacts
   :PROPERTIES:
-  :REFNUM:   28.
+  :REFNUM:   23.
   :END:
   - User retired analyze-missing-order-uploads, create-order-rx-association-analysis and create-aged-prescription-cancellation-distribution. Remove their Make targets, Python modules, SQL templates, tests, isolated data/generated outputs and HOWTO descriptions. Mark historical task entries retired, preserve shared dependencies and verify no active references remain. Leave uncommitted for review.
   - Removed the three Make rules, three Python modules, three SQL templates and three dedicated test modules. Deleted their isolated data/query-history directories and obsolete bytecode; 36 source/test/cache/data files totaling 28,321,383 bytes removed. No matching generated charts/tables/diagram directories remained. Pruned 28 retired entries from the shared table-layout migration inventory.
@@ -252,7 +421,7 @@
 
 * DONE Consolidate first-order Sankey documentation and clean superseded window artifacts
   :PROPERTIES:
-  :REFNUM:   29.
+  :REFNUM:   24.
   :END:
   - User deprecated the shorter-window CMPU first-order-line Sankey HOWTO section. Merge its necessary source/join/grain/status/block/upload/denominator/validation guidance into the canonical extended-window instructions; retain both Make aliases on the existing default extended run. Remove superseded diagrams/Mermaid/related Markdown outputs while preserving current extended-window figures, tables and source extracts. Verify links, artifact identity, default extended SQL and relevant regression tests; leave uncommitted for review.
   - Removed the deprecated shorter-window HOWTO section and made the extended-window section self-contained: canonical/default/alias commands; UTC prescription/upload dates and 11-day extension; certified source/two-key join; distinct-line/shipment deduplication; exclusions/conflicts; full/CUSTOMER_UPLOAD/non-D stages; missing values; block/status path identity; entity matching; denominators/flow conservation; current output/source/cache/SQL locations and reproducibility rules. Removed the stale dependence on rules above.
@@ -261,7 +430,7 @@
 
 * DONE Remove VDAM upload and dependent lifecycle targets
   :PROPERTIES:
-  :REFNUM:   30.
+  :REFNUM:   25.
   :END:
   - User retired the VDAM upload distribution and explicitly approved removing its dependent aged-order upload lifecycle target too. Remove both Make targets, modules, SQL templates, tests, dedicated data/generated artifacts and HOWTO sections. Move the still-used histogram/ROOT/RUNNER/palette definitions into the retained order-cancellation modules; preserve their behavior and data. Verify no retired imports/commands remain and run remaining regressions. Leave uncommitted for review.
   - Removed both Make targets, their two Python entrypoints, two SQL templates, two dedicated test modules and both HOWTO sections. Deleted the VDAM data tree including its dependent aged-lifecycle extracts/query history, obsolete bytecode and seven migration pointers: 37 files totaling 10,321,144 bytes. No dedicated rendered output files remained. Compacted historical REFNUM 1/4 entries into retirement records.
@@ -270,7 +439,7 @@
 
 * DONE Contact timing for all aged orders and their customers
   :PROPERTIES:
-  :REFNUM:   32.
+  :REFNUM:   26.
   :END:
   - Accepted plan: retain CMPU vet-diet CUSTOMER_UPLOAD prescriptions created August 15–October 14 inclusive, match both first-order keys and collapse shipment rows/associations. Include every distinct Aged Order cancellation through October 27 00:00 UTC, without reorder or maturity requirements. Every qualifying order contributes; retain zero-contact orders and missing customer identifiers.
   - Count all handled contact rows linked to those aged orders, all categories and all available history, UTC. Export signed one-day contact bins, order/customer/session counts, before/exact/after/undated totals and complete Parquet details. Reject conflicting order source values. Add fresh/cached/SQL-only target, fingerprints, bounded Markdown tables, transparent chart and HOWTO documentation. Preserve existing reorder plots; stop uncommitted for review.
@@ -279,7 +448,7 @@
 
 * DONE Remove aged cancellation distributions and Segment-based analyses
   :PROPERTIES:
-  :REFNUM:   31.
+  :REFNUM:   27.
   :END:
   - Accepted scope: retire both aged-upload cancellation targets, all Segment-schema analysis work, and the listed September cancellation/shipment workflows, including code, SQL, tests, caches, outputs and HOWTO descriptions. Preserve current first-order and reorder analyses.
   - Removed both cancellation Make targets, five Python entrypoints, six SQL files, two test modules and the listed HOWTO sections. Deleted 90 owned source/cache/output files totaling 19,009,916 bytes and pruned 18 obsolete table-migration entries. Historical REFNUM 5/9–13 entries are marked retired.
@@ -287,7 +456,7 @@
 
 * DONE Simplify first-order-line Sankey stages and labels
   :PROPERTIES:
-  :REFNUM:   33.
+  :REFNUM:   28.
   :END:
   - Accepted request: remove block reasons from cmpu-first-order-line-status diagrams while retaining them in the data; put line status before order status; move repeated stage prefixes into column headers. Apply to all three views, keep existing populations/denominators, regenerate cached outputs, verify conservation and inspect diagrams. Leave uncommitted for review.
   - All three diagrams now use approval channel → line status → order status → cancellation reason → matching upload, with column headers and no repeated stage prefixes in visible node labels. Block reasons remain in unchanged source extracts, association/line data, distributions and block-reason tables. Added normalized order-status grouping without SQL changes. Updated HOWTO and stage/missingness/label/conservation tests.
@@ -295,7 +464,7 @@
 
 * DONE Customer shipment history before aged cancellation
   :PROPERTIES:
-  :REFNUM:   35.
+  :REFNUM:   29.
   :END:
   - Accepted plan: retain the REFNUM 32 aged-order cohort and one earliest qualifying cancellation per customer. Search all available history for other-order shipped lines strictly before cancellation, matching RX_ID/customer ID across the two certified tables. Exclude all tied reference orders. Report prior inclusive-pharmacy (Pharmacy/Compound/OTC/vet diet), prior vet-diet and prior CMPU vet-diet customer counts/percentages, exclusive groups, category detail, source/evidence/coverage audits and baseline reconciliation. Do not restrict historical channels/products/pets/dates or require delivery/full-order completion. Add fresh/cached/SQL-only target, fingerprints and bounded Markdown/complete Parquet exports; document HOWTO and leave uncommitted for review.
   - Implemented the dedicated two-table SQL/Python target with generated SQL/history under ignored src/autogenerated/, fingerprinted sources/exports and complete Parquet plus bounded descriptive Markdown tables. Reuses REFNUM 32 cohort validation without contact extraction. Verified historical shipment/RX/customer keys, tied reference orders, strict prior timestamp boundaries and nested flags; retained missing-key/mismatched/unclassified evidence and denominator customers without qualifying history.
@@ -304,7 +473,7 @@
 
 * DONE Group first-order-line Sankey uploads by cancellation-reason presence
   :PROPERTIES:
-  :REFNUM:   34.
+  :REFNUM:   30.
   :END:
   - Accepted request: remove order status from all three cmpu-first-order-line-status diagrams; keep order status and block reasons in the data. Use channel → line status → cancellation reason → matching upload, with four upload endpoints for reason recorded/missing crossed with upload present/absent. Treat null/blank/whitespace cancellation reasons as missing. Retain populations, percentages and header labels; regenerate cached figures and verify counts.
   - Implemented four-column diagrams and four upload endpoints for reason recorded/missing crossed with upload present/absent; added cancellation_reason_group to retained association/line/distribution data. Raw order status and block reasons remain available. Updated HOWTO and tests for all endpoint combinations, null/blank/whitespace reasons, recorded-reason merging, unknown line statuses and header labels.
@@ -312,7 +481,7 @@
 
 * DONE Prior shipment history among 21-day reordered customers
   :PROPERTIES:
-  :REFNUM:   36.
+  :REFNUM:   31.
   :END:
   - User follow-up: apply the REFNUM 35 prior-shipment distribution to customers who reordered within 21 days. Retain same-customer/product/pet matching, unique-customer counting and the same earliest qualifying aged-cancellation history cutoff for comparability. Reuse fingerprint-verified frozen sources; no warehouse refresh required.
   - 5,382 reordered customers out of 15,544 customers eligible for complete 21-day follow-up. Prior inclusive pharmacy: 4,554 (84.62%); prior vet diet: 4,355 (80.92%); prior CMPU vet diet: 2,401 (44.61%). Exclusive groups: 828 without qualifying history, 199 inclusive pharmacy without vet diet, 1,954 vet diet without CMPU vet diet, and 2,401 CMPU vet diet. Counts reconcile to 5,382; headline counts are nested, not additive.
@@ -320,7 +489,7 @@
 
 * DONE Shipment history before the full CMPU cohort's orders
   :PROPERTIES:
-  :REFNUM:   38.
+  :REFNUM:   32.
   :END:
   - User requests a separate target for the whole customer set, without aged-order/reorder restrictions, measuring prior inclusive-pharmacy/vet-diet/CMPU-vet-diet shipments before cohort orders were placed. Default to all CMPU vet-diet approval channels (optional channel filter), prescription creation August 15–October 14 inclusive, as-of October 27 00:00 UTC. One customer/reference: earliest qualifying first-order placement. Exclude every referenced cohort ORDER_ID, including other lines on those orders. Unknown/incomplete reference customers remain explicitly unknown, outside assessable history percentages; preserve all-cohort denominators separately. Share classification/distribution logic with REFNUM 35 while preserving its results. Add SQL/Python/Make target, docs, cached/fresh/SQL-only modes and bounded exports, run and verify; leave uncommitted for review.
 
@@ -330,26 +499,26 @@
 
 * DONE Exclude all aged-cancelled orders from prior shipment history
   :PROPERTIES:
-  :REFNUM:   37.
+  :REFNUM:   33.
   :END:
   - User clarified that a prior shipped order must differ from the aged-cancelled order. Existing results already had no eligible shipment evidence on any qualifying aged-cancelled order. Strengthened the explicit guard from earliest/tied reference orders to every qualifying aged-cancelled ORDER_ID in the cohort, covering all lines and later aged cancellations for customers with multiple orders. Retained the reference-order flag and added is_aged_cancelled_order plus a distinct exclusion reason for other aged-cancelled orders.
   - Added a regression with an early partial shipment on a different line of a later aged-cancelled order; neither that order nor tied reference orders may establish prior experience. A genuinely different earlier shipped order still qualifies. Ten focused tests pass; cached target and 21-day derivation regenerated successfully; independent order-ID intersection confirms no eligible aged-cancelled order evidence. Both full-cohort and 21-day counts are unchanged (CMPU vet diet: 7,942 and 2,401 respectively). Updated HOWTO/output notes; source extract unchanged. Changes remain uncommitted for review.
 
 * DONE Retired: Prescription-vet history analysis
   :PROPERTIES:
-  :REFNUM:   40.
+  :REFNUM:   34.
   :END:
   - Removed at user request; vet-specific code, SQL, target, tests, data, generated artifacts and HOWTO section retired. Required calculation and regression coverage retained directly in the clinic analysis.
 
 * DONE Retired: Order-line vet history analysis
   :PROPERTIES:
-  :REFNUM:   41.
+  :REFNUM:   35.
   :END:
   - Removed at user request; vet-specific code, SQL, target, tests, data, generated artifacts and HOWTO section retired. Required calculation and regression coverage retained directly in the clinic analysis.
 
 * DONE Prior same-clinic shipment experience among aged customers
   :PROPERTIES:
-  :REFNUM:   42.
+  :REFNUM:   36.
   :END:
   - User steering: try CLINIC_ID with the same aged cohort, customer counting, prior-shipment cutoff and order exclusions. Use order-line CLINIC_ID on both aged and historical lines; prescription clinic IDs are comparison data only. Keep clinic and vet analyses/caches/exports separate, reuse the tested relationship calculation, expose clinic labels/schema/quality flags, and document the distinct clinic metric. Live coverage: 26,443/26,443 aged lines and all 20,587 customers, without populated clinic conflicts. Add a separate Make target, fresh/cached/SQL-only modes, fingerprints and bounded exports; run and reconcile before leaving uncommitted for review.
 
@@ -359,7 +528,7 @@
 
 * DONE Clinic-history distribution among 21-day reordered customers
   :PROPERTIES:
-  :REFNUM:   43.
+  :REFNUM:   37.
   :END:
   - User requests a target for the clinic distribution among customers who reordered within 21 days after an aged cancellation. Use same customer/product/pet keys, complete follow-up, unique-customer counting and unchanged REFNUM 42 customer classifications. Keep all qualifying aged-order clinic references, not only the representative reorder anchor. Add a cached-input derivation target with date options, dependency SQL-only inspection, source/export fingerprints, bounded Markdown/complete Parquet summaries/customer details/audits and HOWTO documentation. Run, reconcile and leave uncommitted for review.
   - Added make aged-customer-21d-reorder-clinic-history. Normal/CACHED modes derive the subgroup from validated frozen inputs without warehouse calls; PRINT_SQL prints prerequisite extraction queries. Source SQL/date/options, raw Parquet and exported customer/match fingerprints are checked before combining. Clinic flags remain unchanged, with deterministic representative reorder details and all-customer comparison percentages exported alongside the subgroup distribution.
@@ -368,14 +537,14 @@
 
 * DONE Correct generated-code directory
   :PROPERTIES:
-  :REFNUM:   39.
+  :REFNUM:   38.
   :END:
   - User correction: use src/autogenerated/ for temporary/generated code. Moved generated files into the canonical ignored directory, preserving an existing editor-lock symlink, and corrected generator/test/documentation/AGENTS paths and generated SQL source pointers. Remove obsolete ignore entry; verify cache fingerprints and datasets remain valid. Leave uncommitted for review.
   - Verification: 28 focused tests pass, including fresh/cached/SQL-only entrypoints and canonical generated-path assertions for both targets. All six generated files preserved (only three SQL-history source pointers updated); existing editor-lock symlink retained. Both analyses retain their original SQL/source fingerprints and unchanged data extracts. Obsolete directory removed; git diff --check passes. Changes remain uncommitted for review.
 
 * DONE Remove vet-ID analysis and preserve clinic targets
   :PROPERTIES:
-  :REFNUM:   44.
+  :REFNUM:   39.
   :END:
   - User retires the vet-ID analysis. Move its still-used calculation and regression coverage into the clinic module/tests with native clinic fields; remove the vet target, Python/SQL/tests, generated artifacts, data and HOWTO entry. Preserve full-cohort and 21-day clinic results and cache compatibility; leave uncommitted for review.
   - Retained the full calculation and regression coverage directly in the clinic module/tests, removed the adapter and all vet-analysis imports, and made the clinic HOWTO section self-contained. Removed the vet Python/SQL/test files, Make target, generated code, data and rendered tables; retired historical REFNUM 40/41 entries. Removal inventory: 68 files, 207,923,203 bytes. Clinic profiling scratch based on the former vet-query skeleton was removed too.
@@ -384,21 +553,21 @@
 
 * DONE Build the LaTeX analysis report
   :PROPERTIES:
-  :REFNUM:   45.
+  :REFNUM:   40.
   :END:
   - User added src/latex and requests a Make target to build the report and put the final PDF in outputs/pdf/. Add make report using latexmk/pdflatex from src/latex, keep intermediate files under build/latex/, copy only successful builds to outputs/pdf/cmpu-aged-order-analysis.pdf and document the prerequisite/path override. Build and visually verify the PDF; leave changes uncommitted for review.
   - Added make report with LATEXMK executable override, explicit prerequisite error, source-directory compilation and ignored build/latex/ intermediates. Successfully built and published the one-page PDF to outputs/pdf/cmpu-aged-order-analysis.pdf. latexmk resolved appendix contents and cross-references; final log has no undefined-reference or overfull/underfull warnings. Rendered and visually inspected the PDF with Poppler. Missing-compiler and simulated-compiler-failure checks preserve the existing PDF; an up-to-date repeat build succeeds with the same PDF hash. HOWTO updated; git diff --check passes. Left uncommitted on feat/latex-report-build for review; log.org unchanged.
 
 * DONE Add study population counts to the LaTeX appendix
   :PROPERTIES:
-  :REFNUM:   46.
+  :REFNUM:   41.
   :END:
   - Accepted plan: append the three-population prescription/order/order-line/customer table to src/latex/appendix/reproducing_results.tex using existing booktabs formatting, wrapped labels and right-aligned counts. Include a caption/label, the UTC prescription-creation window and aged-cancellation cutoff. Build with make report and visually inspect the PDF. Leave changes uncommitted for review.
   - Added the exact three-row table with caption/label, UTC date notes and nested-population guidance. make report succeeded; independently checked all twelve counts and visually inspected the rendered one-page PDF. No overfull/underfull boxes or unresolved references; existing report font-substitution warnings remain. Left changes uncommitted on feat/latex-report-build for review; log.org unchanged.
 
 * DONE Landscape Sankey pages in the LaTeX report
   :PROPERTIES:
-  :REFNUM:   47.
+  :REFNUM:   42.
   :END:
   - Accepted request: wrap Sankey category labels and separate counts/percentages, reduce horizontal stage spacing, and wrap headings/title/date notes for portrait PDF use. Preserve all weights, percentages and source data. Update the shared renderer, rerun first-order-line and cached 7/14/21-day reorder Sankey variants, verify tests/conservation and inspect rendered figures. Leave changes uncommitted for review.
   - User rejected the compact portrait layout and selected landscape pages within the portrait report. Switch to a wide layout with larger wrapped labels, add six landscape appendix pages (three line-status views plus 7/14/21-day all-contact-history reorders), retain portrait narrative/tables, rerun cached targets and rebuild/inspect the PDF. Repair only the current incomplete input and invalid verb delimiters needed to compile.
@@ -407,7 +576,7 @@
 
 * DONE Save aged-order approval-time analysis SQL
   :PROPERTIES:
-  :REFNUM:   48.
+  :REFNUM:   43.
   :END:
   - User requests src/sql/approval_time_analysis.sql containing the last three analyses: creation-to-combined-decision durations, separate approval evidence and PRESCRIPTION_APPROVED distribution. Saved four independently runnable read-only SELECT statements, covering duration summary and buckets plus the two exact logged approval queries. Documented UTC cohort/cancellation boundaries, shipment collapse, current-snapshot interpretation and the Python provenance of the duration SQL equivalents.
   - Verified four SELECT statements with sqlparse, consistent date filters and exact preservation of both previously executed approval queries. No warehouse extraction or existing results changed. Left uncommitted for review; log.org unchanged.
@@ -415,20 +584,20 @@
 
 * TODO Accepted-entity timing from order placement
   :PROPERTIES:
-  :REFNUM:   49.
+  :REFNUM:   44.
   :END:
   - Accepted plan: filter CMPU Sankey and upload-dependent timing evidence to DIET_PRESCRIPTION entities currently ACCEPTED; retain creation-based discovery windows, select the earliest entity by creation time/upload ID, and use its STATE_CHANGED_TS_UTC for durations. Use ORDER_PLACED_DTTM for timing origins, preserve the upload-to-approval endpoint gap, and retain the fixed 0.96 event estimate with placement as origin. Update timing distributions, ratio/regressions, event-time/survival calculations, cache/output identity, documentation and landscape report references. Keep unmatched populations, raw timestamps, quality audits and existing censoring/cancellation rules. Verify fresh/cached/SQL-only modes and tests, regenerate outputs, inspect figures/PDF and leave uncommitted for review.
 
 * DONE Limit accepted-upload-to-approval charts to 60 seconds
   :PROPERTIES:
-  :REFNUM:   50.
+  :REFNUM:   45.
   :END:
   - User requests removing gaps over 60 seconds from the current charts. Limit only the upload-to-approval histogram and CDF to [0,60] seconds, retain exactly 60 seconds, use one-second bins/seconds axes and normalize the displayed CDF to the filtered population. Preserve full-range statistics and data; export displayed/omitted counts, test boundaries and rerun this target from cache. Leave uncommitted for review.
   - Implemented the [0,60]-second histogram/CDF view with one-second bins, retained exactly 60 seconds and preserved full-range statistics and Parquet data. Cached rerun shows 24,281 lines and omits 548 gaps over 60 seconds. All 37 focused tests pass, including exact boundaries and full-data preservation. User visually reviewed and accepted the plots. Left uncommitted; log.org unchanged.
 
 * DONE Upload-entity state-change distributions
   :PROPERTIES:
-  :REFNUM:   51.
+  :REFNUM:   46.
   :END:
   - Accepted plan: add make cmpu-upload-entity-state-change-distributions with START_DATE, exclusive END_DATE, UPLOAD_START_DATE, AS_OF_DATE, CACHED=1 and PRINT_SQL=1. Count distinct UPLOAD_IDs for all study-linked CMPU vet-diet CUSTOMER_UPLOAD prescriptions and the any-qualifying-aged-first-order subset. Discover DIET_PRESCRIPTION entities August 1–October 25 inclusive; keep every current state/upload, no ACCEPTED or 60-second filter, and no state-change censoring. Match expanded RX_ID and numeric customer ID, validate both first-order keys, collapse identical duplicates and reject conflicts. Retain missing and negative durations with flags. Export complete Parquet details/statistics/audits and bounded dated Markdown. Render two transparent horizontal Altair box plots with shared state order, colors and symmetric-log hours axis, one-second linear region, Tukey whiskers, all outliers and usable counts. Version caches by dates/population/cutoff/SQL/source fingerprints. Test boundary cases, independently verify statistics/subset reconciliation, run fresh/cached/SQL-only modes, inspect plots and leave uncommitted for review.
   - Implemented the independent SQL/Python target, date/cutoff/SQL/implementation/source-fingerprint cache identity, full source/association/entity/statistics/audit Parquets and bounded dated Markdown. Preserved all existing in-progress changes and generated only REFNUM 51 outputs. Repository has been renamed to rxp-cmpu-vet-vet-diet-cancellations-analysis; work used its existing feature branch.
@@ -439,7 +608,7 @@
 
 * DONE Upload entity creation relative to order creation
   :PROPERTIES:
-  :REFNUM:   52.
+  :REFNUM:   47.
   :END:
   - User requests one figure containing two horizontal boxplots, overall and aged-order entities, for upload CREATED_TS_UTC relative to order creation. Use study ORDER_PLACED_DTTM as order creation and upload-minus-order durations, retaining negative/missing values in data/audits. Count each entity once using earliest populated matched first-order placement; flag multiple-order entities and retain all associations. Match the established REFNUM 51 populations/windows and inclusive aged cutoff. Save one transparent Altair PNG at a stable descriptive path and overwrite on rerun; export complete Parquet details and bounded Markdown statistics/audits. Generate/inspect the figure, then run tests at the end. User authorizes Python execution in the repository. Leave uncommitted for review.
   - Implemented the independent REFNUM 52 SQL/Python/Make target with stable overall-and-aged-orders.png, shared signed minute/hour axis, earliest matched first-order placement per entity, complete association/entity/population/statistics/audit Parquets, bounded Markdown and documented fresh/cached/SQL-only commands. Live source: 33,336 overall entities with 29,715 usable durations; 3,621 lack matched order placement. All 782 aged entities have usable durations. Negative durations retained: 282 overall and nine aged. One entity has multiple matched orders and is flagged. Medians: 20.564716 hours overall and 17.318905 hours aged; positive means upload creation after order placement.
@@ -447,7 +616,7 @@
 
 * DONE Keep only the CUSTOMER_UPLOAD first-order Sankey in the report
   :PROPERTIES:
-  :REFNUM:   53.
+  :REFNUM:   48.
   :END:
   - User requests exactly one report Sankey: CMPU vet-diet first-order lines restricted to CUSTOMER_UPLOAD. Remove all-channel, non-D and 7/14/21-day reorder Sankey panels from the report appendix; keep the existing selected figure/data and other report content. Update report reproduction documentation, rebuild and visually inspect the PDF. Leave uncommitted.
   - Removed the five other report panels and their captions/labels; retained only the CMPU vet-diet CUSTOMER_UPLOAD first-order-line Sankey on a landscape appendix page. Updated the report reproduction instructions. make report succeeds; PDF has three pages with rotations 0/90/0 and exactly one embedded figure plus its transparency mask. All three rendered pages visually inspected; no LaTeX warnings, missing references or overfull/underfull boxes. git diff --check passes. Existing narrative, tables, source diagrams and analysis outputs preserved; changes remain uncommitted.
@@ -456,7 +625,7 @@
 
 * DONE Add uploaded-document columns to the study-population table
   :PROPERTIES:
-  :REFNUM:   54.
+  :REFNUM:   49.
   :END:
   - User requests two columns for distinct upload entities and currently ACCEPTED entities per population row in tab:study-population-counts. Add grouped Uploaded documents headers (Total, Accepted), preserve matched-first-order row definitions and existing counts, document source/window/distinct-count rules, retain reproducible SQL and derivation exports, rebuild the portrait report and visually inspect its table. Leave uncommitted.
   - Added grouped Uploaded documents / Total and Accepted columns: all channels 30,735 / 26,254; CUSTOMER_UPLOAD 29,715 / 25,606; aged subset 782 / 52. Counts require matched first-order keys and deduplicate UPLOAD_ID within each row. Refreshed the all-channel entity extract using browser SSO after an expired ADBC token, query ID 01c80871-0820-68c1-00a0-2d063f51fd67. Saved read-only SQL, source/derivation fingerprints, full Parquet associations/summary/audit, bounded Markdown and a reproducible summary/verification script. Existing table counts reconcile to the fingerprint-verified line baseline; independent Pandas and DuckDB distinct counts agree.
@@ -464,7 +633,7 @@
 
 * DONE Add prescription decision table for the three report populations
   :PROPERTIES:
-  :REFNUM:   55.
+  :REFNUM:   50.
   :END:
   - User requests a report table with the same population rows as the existing table and Approved, Unknown and Rejected prescription counts. Verify certified approval/denial semantics, count distinct RX_IDs, preserve frozen cohort membership, export complete details and audits with source fingerprints, add a labelled portrait table with clear category definitions, rebuild/inspect the PDF and run meaningful tests. Leave uncommitted for review.
   - Added Table 2 (tab:study-population-prescription-decisions) beneath the existing population table with Prescriptions / Approved / Unknown / Rejected. Counts: all channels 103,516 / 36,874 / 66,595 / 47; CUSTOMER_UPLOAD 95,073 / 30,504 / 64,569 / 0; aged subset 26,443 / 6 / 26,437 / 0. Approved uses APPROVED_NUMERATOR TRUE, verified against PRESCRIPTION_APPROVED; Rejected uses current RX_STATUS DENIED without approval; remaining cancelled/pending records are Unknown. Certified metadata and lifecycle view definition were inspected; false approval alone is not rejection.
@@ -472,11 +641,14 @@
   - make report succeeds; both tables fit on page 2 and all four report pages remain portrait. Visually inspected the updated table page; no clipping, overlap, LaTeX warnings, undefined references or overfull/underfull boxes. Ten new classification tests pass; full suite passes 500 tests and 16 subtests. git diff --check passes. Left uncommitted; user narrative and existing Sankey preserved, log.org unchanged.
 
 * DONE Rename upload-state diagram y-axis labels
+  :PROPERTIES:
+  :REFNUM:   51.
+  :END:
   - User requests Final state as the y-axis label in both upload-entity time-to-current-state diagrams. Changed the shared label and regenerated both stable PNGs from the fingerprint-verified cache, overwriting existing files. Data and calculations unchanged; left uncommitted.
 
 * DONE Insert upload-entity state figures into the report
   :PROPERTIES:
-  :REFNUM:   56.
+  :REFNUM:   52.
   :END:
   - User requests src/latex/entity_upload_analysis.tex containing both upload-entity time-to-current-state figures under a bogus subsection, with references and captions. Include the file in the report appendix; use stable PNG paths, descriptive captions and unique figure labels, replace the matching final-state distribution placeholders with figure references, rebuild and visually inspect the PDF. Preserve other user narrative and leave uncommitted.
   - Created src/latex/entity_upload_analysis.tex with subsection Bogus, both existing stable Final state figures, descriptive captions and unique labels. Included it after the Sankey appendix and added figure references at the two matching final-state distribution placeholders in the executive summary. make report succeeds; Figures 2 and 3 share portrait page 4 of the five-page PDF, with resolved cross-references and no LaTeX warnings or overfull/underfull boxes. Rendered page visually inspected for both images, labels and captions; git diff --check passes. Existing PNGs and other user narrative preserved. Left uncommitted; log.org unchanged.
@@ -486,14 +658,14 @@
 
 * DONE Add the cumulative upload-to-approval figure to the report
   :PROPERTIES:
-  :REFNUM:   57.
+  :REFNUM:   53.
   :END:
   - User requests src/latex/appendix/approval_analysis.tex with subsection Approval Analysis, the existing cumulative upload-to-max-approval figure, a label and a caption. Use the matching accepted-state-change_order-placed filename, explain the conditional 0–60-second population in the caption, include the appendix file in the report, rebuild and visually verify the PDF and resolved references. Preserve existing figures and user narrative; leave uncommitted.
   - Created src/latex/appendix/approval_analysis.tex with subsection Approval Analysis, the existing cumulative figure, label fig:accepted-upload-to-approval-cumulative, a cross-reference and a caption defining the endpoint, D-status line population and conditional 0–60-second normalization. Included the file in main.tex. make report succeeds with Figure 5 on portrait page 5 of the six-page report. Rendered page visually inspected; figure, axes, caption and references fit correctly. No LaTeX warnings, undefined references or overfull/underfull boxes; git diff --check passes. Existing figure data and user narrative preserved; left uncommitted.
 
 * DONE Opportunity analysis: order cancellation and actual revenue baseline
   :PROPERTIES:
-  :REFNUM:   58.
+  :REFNUM:   54.
   :END:
   - Accepted plan: separate standalone opportunity analysis for all qualifying orders placed in parameterized UTC [START_DATE, END_DATE), default June 1–August 31, 2026. Match physical vet-diet lines through RX_ID/customer to vet-diet CUSTOMER_UPLOAD CMPU prescriptions; include subsequent orders and no prescription-creation or cancellation cutoff. User selected all qualifying orders, qualifying-line revenue only, and every cancellation-reason group including missing reasons.
   - Add make opportunity-order-cancellation-summary with START_DATE, exclusive END_DATE, CACHED=1 and PRINT_SQL=1. Summarize distinct orders, physical line items and ORDER_LINE_NET_SALES_LOCAL by normalized reason with a global distinct TOTAL. Sum exact shipment/order-line contributions once, retain distinct equal-value shipments and negative/zero sales, reject conflicting source values, mark partial missing-sales totals incomplete and preserve known subtotals/audits. Handle overlapping reason-group order counts explicitly.
@@ -504,7 +676,7 @@
 
 * DONE Compare all orders for the August-October prescription cohort with the original aged cutoff
   :PROPERTIES:
-  :REFNUM:   59.
+  :REFNUM:   55.
   :END:
   - User requests counts/cancellation reasons of all orders linked to CMPU vet-diet CUSTOMER_UPLOAD prescriptions created August 15–October 14, followed by retaining the original inclusive October 27, 2026, 00:00 UTC aged-cancellation cutoff. Source query and Parquet details saved under data/opportunity/prescription-cohort-orders; stable Markdown under outputs/tables/opportunity. No order-placement window or first-order restriction.
   - Verified all-order totals: 111,137 orders and 124,886 lines. With the original cutoff, qualifying aged totals are 24,409 orders and 26,445 lines (21.18%); first-order totals at the same cutoff are 24,408 aged orders and 26,443 aged lines, a difference of one order and two lines. The 372 orders/398 lines with current aged reasons outside the cutoff remain separately labelled in the summary/audit, outside qualifying aged membership; full denominator and other current reason groups retained.
@@ -512,92 +684,152 @@
 
 * DONE Add first/all-order cancellation and net-sales comparison to the PDF appendix
   :PROPERTIES:
-  :REFNUM:   60.
+  :REFNUM:   56.
   :END:
   - User requests cancellation-reason rows with distinct first orders, first-order lines, all orders, all-order lines and net sales under Reproducing the Numerical Results. Preserve the prescription cohort and agreed aged cutoff. Enrich frozen line membership with actual shipment-level sales, verify exact-decimal totals independently, export complete details under opportunity paths, document reproduction, rebuild and inspect the PDF, run tests and leave uncommitted.
   - Completed Table 3 (tab:first-all-order-cancellations) on PDF page 2 with cancellation-reason rows and grouped first/all-order counts, lines and local net sales. Preserved the original study tables, documented the one additional matched first line/order in the comparison snapshot, and retained the inclusive Oct 27 cutoff plus a separate outside-cutoff row. First totals: 87,725 orders / 95,074 lines / 7,588,580.39650; all totals: 111,137 / 124,886 / 9,897,525.70040. Unique shipment-level contributions reconcile independently in DuckDB across all 32 population/reason groups; fresh and fingerprint-verified cached modes both succeed. Full source, exact-decimal exports, source/cache fingerprints and bounded Markdown remain under opportunity paths.
   - Full suite passes 528 tests and 16 subtests, including ten new financial grain, duplicate/conflict, cutoff-boundary, missing/negative, frozen-membership and independent-calculation tests. make report succeeds with six portrait pages; rendered table page inspected with clear grouped headers and no clipping or overlap. No LaTeX warnings, undefined references or overfull/underfull boxes; git diff --check passes. Changes left uncommitted, existing user edits preserved and log.org unchanged.
 
 * DONE Switch appendix comparison to ORDER_LINE_NET_SALES
+  :PROPERTIES:
+  :REFNUM:   57.
+  :END:
   - User requests ORDER_LINE_NET_SALES instead of ORDER_LINE_NET_SALES_LOCAL and removal of local from table headings. Refresh sales for the same frozen membership and cutoff, update exports and documentation, rebuild and inspect PDF and run tests.
   - Refreshed the frozen comparison using ORDER_LINE_NET_SALES, renamed exported sales columns and removed local from both PDF headings and notes. Independent DuckDB aggregation verifies all reason/population groups: first net sales 7,588,580.39658; all net sales 9,897,525.70039. Counts and agreed cutoff unchanged. Fresh and fingerprint-verified cached runs pass; PDF rebuilt and rendered page 2 inspected without layout defects or LaTeX warnings. Full suite: 528 tests and 16 subtests passed; git diff --check passes. Left uncommitted.
 
 * DONE Add Make target for the appendix first/all-order comparison table
+  :PROPERTIES:
+  :REFNUM:   58.
+  :END:
   - Add prescription-cohort-order-comparison with fresh extraction by default and CACHED=1 for verified cached data; update HOWTO and verify target execution.
   - Added and documented the target. Dry runs confirm fresh/cached argument selection; cached target executed successfully and independently verified all counts and sales before updating exports and the appendix. All ten focused tests pass; git diff --check passes. Left uncommitted.
 
 * DONE Add Financial Opportunity Analysis appendix file
+  :PROPERTIES:
+  :REFNUM:   59.
+  :END:
   - Created src/latex/appendix/financial_opportunity.tex with the requested subsection and unique label subsec:financial-opportunity-analysis. Verified file contents; left uncommitted.
 
 * DONE Add the opportunity cancellation summary to Financial Opportunity Analysis
+  :PROPERTIES:
+  :REFNUM:   60.
+  :END:
   - Insert the actual-sales baseline with caption, label and reference, explicit UTC order-placement dates and CMPU/CUSTOMER_UPLOAD/vet-diet criteria. Carry forward ORDER_LINE_NET_SALES correction, include appendix in report, regenerate/verify source and totals, document reproduction, rebuild/inspect PDF and run tests.
   - Added Table 4 (tab:financial-opportunity-cancellations) and a resolved reference in financial_opportunity.tex, included in main.tex. Caption and introduction define UTC June 1–August 31, 2026 inclusive (exclusive Sep 1), CMPU prescription source, CUSTOMER_UPLOAD approval channel and matched vet-diet lines. Notes distinguish all orders from first orders and the prescription-cohort aged cutoff, and define counts and shipment-level sales. Carried ORDER_LINE_NET_SALES correction through baseline SQL, calculations, exact-decimal exports, tests and cache version. Fresh/cached runs independently reconcile 508,075 orders / 569,872 lines / 46,719,345.93942 net sales. WRITE_LATEX=1 on the existing opportunity-order-cancellation-summary target regenerates the appendix. Full suite: 529 tests and 16 subtests passed. PDF builds without warnings, undefined references or overfull/underfull boxes; rendered page 6 inspected with no clipping or overlap. git diff --check passes. Left uncommitted; existing user edits preserved.
 
 * DONE Repair report build/reference issue
+  :PROPERTIES:
+  :REFNUM:   61.
+  :END:
   - User reports make report failure. Reproduce normal and forced builds; repair stale financial-opportunity reference after comparison table was removed, update generator regression coverage, rebuild and inspect PDF while preserving user restructuring.
   - Normal and forced builds completed successfully during diagnosis, but both exposed an undefined reference to the removed first/all-order table. Replaced it with the existing study-population table in the financial appendix and its generator, and added regression assertions. make report now builds without LaTeX warnings or unresolved references; 19 focused tests pass and git diff --check passes. Rendered financial page 3 inspected with the resolved Table 1 link and preserved current report restructuring. Left uncommitted.
 
 * DONE Financial analysis by shipment/cancellation window
+  :PROPERTIES:
+  :REFNUM:   62.
+  :END:
   - User requests June 1–August 31, 2026 orders shipped or cancelled rather than placed. Add DATE_BASIS=shipped-or-cancelled with independent date windows, retain placement mode and separate caches/exports, sum only qualifying event-window shipment/line contributions, deduplicate records meeting both events, document assumptions, refresh and verify data, update appendix and PDF, run tests and inspect rendering.
   - Implemented DATE_BASIS=shipped-or-cancelled using UTC ORDER_LINE_SHIPPED_DTTM OR ORDER_CANCEL_DTTM in [START_DATE, END_DATE). Only eligible event-window shipment/line records contribute sales; records meeting both events count once and split contributions outside the window are excluded. Preserved placement mode and separated event source/cache/Parquet/Markdown paths. Full association records retain event flags, and audits include shipment/cancellation overlap counts. No order-placement restriction; CMPU/CUSTOMER_UPLOAD/vet-diet matching and ORDER_LINE_NET_SALES remain in force.
   - Fresh, fingerprint-verified cached and SQL-only Make modes verified. Independent DuckDB aggregation reconciles every reason and TOTAL: 494,268 orders / 552,083 lines / 45,417,291.82112 net sales; Aged order 40,481 / 44,133 / 3,664,067.96310. Included financial shipment records: 555,064, comprising 445,893 shipment records and 109,171 cancellation records with zero dual-event records and zero missing sales in this snapshot. Updated appendix Table 3, caption, date definition, notes and reproduction instructions. make report builds without warnings or unresolved references; rendered page 3 inspected with no overlap or clipping. Full suite: 536 tests and 16 subtests passed, including event boundaries, split shipments, missing dates, duplicate events, conflicting timestamps, cache isolation and appendix generation. git diff --check passes. Left uncommitted.
 
 * DONE Gray net sales for non-null cancellation reasons
+  :PROPERTIES:
+  :REFNUM:   63.
+  :END:
   - User removed the status-D condition: gray every net-sales cell for a recorded cancellation reason, keep missing-reason and total cells black, explain unrealized amounts and mixed total, preserve numbers and make regeneration retain styling, rebuild and inspect PDF.
   - Updated both financial table generators to gray net-sales cells for every recorded cancellation reason, with no status-D condition. Missing-reason and TOTAL cells remain black; notes explain unrealized gray amounts and their inclusion in TOTAL. Regenerated the current financial appendix from the fingerprint-verified summary without changing numeric exports, rebuilt the PDF and visually inspected page 3. All 36 focused tests pass; no LaTeX warnings or overfull/underfull boxes; git diff --check passes. Left uncommitted.
 
 * DONE Move the three numerical-result tables to Study Population Analysis
+  :PROPERTIES:
+  :REFNUM:   64.
+  :END:
   - Move all three existing table blocks unchanged into study_population_analysis.tex before the Sankey, preserve captions and labels, update the comparison generator destination and documentation, verify cached regeneration and rebuild/inspect the PDF.
   - Moved the population/upload-count, prescription-decision and first/all-order cancellation tables into study_population_analysis.tex before the Sankey, preserving their content, labels, captions and gray net-sales styling. Reproduction instructions remain in reproducing_results.tex. Updated the comparison generator destination and HOWTO. Cached comparison Make target successfully updated the table in its new location; all three tables occur once and remain within Study Population Analysis. make report succeeds without warnings or unresolved references; rendered table pages 3 and 4 visually inspected. All ten focused comparison tests pass; git diff --check passes. Left uncommitted.
 
 * DONE Include financial opportunity SQL beneath its table
+  :PROPERTIES:
+  :REFNUM:   65.
+  :END:
   - Add a complete reproducible SQL listing combining the saved extraction and independently verified summary aggregation below the financial opportunity table; preserve this in table regeneration, export the report SQL, rebuild and visually inspect the PDF.
   - Added a complete self-contained Snowflake SQL listing directly beneath the financial opportunity table and notes. Combines the saved extraction with the independently verified aggregation, binds the actual UTC dates, shows CMPU/CUSTOMER_UPLOAD/vet-diet eligibility, filters shipment/cancellation records, deduplicates financial keys and calculates reason groups plus TOTAL. Generator retains the SQL in WRITE_LATEX mode and exports summary-report.sql alongside the opportunity source. Added listings formatting with page breaks and an unnumbered SQL heading. Two executable cross-engine fixture tests verify the assembled query reproduces both placement and event-window summary results; all 538 tests and 16 subtests pass. PDF builds without warnings or unresolved references; pages 2 and 3 visually inspected for listing order, readability and clipping. git diff --check passes. Left uncommitted.
 
 * DONE Count non-cancelled same-part-number and same-pet reorders after aged cancellations
+  :PROPERTIES:
+  :REFNUM:   66.
+  :END:
   - Use the frozen June–August financial aged-cancellation population, match customer ID, exact PRODUCT_PART_NUMBER (explicit user correction; no product-ID/catalog join) and non-null PET_ID, and count distinct non-cancelled orders placed strictly after cancellation through seven days inclusive. Audit unknown status, missing keys and follow-up; deduplicate multiple original associations and matched-line sales, export opportunity data/tables, verify independently, document and test.
   - Added opportunity-aged-reorders with parameterized cancellation dates, seven-day follow-up, as-of, fresh/cached/SQL-only modes and source/parent fingerprints. Matches exact PRODUCT_PART_NUMBER, customer and pet ID on different orders; checks all candidate-order lines for cancellation evidence and unknown status. Frozen financial population has 40,481 aged orders / 44,133 lines / 31,630 customers, all with usable keys and full follow-up. Found 2,573 distinct non-cancelled reorders / 2,737 matching lines / 2,470 customers, linked to 2,507 original aged orders. Excluded 1,570 candidate orders with cancellation evidence, zero for unknown status. Matching-line recorded net sales 241,326.43080, with no missing values, counted once across repeated original associations. Full original/match/reorder details, SQL, fingerprints, audits and bounded Markdown saved under opportunity paths; HOWTO updated. Pandas and independent DuckDB counts/sales agree; fresh/cached/SQL-only runs verified. All 550 tests and 16 subtests pass on full rerun (an unrelated setup test initially failed and passed in isolation); 12 new tests cover exact matching, window boundaries, duplicate original links, exclusions, missing keys and conflicts. git diff --check passes; left uncommitted.
 
 * DONE Extend financial aged reorders to 7/14/21/28 days and remove embedded order keys
+  :PROPERTIES:
+  :REFNUM:   67.
+  :END:
   - User requests customer/order/net-sales summary in Financial Opportunity Analysis and executable SQL without hard-coded order IDs. Select original aged lines by cancellation dates plus CMPU/vet-diet/CUSTOMER_UPLOAD prescription/customer eligibility; retain exact PRODUCT_PART_NUMBER and PET_ID matching and non-cancelled-order rules. Derive all cumulative windows from one 28-day snapshot, independently verify and reconcile nested populations, export full details and exact money, add a labelled/captioned LaTeX table with date/scope notes, preserve it on regeneration, document commands, test fresh/cached/SQL-only modes, rebuild/inspect PDF and leave uncommitted.
   - Replaced JSON order-key requests with standalone date-driven aged_keys/registry SQL; original cancellations are selected by dates and CMPU/vet-diet/CUSTOMER_UPLOAD RX/customer eligibility. PRINT_SQL needs no parent cache. Added ALL_WINDOWS=1 and WRITE_LATEX=1 to opportunity-aged-reorders, one shared 28-day source, separate versioned date/window/SQL/source caches, exact-decimal summary and full per-window data/audits. Original cohort and 7-day reorder line memberships reconcile exactly to the previous frozen analysis. Customer/order/matching-line sets nest and each horizon independently reconciles counts and money in DuckDB. Results (customers / orders / sales): 7d 2,470 / 2,573 / 241,326.43080; 14d 3,993 / 4,333 / 407,036.32080; 21d 5,357 / 6,207 / 586,270.49461; 28d 6,107 / 7,625 / 722,352.37981.
   - Added captioned/referenced Table 2 on PDF page 4 via financial_opportunity_reorders.tex, included in Financial Opportunity Analysis and preserved by baseline regeneration. Notes define June 1–August 31 original cancellations, exact part/pet/customer matching, cumulative windows, full follow-up/as-of, order cancellation exclusions and matching-line-only net sales. Updated HOWTO; fresh, cached and SQL-only targets verified. Four new executable SQL/integration tests cover date-driven eligibility, all four boundaries, split/duplicate shipments, whole-order cancellation exclusion, cache rejection and LaTeX inclusion; full suite 554 tests and 16 subtests pass. make report succeeds without warnings or unresolved references; rendered table page visually inspected with no clipping or overlap. git diff --check passes; left uncommitted.
 
 * DONE Add distinct customers to initial financial opportunity table
+  :PROPERTIES:
+  :REFNUM:   68.
+  :END:
   - Count distinct numeric customer IDs per cancellation-reason group and globally, add Customers to the initial financial table/Markdown/Parquet and embedded SQL, independently verify counts, note cross-group overlap, preserve dates/gray styling/reorder table, regenerate from cache, rebuild/inspect PDF and run tests.
 
 * DONE Move financial SQL to the end of the subsection
+  :PROPERTIES:
+  :REFNUM:   69.
+  :END:
   - User steering while adding distinct customers: put the SQL after the reorder-window table and preserve this ordering in both financial generators. Rebuild and inspect the final customer-count table and subsection order.
   - Completed both requests: initial financial Table 1 includes distinct Customers by reason and globally (227,519 overall; Aged order 31,630). Preserved original dates, order/line/sales values, gray cancellation sales and reorder-window Table 2. Updated calculation, independent source-based DuckDB verification, exact-decimal exports, bounded Markdown and self-contained embedded SQL; added a distinct-customer regression covering multiple orders/shipments/reasons and non-additive totals. Cached regeneration independently reconciles every group.
   - Moved SQL after the reorder-window table, at the end of Financial Opportunity Analysis, and updated both financial generators to preserve this ordering. Added ordering assertions for both regeneration paths. make report succeeds without LaTeX warnings or unresolved references; rendered pages 2–4 visually inspected for the added column, table/SQL order and page breaks. Full suite: 555 tests and 16 subtests passed. HOWTO updated; git diff --check passes; left uncommitted.
 
 * DONE Add 35-day financial reorder follow-up
+  :PROPERTIES:
+  :REFNUM:   70.
+  :END:
   - User requests 35 as the last cumulative window. Extend all-window mode and tests to 7/14/21/28/35, refresh one shared 35-day source, reconcile earlier windows, update the financial LaTeX table/docs and verify the PDF.
   - Extended ALL_WINDOWS to 7/14/21/28/35 and refreshed one shared 35-day source. The first four summary rows reconcile exactly to the prior output. New 35-day row: 6,717 customers / 9,295 non-cancelled reorder orders / 9,814 matching lines / 879,239.69811 net sales (display 879,239.70), with no missing sales. Updated caption, LaTeX table, paths, tests and HOWTO; SQL remains at subsection end.
   - The larger horizon exposed sampled pandas Decimal inference in DuckDB verification; fixed registration to explicit Arrow DECIMAL(38,5), preserving larger late-row values, and added a regression test. Fresh/cached/SQL-only modes verified; independent counts/money and nested populations reconcile. make report succeeds without warnings; page 3 visually inspected with five rows and SQL following the table. Full suite: 556 tests and 16 subtests passed; git diff --check passes. Left uncommitted.
 
 * DONE Add dedicated follow-up sales Make target
+  :PROPERTIES:
+  :REFNUM:   71.
+  :END:
   - Add opportunity-follow-up-sales wrapping the five-window analysis and LaTeX export; preserve fresh/cached/SQL-only modes and date parameters, document and verify actual cached execution.
   - Added opportunity-follow-up-sales delegating to the existing analysis with ALL_WINDOWS=1 and WRITE_LATEX=1. Documented fresh, cached, SQL-only and PDF build commands. Dry runs verify fresh/cached flags and custom-date forwarding; actual cached and SQL-only executions succeed and preserve all five results. All 17 focused tests pass; git diff --check passes. Left uncommitted.
 
 * DONE Add 42-day financial reorder follow-up
+  :PROPERTIES:
+  :REFNUM:   72.
+  :END:
   - Append 42 to the cumulative windows and follow-up-sales target, refresh one shared 42-day source, reconcile earlier rows, update LaTeX/docs, run tests and rebuild/inspect PDF.
   - Extended all-window mode and the follow-up-sales target to 7/14/21/28/35/42 days, refreshed one shared 42-day source and reconciled the first five rows exactly to the preceding snapshot. New 42-day result: 7,076 customers / 10,525 non-cancelled orders / 11,102 matching lines / 997,882.97811 net sales (display 997,882.98), with no missing sales. Updated caption, sixth LaTeX row, data/Markdown paths, documentation and boundary/integration tests. Fresh/cached/SQL-only modes verified. Full suite: 556 tests and 16 subtests pass. make report succeeds without warnings or unresolved references; page 3 visually inspected with all six rows and SQL afterward. git diff --check passes; left uncommitted.
 
 * DONE Analyze 42-day non-cancelled order frequency per customer
+  :PROPERTIES:
+  :REFNUM:   73.
+  :END:
   - User asks whether customers made multiple non-cancelled orders for the same PRODUCT_PART_NUMBER and PET_ID. Verified fingerprints of 42-day matches/reorders/originals and summary, counted distinct orders per customer, per customer/part/pet and per original cancellation window, and independently reconciled every customer count/max in DuckDB. Saved full customer/window/pair Parquet details, two bounded distributions, verification SQL and metadata under opportunity paths; added reproducible script and HOWTO. Across 31,630 aged customers, 24,554 had no qualifying reorder. Customer maximum for one part/pet in one 42-day window: 1 order 4,541; 2 orders 1,955; 3 orders 469; 4 orders 78; 5 orders 23; 6 orders 8; 7 orders 2. Thus 580 customers had more than two within one window. Overall across matched products/pets/windows, 646 customers had >2, max 7; all 7,076 buyers sum to 10,525 distinct reorder orders. Left uncommitted.
 
 * DONE Rerun financial opportunity for May–July shipments/cancellations and add 49-day follow-up
+  :PROPERTIES:
+  :REFNUM:   74.
+  :END:
   - User requests UTC May 1–July 31, 2026 (exclusive Aug 1), fresh financial baseline and cumulative 7/14/21/28/35/42/49-day aged-reorder analysis, updated LaTeX and SQL dates. Preserve CMPU/CUSTOMER_UPLOAD/vet-diet, distinct customers, exact part/pet matching, canceled-order exclusions, gray cancellation sales and SQL-at-end ordering. Align defaults, save separate dated opportunity data, independently verify counts/money, reconcile baseline aged cohort to follow-up cohort, rebuild/inspect PDF, and run tests only at the very end.
   - Implementation/report verification complete before final tests: financial defaults now May 1–July 31 inclusive (exclusive Aug 1); fresh baseline 225,434 customers / 484,374 orders / 541,190 lines / 44,519,634.42931 net sales. Aged cohort 30,382 customers / 38,314 orders / 41,713 lines / 3,470,380.19000 net sales reconciles exactly by order/line/customer/cancellation timestamp to all follow-up originals, with no missing keys or incomplete 49-day follow-up. Fresh independent calculations and cached follow-up regeneration verified all seven windows; 49-day result 7,280 customers / 11,898 orders / 12,573 matching lines / 1,131,240.46002 sales. Updated captions, dates, SQL, documentation and separate opportunity exports; previous snapshots retained. PDF built without LaTeX warnings or unresolved references, rendered pages 2–4 inspected with both tables and SQL at subsection end. Added May/July event and cancellation boundary coverage plus the 49-day exact limit. Final full-suite run follows all code, data, documentation and PDF work.
   - Final tests ran after implementation, data reconciliation and PDF inspection: 559 passed, 16 subtests passed in 22.32s. Left all changes uncommitted; existing study-population and upload/approval content preserved.
 
 * DONE Extend current May–July financial follow-up to 56 and 63 days
+  :PROPERTIES:
+  :REFNUM:   75.
+  :END:
   - User steering after the 49-day run: retain May 1–July 31 cancellations and the October 28 cutoff, add cumulative 56/63-day rows using one shared 63-day extract, reconcile existing rows/cohort, update LaTeX/docs, rebuild and inspect PDF, then run tests last again. The preceding May–July/49-day work passed 559 tests before this extension.
   - Implementation/report checks completed before final tests: refreshed one shared 63-day source for May–July aged cancellations, verified all earlier seven rows unchanged and the original customer/order/line/part/pet/cancellation identities unchanged. Added 56d: 7,510 customers / 13,152 orders / 13,895 matching lines / 1,252,558.38002 sales; 63d: 7,756 customers / 14,621 orders / 15,428 matching lines / 1,393,281.96062 sales, with no missing sales. Counts/money independently reconcile and populations nest. Updated the dedicated target, nine-row caption/table, documentation and exact 56/63-day boundary coverage. Fresh/cached/SQL-only modes verified; preserved distinct-customer baseline, gray cancellation sales, May–July dates and SQL at subsection end. PDF built without warnings or unresolved references; rendered pages 3–4 inspected. Full suite runs last below.
   - Final tests after all code/data/documentation/PDF work: 560 passed, 16 subtests passed in 21.01s. Changes remain uncommitted.
 
 * DONE Add same-pet/different-product and any-vet-diet financial follow-up studies
+  :PROPERTIES:
+  :REFNUM:   76.
+  :END:
   - Extend the dedicated opportunity-follow-up-sales target to run three studies from one snapshot, retaining the May–July aged cohort and 7–63-day windows. New studies require vet-diet lines with (1) same customer/pet and different exact PRODUCT_PART_NUMBER; (2) same customer, any pet/product. Preserve whole-order non-cancellation, deduplication and matching-line net-sales rules, export separate study details/summaries, add two captioned/reference tables to Financial Opportunity Analysis before SQL, reconcile the original study, document, rebuild/inspect PDF and run tests last.
   - Implementation/report verification completed before final tests: opportunity-follow-up-sales now enables ALL_WINDOWS=1 ALL_STUDIES=1 WRITE_LATEX=1. One shared date-driven source supplies 27 study/window rows, complete original/match/reorder data, study-prefixed audits and exact-decimal summaries under data/opportunity/aged-reorder-studies. Preserved the May–July cohort and all original exact-match results; original identity keys reconcile to the previous extract and baseline audit. Both narrower matched-line sets are subsets of any-vet-diet in each window; all original exact-match purchased lines are vet-diet in this snapshot. At 63d: same-pet/different-part 4,856 customers / 9,594 orders / 871,819.44080 sales; any-vet-diet 11,314 / 25,580 / 2,445,610.74993. Independent DuckDB predicates/counts/money agree per study/window.
   - Added two uniquely captioned/referenced tables on PDF pages 4–5, retaining the original table on page 3 and baseline SQL at subsection end. Notes state exact scope, current non-cancelled-order rules, dates, matching-line sales and overlap across studies/windows. Make fresh/cached/SQL-only modes verified; documentation updated. PDF builds without warnings or unresolved references; rendered pages 3–6 inspected. Prepared regression coverage for different parts/pets, non-vet lines, missing identifiers, unrelated customers, split/duplicate shipments, multiple original associations, cancellation on another order line, unknown status, shared cache and all three LaTeX labels. Final tests run below after all implementation/data/report work.
@@ -605,157 +837,262 @@
   - Corrected a harmless raw-string escape in the new LaTeX assertion and repeated the final suite after that last edit: 563 passed, 16 subtests passed in 22.50s. No report/data values changed.
 
 * DONE Add all-Chewy 7–63-day financial follow-up from ECOM.ORDER_LINE
+  :PROPERTIES:
+  :REFNUM:   77.
+  :END:
   - User requests whether the aged-order customers subsequently purchase anything at Chewy, including 63 days. Preserve May–July aged cohort and all nine windows; use customer-only matching on EDLDB.ECOM.ORDER_LINE, verified UTC/order-line grain and NET_SALES source, non-cancelled-order exclusions, distinct customers/orders and deduplicated physical-line sales. Add fourth table to Financial Opportunity Analysis and the same opportunity-follow-up-sales Make target, retain existing three studies, export source/details/audits/SQL under opportunity paths, reconcile source coverage and cohorts, rebuild/inspect report, run tests last.
   - All-Chewy implementation/report checks complete before final tests: inspected ECOM columns and GET_DDL, verified UTC dates and physical-line grain, and selected view-published NET_SALES (native four decimals). Fresh/cached runs independently reconcile all nine windows. At 63d: 18,249 customers / 61,158 orders / 91,454 lines / 4,996,737.16060 net sales; no missing sales, no duplicate ECOM source lines, all selected source currencies USD. Original cohort reconciles exactly to all three earlier studies; every prior vet-diet line is present in ECOM for every window. At 63d, 28,164 of 28,169 common line amounts match exactly; five differ below 0.0001, aggregate ECOM minus RxP 0.00007, reflecting precision. Saved source/schema/DDL/coverage/financial audits under opportunity data.
   - Shared target now runs the three-study RxP step plus opportunity-chewy-follow-up, with fresh/cached/SQL-only/date parameter support. Added fourth captioned/reference table on PDF page 6; preserved earlier tables and kept SQL at subsection end. Both generators retain fixed include order. Report builds without warnings or unresolved references; pages 6–7 visually inspected. Added ECOM SQL/integration coverage for non-RxP purchases, UTC/7/63-day boundaries, unrelated customers, full-order cancellation/unknown status, exact duplicate lines, conflicting/missing/negative/zero money, repeated originals and include/cache behavior. Final suite follows all implementation/data/report changes.
 
 * DONE Add observed 70-day follow-up to all four opportunity studies
+  :PROPERTIES:
+  :REFNUM:   78.
+  :END:
   - Keep May–July cancellations and October 28 cutoff. Refresh RxP and ECOM extracts, verify earlier rows and cohort membership, update all four LaTeX tables and documentation, inspect the PDF, then run tests last. Resolve the ECOM integration fixture Snowflake NUMBER-to-DuckDB type translation exposed by the preceding suite.
   - Fresh 70-day results: same-part/pet 7,944 customers / 15,808 orders / 1,507,063.94022 sales; same-pet/different-part 5,010 / 10,552 / 959,049.09530; any-vet-diet 11,567 / 27,878 / 2,665,884.11573; all-Chewy 18,569 / 66,946 / 5,473,570.83510. Complete follow-up and no missing sales. All prior counts and original identities unchanged; RxP sales unchanged. Three refreshed ECOM source lines now report zero, reducing prior 63-day sales by 232.30; recorded exact source changes in Parquet and documented them. Every 70-day RxP matched line is included in ECOM.
   - Cached and SQL-only modes verified for all four studies; rebuilt PDF without warnings/undefined references/overfull or underfull boxes and visually checked pages 3–6. All ten rows fit with captions, references, date/eligibility notes and SQL at subsection end. Final tests follow all implementation, export, documentation and report changes.
   - Final full-suite verification after all changes: 570 passed, 16 subtests passed in 23.89s. Includes all-Chewy integration/type-translation repair and exact 70-day boundary coverage for all four scopes. Left changes uncommitted.
 
 * DONE Add same-part/pet customer order-frequency percentage table to follow-up target
+  :PROPERTIES:
+  :REFNUM:   79.
+  :END:
   - Rows are follow-up days, columns exact distinct orders per returning customer, denominator the existing same-part/pet customer count for each day. Deduplicate orders across line/shipment/original associations; export counts and full percentages, independently verify, add referenced/captioned financial appendix table, update HOWTO, rebuild/inspect PDF and run tests last.
   - Implemented percentage cells over each window’s returning-customer denominator, dynamic exact columns 1–12, distinct-order deduplication and per-customer pooling across matched pairs/windows. DuckDB independently verifies all per-customer counts; cell customer totals and weighted orders reconcile for all ten windows. Exported full counts/denominators/percentages and verification SQL with hashes, added caption/reference Table 3 on PDF page 4, documented target and rules. Combined cached target completed; report builds cleanly and rendered page inspected. Final full suite follows all changes.
   - Final full-suite result: 572 passed, 16 subtests passed in 24.71s. Changes remain uncommitted.
 
 * DONE Place frequency table directly below same-part/pet follow-up on the same page
+  :PROPERTIES:
+  :REFNUM:   80.
+  :END:
   - Remove the forced page break in both generator and report source, rebuild and inspect layout, then run tests last.
   - Both tables now fit together on PDF page 3; generator preserves placement on rerun. Report builds without warnings or unresolved references; visually verified the page. Final tests: 572 passed, 16 subtests passed in 24.13s. Left uncommitted.
 
 * DONE Use final 70-day customer denominator for every frequency row
+  :PROPERTIES:
+  :REFNUM:   81.
+  :END:
   - Keep counts unchanged; divide each cell by the final same-part/pet returning-customer total (7,944), update metadata, exports, captions and notes, preserve placement below the follow-up table, rebuild/inspect PDF, run tests last.
   - Every cell now uses the fixed final-window denominator (70 days, 7,944 customers in the current run); cell counts and existing follow-up summaries are unchanged. Updated Parquet denominator/day fields, metadata/fingerprints, Markdown, caption, notes and HOWTO; verified every row sum equals its observed customer total / 7,944. Cached RxP target completed, PDF rebuilt without warnings and page 3 visually checked. Final suite: 572 passed, 16 subtests passed in 24.23s. Left changes uncommitted.
 
 * DONE Add aged-order new-to-Chewy customer make target
+  :PROPERTIES:
+  :REFNUM:   82.
+  :END:
   - Use the existing May–July CMPU vet-diet CUSTOMER_UPLOAD aged cancellation cohort; compare aged-order UTC placement date with CDM.CUSTOMER.ORDER_FIRST_PLACED_DTTM calendar date. Deduplicate lines/shipments/orders/customers, retain unknown timestamps and reject conflicts, export complete customer/order data, summary, SQL and audits under opportunity paths, verify source timezone/cohort and fresh/cached/SQL-only modes, document target and run tests last.
   - Added opportunity-aged-new-customers with START_DATE, exclusive END_DATE, CACHED=1 and PRINT_SQL=1. Verified CDM field name, date-like first timestamps and UTC-independent day classification; fresh/cached/SQL-only modes completed. Result: 31 / 30,382 customers (0.1020%) meet the same-day rule, 28,430 existing and 1,921 unknown. At order grain 31 / 38,314 match, 36,052 existing and 2,231 unknown; 1,582 missing first dates and 649 first dates after placement, with no missing customer records or aged placement dates. All 41,713 original line keys/customer/cancellation identities match the existing follow-up cohort. Exported complete classifications, summaries, SQL, schema/first-date checks, fingerprints and audits; documented source-day limitations. Final tests follow all changes.
   - Fixed summary-directory creation exposed by the isolated first-run regression. Final full suite after all changes: 581 passed, 16 subtests passed in 23.87s. New coverage includes distinct customer/order counts, duplicate source lines/customers, same-day and midnight boundaries, missing/later first dates, conflicting sources, cancellation-window limits, empty cohort and fresh/cached/SQL-only/hash modes. Left changes uncommitted.
 
 * DONE Determine new-to-Chewy aged customers by exact first ECOM order ID
+  :PROPERTIES:
+  :REFNUM:   83.
+  :END:
   - Retain May–July aged cohort, inspect full ECOM.ORDERS history including cancelled orders, compare unique earliest placed order ID with aged IDs, audit first-order flags and missing/tied/conflicting histories, compare with prior same-day rule, preserve same-day mode and switch existing target to ID mode, export and document, verify cache/SQL-only and cohort, run tests last.
 
 * DONE Add new-to-vet-diet aged customer target
+  :PROPERTIES:
+  :REFNUM:   84.
+  :END:
   - Compare aged order IDs to earliest observed vet-diet order IDs for the same aged cohort. Use TRUE vet-diet lines across all prescription sources/channels/dates/statuses to identify historical vet-diet orders and ECOM.ORDERS timestamps to rank them, including cancellations. Audit missing headers/timestamps/ties/conflicts, export separate opportunity data and summaries/SQL, document target, verify modes and cohort, run tests last after both first-order additions.
   - Both implementations/data/docs complete before final tests. Default opportunity-aged-new-customers now compares full ECOM order history IDs, with METHOD=same-day retaining the prior proxy. Exact observed first-order matches: 1,413 / 30,382 customers and 1,413 / 38,314 aged orders; 63 of those customers have older CDM first dates and are explicitly flagged as source-history conflicts. No aged orders carry the warehouse first-order flag, which is audited independently. All complete classifications, crosstabs and source conflicts are exported; history availability is stated as a limitation.
   - New opportunity-aged-new-vet-diet-customers target: 5,097 / 30,382 customers (16.7764%) and 5,097 / 38,314 aged orders match the unique earliest observed vet-diet order ID; 25,285 customers and 33,217 aged orders have earlier vet-diet orders. No missing aged/header/history timestamps or earliest-time ties. Both cohorts match the full 41,713 original line/customer/cancellation keys; all 1,413 observed Chewy-first customers are included among vet-diet-first customers. Source, full exports, bounded summaries, date-driven SQL and audits live in separate opportunity directories. Fresh extraction plus cached/SQL-only/method modes verified; regression coverage includes history across all channels/statuses/dates, cancelled first orders, same-day later orders, non-monotonic IDs, ties/missing timestamps/headers, duplicates/conflicts, customer deduplication, CDM conflicts and empty cohorts. Final full suite runs last below.
   - Fixed boolean audit types for empty cohorts found by the first full run, regenerated both cached targets, then ran final checks last: 594 passed, 16 subtests passed in 25.44s. Both new targets and prior same-day mode are verified; changes left uncommitted.
 
 * DONE Count aged customers whose aged order is their first CUSTOMER_UPLOAD vet-diet order
+  :PROPERTIES:
+  :REFNUM:   85.
+  :END:
   - Add a separate target and history scope for the same May–July aged cohort. Match historical vet-diet CUSTOMER_UPLOAD prescriptions on RX_ID and numeric customer ID across all sources, dates and statuses, including cancelled orders. Compare unique earliest ECOM order IDs, audit conflicts/missing history/ties, export separately, reconcile scopes/cohort, verify modes, document and run tests last.
   - Added opportunity-aged-new-customer-upload-vet-diet-customers with START_DATE, exclusive END_DATE, CACHED=1 and PRINT_SQL=1. Historical prescriptions require CUSTOMER_UPLOAD and vet-diet TRUE, joined by trimmed RX_ID and numeric customer ID; all sources/dates/statuses are included. Result: 11,550 / 30,382 customers (38.0159%) and 11,550 / 38,314 aged orders are first observed qualifying orders; 18,832 customers and 26,764 orders have earlier qualifying history. No missing history headers/timestamps or earliest-time ties. All 41,713 original line/customer/cancellation keys match; all 5,097 first-vet-diet customers are included in the 11,550 first-upload group. Saved complete classifications, summary, SQL, fingerprints and cohort/scope audits, documented current prescription-channel snapshot limitations, verified fresh/cached/SQL-only modes. Final tests follow all code/data/doc changes.
   - Final full-suite verification after all changes: 598 passed, 16 subtests passed in 25.08s. New tests cover earlier non-upload history, other prescription sources, both RX/customer keys, line/prescription vet flags, conflicting historical channels and independent fresh/cached/SQL-only exports. Changes remain uncommitted.
 
 * DONE Follow first CUSTOMER_UPLOAD vet-diet aged customers for same pet/product through 70 days
+  :PROPERTIES:
+  :REFNUM:   86.
+  :END:
   - Add separate target using the verified 11,550-customer cohort. Anchor only the first qualifying aged order per customer, follow after cancellation at 7-day intervals to 70 days, retain October 28 cutoff and non-cancelled same PET_ID / PRODUCT_PART_NUMBER matching. Export fixed-denominator customer counts/percentages, zero-inclusive outcomes, orders/sales, full data/SQL and provenance/audits; verify modes and subset reconciliation, document and run tests last.
   - Implementation/data/docs complete before final tests. Added opportunity-new-upload-customer-follow-up with START_DATE, exclusive END_DATE, AS_OF_DATE, CACHED=1 and PRINT_SQL=1. Verified frozen first-CUSTOMER_UPLOAD cohort fingerprints and exact first-order anchors; standalone SQL dynamically derives the same membership, and later aged orders do not reset windows. Every 7–70-day result is a subset of the overall same-part/pet follow-up. At 70 days: 2,509 / 11,550 customers (21.7229%), 4,801 orders, 5,063 matching lines, 427,522.18520 sales, 9,041 zero-return customers; no missing money/keys or incomplete follow-up. Complete original/match/reorder/customer-outcome/summary Parquet, exact money, fixed-denominator percentages, SQL, cohort/source fingerprints and independent reconciliation audits exported separately. Fresh/cached/SQL-only modes verified; final full suite follows all changes.
   - Final full-suite verification: 603 passed, 16 subtests passed in 25.62s. New coverage verifies first-only anchors, no follow-up reset by later aged orders, exact 70-day inclusion/exclusion, cancellation exclusion, fixed cohort denominator with missing match keys/zero returns, cohort/source fingerprint validation and fresh/cached/SQL-only modes. Changes remain uncommitted.
 
 * DONE Add first-upload customer follow-up table to Financial Opportunity Analysis
+  :PROPERTIES:
+  :REFNUM:   87.
+  :END:
   - Generate a captioned/referenced LaTeX appendix table with 7–70-day results, fixed 11,550-customer denominator, dates, eligibility, cancellation anchor, matching rules and sales/cutoff notes. Keep SQL at subsection end and preserve the table on other target reruns. Rebuild/inspect PDF and run tests last.
   - Added financial_opportunity_new_upload_follow_up.tex with caption and label tab:financial-opportunity-new-upload-follow-up; all ten 7–70-day rows show returning customers, fixed-cohort percentages, orders and net sales, with date/eligibility/anchor/cutoff/matching/source notes. New target now writes this LaTeX automatically from cached or fresh results; existing financial generators retain it before subsection SQL. PDF builds without warnings or unresolved references; Table 7 on page 7 and SQL continuation page 8 visually checked. Documentation and inclusion regression checks updated. Final tests follow all code/data/report/doc changes.
   - Final full-suite verification after all changes: 604 passed, 16 subtests passed in 25.61s. Changes remain uncommitted.
 
 * DONE Extend first-upload cohort follow-up to any Chewy, any vet diet and same-pet different-product vet diet
+  :PROPERTIES:
+  :REFNUM:   88.
+  :END:
   - Retain frozen 11,550 first-CUSTOMER_UPLOAD customers, first aged-order cancellation anchors, ten 7–70-day windows and October 28 cutoff. Add three RxP scopes from a shared broad source plus ECOM all-Chewy source, fixed-denominator summaries/outcomes, audits and SQL; extend existing target/report, reconcile original and subset populations, document and run tests last.
   - All implementation/data/report/doc work complete before final tests. Expanded opportunity-new-upload-customer-follow-up to shared RxP three-scope extraction plus separate ECOM all-Chewy step; standalone ECOM target available. Retained first aged-order anchors, all 11,550 customers, zero-inclusive outcomes, ten windows and October 28 cutoff. Original ten exact-match rows unchanged. At 70d: same-pet/different-part vet diet 1,617 customers (14.00%), 3,220 orders, 281,008.90040 sales; any vet diet 3,753 (32.4935%), 8,395, 762,808.17170; all Chewy 6,712 (58.1126%), 21,917, 1,732,549.05600. No missing sales or keys. All narrow line sets reconcile to broader scopes and original overall histories in each window; all 9,334 shared 70d vet-diet line amounts match ECOM exactly, source currency USD. Saved full data/SQL/cohort/source/outcome/audit exports under separate opportunity paths. Fresh/cached/SQL-only modes verified for both sources. Added captioned/ref tables 8–10 on PDF pages 8–10, retained SQL at subsection end and made financial generators preserve new includes. Report builds without warnings/unresolved references; all three pages visually inspected. Final full suite follows all changes.
   - Corrected the test fixture’s SQL type translation to preserve ROW_NUMBER while converting standalone NUMBER casts. Final full suite after all changes: 607 passed, 16 subtests passed in 28.75s. Changes remain uncommitted.
 
 * DONE Add full-cohort percentages to whole aged-order follow-up tables
+  :PROPERTIES:
+  :REFNUM:   89.
+  :END:
   - Add returning-customer percentages to all four 7–70-day tables/exports using the fixed total distinct aged cohort (30,382), before matching-key exclusions. Preserve counts, orders, sales, dates, source caches, the separate final-70-day order-frequency denominator and first-upload-cohort tables. Regenerate cached outputs, rebuild/inspect PDF and run tests last.
   - Added Cohort (%) to whole-aged follow-up tables 2/4/5/6 and cohort_customers/cohort_percentage to all summary Parquet/Markdown exports. Every window uses all 30,382 distinct aged customers, including zero returns and unusable matching keys; zero denominators show N/A. Cached combined target completed, independent DuckDB denominator/percentage checks pass, and all pre-existing counts/order/line/money fields match saved prior summaries exactly. At 70d: same-part/pet 26.1471%, different-part/same-pet 16.4900%, any vet diet 38.0719%, all Chewy 61.1184%. Separate order-frequency and first-upload denominators unchanged. Updated documentation and integration regressions with zero-return/missing-key customers. Report built without warnings/unresolved references; pages 3–6 visually checked, including both same-part/pet tables together on page 3. Final full suite follows all code/data/doc/PDF changes.
   - Final full-suite verification after all changes: 607 passed, 16 subtests passed in 28.34s. Changes remain uncommitted.
 
 * DONE Interleave whole-cohort and first-upload follow-up tables by study
+  :PROPERTIES:
+  :REFNUM:   90.
+  :END:
   - Order matching whole/first-upload pairs for same pet/part, different part/same pet, any vet diet, and any Chewy; move frequency to immediately before subsection SQL. Generate individual table fragments, preserve canonical order across all financial generators, retain labels/numbers/data, regenerate cached tables, rebuild/inspect report and run tests last.
   - Implemented per-study fragments and shared canonical include ordering for all financial generators. Actual PDF order is whole/new same-part-pet (Tables 2–3), whole/new same-pet different-part (4–5), whole/new any-vet-diet (6–7), whole/new all-Chewy (8–9), then frequency (10) immediately before SQL. Existing table labels, cohorts, percentages, sales and frequency denominator retained; aggregate files remain compatibility outputs. Both cached targets completed and report built without warnings/unresolved references. PDF text confirms every pair on pages 3–10; first pair and final frequency/SQL page 11 visually inspected. Updated inclusion regressions, added idempotent canonical-order coverage and documented rerun behavior. Final full suite follows all code/table/report/doc changes.
   - Pre-extension verification completed: 608 passed, 16 subtests passed in 28.47s. User then requested the first-vet-diet cohort addition below; final tests will run again after that work.
 
 * DONE Follow first-vet-diet aged customers through 70 days and interleave three cohorts
+  :PROPERTIES:
+  :REFNUM:   91.
+  :END:
   - Use frozen 5,097 customers whose aged order is their first observed vet-diet order across all channels/sources. Repeat all four same-anchored cancellation follow-up scopes/windows, add separate target/data/SQL/audits, group whole/first-upload/first-vet-diet results per study, retain frequency before SQL, reconcile nested cohorts/scopes, document, rebuild/inspect PDF and run tests last.
   - New target opportunity-new-vet-diet-customer-follow-up runs shared RxP three-scope and ECOM Chewy follow-up for the frozen 5,097 first-vet-diet customers; date/as-of/cache/SQL-only flags verified. First aged-order anchors, ten cancellation-relative 7–70-day windows, non-cancellation rules and fixed denominator preserved. At 70d: exact pet/part 800 (15.6955%), 1,567 orders, 120,434.48960 sales; same pet/different part 548 (10.7514%), 1,122, 91,928.98040; any vet diet 1,165 (22.8566%), 2,541, 202,269.09000; any Chewy 2,591 (50.8338%), 7,865, 561,647.93570. No missing keys, incomplete follow-up or missing money. All first-vet-diet customers/first-order/line anchors and every follow-up scope/window are subsets of first-upload results; RxP lines are subsets of Chewy and all 2,880 common line amounts agree exactly. Separate data/SQL/outcome/summary/audit paths and documentation added. Report now interleaves whole/first-upload/first-vet-diet for each study (Tables 2–13); frequency is Table 14 immediately before SQL on page 15. Rebuilt without warnings/unresolved references after a paragraph-spacing fix; PDF order and sample first-vet and final frequency/SQL pages checked visually. Final full tests follow all changes.
   - Final full-suite verification after all changes: 610 passed, 16 subtests passed in 30.72s. Changes remain uncommitted.
 
 * DONE Add customer-initiated contacts around aged cancellation target
+  :PROPERTIES:
+  :REFNUM:   92.
+  :END:
   - Reuse FCT_CONTACTS_BRD and confirmed UTC SESSION_START_DTTM; full May–July CMPU/vet-diet/CUSTOMER_UPLOAD aged cohort. Count inbound contact customers and aged order IDs in exact UTC day bins -11 through +2, always including zero days. Match both original aged order and customer IDs; audit outbound/unknown directions, missing/mismatched IDs, missing timestamps, duplicate/conflicting legs. Default all inbound attempts, HANDLED_ONLY=1 reproduces prior handled filter. Export complete source/details/audits, bounded three-column table and executable summary SQL; verify cohort, modes, boundaries and counts, document, then run tests last.
   - Implemented opportunity-aged-customer-contacts with START_DATE, exclusive END_DATE, AS_OF_DATE, CACHED=1, PRINT_SQL=1 and HANDLED_ONLY=1. All fourteen elapsed UTC day rows −11..+2 are emitted with distinct matching contact customers and aged order IDs, zero-filled. Uses SESSION_INITIAL_DIRECTION=inbound, no category filter, default all attempts; source all direction/handled states retained for audits, strict caller/order-owner identity, NS boundaries, session-aware duplicate/conflict checks. Current unique window totals: 29,755 customers / 37,332 aged orders; Email/Other dominates (38,608 included rows), documented as an initiation proxy. Entire 38,314-order / 30,382-customer cohort matches existing financial reference. Raw/details/daily/direction/identity/channel exports, executable raw/summary/verification SQL and hashes saved; fresh/cached/handled-only/SQL-only modes verified. Both DuckDB and an independent live Snowflake summary match all fourteen rows. Documentation complete; final full tests follow all changes.
   - Final full-suite verification after all changes: 615 passed, 16 subtests passed in 30.37s. New tests cover all required zero-filled days, multiple orders per customer, repeated contacts, missing/unknown flags and IDs, nanosecond bounds (−11, −1ns, cancellation, +3−1ns), session-aware conflicts, empty cohorts, direct source SQL joins and fresh/cached/handled/SQL-only modes. Changes remain uncommitted.
 
 * DONE Add customer contact table to contact_analysis.tex appendix
+  :PROPERTIES:
+  :REFNUM:   93.
+  :END:
   - Add caption/reference/label, date/cohort/contact/binning notes and all fourteen day rows under src/latex/appendix/contact_analysis.tex. Include it after Financial Opportunity Analysis; make the contacts target refresh the LaTeX, rebuild/inspect PDF and run tests last.
   - Added the generated captioned table with label tab:aged-customer-contacts-by-cancellation-day and reference; included after Financial Opportunity Analysis. Cached contact target refreshes the source appendix. Rebuilt and visually inspected Table 15 on PDF page 17; no LaTeX warnings. Final full suite: 615 passed, 16 subtests passed in 30.50s. Changes remain uncommitted.
 
 * DONE Extend customer contact window to -13 through +3
+  :PROPERTIES:
+  :REFNUM:   94.
+  :END:
   - Refresh source, summaries and appendix; caption reports distinct customers across the complete window. Verify boundaries, modes and PDF, then run tests last.
   - Updated all 17 rows and caption total of 30,299 distinct contacting customers. Fresh/cached/handled/SQL-only modes, independent live Snowflake cells, DuckDB total and cohort identities verified. PDF page 17 inspected; final suite 615 passed, 16 subtests passed in 30.88s.
 
 * DONE Add customer contact-day frequency table
+  :PROPERTIES:
+  :REFNUM:   95.
+  :END:
   - Count distinct relative day bins per customer in the -13 through +3 window, including zero-contact cohort customers. Export customer counts and frequency, add captioned/labeled appendix table, inspect report and run tests last.
   - Added Table 16 on page 18, label tab:aged-customer-contact-day-frequency, to contact_analysis.tex. Both modes export per-customer days and 0..17 frequency with independent DuckDB verification; full cohort reconciles to 30,382 and contacting customers to 30,299. Visually checked PDF; final full suite: 615 passed, 16 subtests passed in 30.91s. Changes remain uncommitted.
 
 * DONE Reorders by customer contact-day frequency
+  :PROPERTIES:
+  :REFNUM:   96.
+  :END:
   - Add opportunity-contact-frequency-reorders target for one-day and two-day contact segments, same customer/pet/product part reorders within 14 days of each aged cancellation. Reuse established contact/cohort/non-cancelled rules, parameterized dates, cached/SQL modes; export customer evidence, counts and segment percentages. Run target, independently reconcile against prior analyses and run tests last.
   - Implemented opportunity-contact-frequency-reorders with date/cutoff/follow-up parameters, HANDLED_ONLY, CACHED and PRINT_SQL modes. Fresh sources, all customer results, associations, summary, audits and query/verifier SQL saved under data/opportunity; bounded Markdown and HOWTO added. Default one-day segment: 3,376 / 27,265 (12.38%); two-day segment: 396 / 2,808 (14.10%). Every customer frequency and returning-customer identity reconciles exactly to prior analyses. Final full suite: 621 passed, 16 subtests passed in 32.65s, including modes, cache rejection, duplicate associations, missing keys, cancellations/status, empty segments, cohort drift and nanosecond 14-day boundaries. Changes remain uncommitted.
 
 * DONE Add contact-segment reorder results to LaTeX
+  :PROPERTIES:
+  :REFNUM:   97.
+  :END:
   - Add caption, reference and label below the contact-day frequency table. Refresh from the existing target, preserve the inclusion on contact-table reruns, rebuild/inspect the PDF and run tests last.
   - Added the captioned/referenced table as Table 17 on page 18 directly below the frequency table, with label tab:contact-frequency-same-pet-part-reorders. Existing target refreshes contact_frequency_reorders.tex; contact table reruns preserve its inclusion in contact_analysis.tex. PDF rebuilt and visually checked without LaTeX warnings. Final full suite: 621 passed, 16 subtests passed in 31.17s. Changes remain uncommitted.
 
 * DONE Remove SQL listings from the report
+  :PROPERTIES:
+  :REFNUM:   98.
+  :END:
   - Remove the financial SQL listing and its generation path while retaining standalone query exports. Preserve all report tables, update documentation/tests, rebuild/inspect PDF and run tests last.
 
 * DONE Add the existing survival plot to the report
+  :PROPERTIES:
+  :REFNUM:   99.
+  :END:
   - Include src/latex/appendix/survival_anaysis.tex after Study Population Analysis, with subsection, caption, reference and label reflecting the existing plot endpoint, windows and censoring. Rebuild/inspect the PDF and run tests last.
   - SQL listings and their generation path removed, standalone SQL exports retained, obsolete SQL-order assumptions updated in regression coverage/documentation. All 20 tables preserved. Existing survival PNG included via survival_anaysis.tex after Study Population Analysis as Figure 2 on page 21, with label fig:first-order-line-survival, caption and reference. PDF visually inspected; no LaTeX warnings or SQL listing remains. Final combined suite after all changes: 621 passed, 16 subtests passed in 31.50s. Changes remain uncommitted.
 
 * DONE Compare 14-day reorder rates by contact during days -7 through +3
+  :PROPERTIES:
+  :REFNUM:   100.
+  :END:
   - Use the verified May–July aged cohort and established inbound/customer/order contact filters. Compare customers with any qualifying contact in those relative bins against the entire complementary cohort, using the same non-cancelled same-pet/product-part 14-day endpoint. Save full customer assignments and summary, independently verify from raw source SQL, then run checks last.
   - Contacted: 237 / 1,184 (20.02%); complementary cohort: 3,595 / 29,198 (12.31%); difference 7.7044 percentage points (1.62574 rate ratio). Both partitions reconcile to 30,382 customers / 3,832 14-day returners. Saved complete customer assignments, summary Parquet, manifest and independently executed raw-source DuckDB SQL under data/opportunity/contact-window-reorders, plus bounded Markdown. Verified -7 inclusive/+4 exclusive nanosecond boundaries and source hashes. Final repo checks: 621 passed, 16 subtests passed in 31.14s. Report unchanged; changes remain uncommitted.
 
 * DONE Add contact-window reorder comparison to Contact Analysis
+  :PROPERTIES:
+  :REFNUM:   101.
+  :END:
   - Add the verified -7 through +3 versus rest comparison with caption/reference/label and cohort/window notes, preserve its inclusion on contact reruns, rebuild/inspect PDF and run tests last.
   - Added contact_window_reorders.tex and included it in contact_analysis.tex below frequency-based reorders as Table 18 on page 18, label tab:contact-window-same-pet-part-reorders. Rendered directly from fingerprint-verified summary; dates, endpoint, exact contact window, complementary denominator and customer deduplication documented. Contact generator preserves both child-table inputs. PDF rebuilt/visually checked with no LaTeX warnings; final suite 621 passed, 16 subtests passed in 31.47s. Changes remain uncommitted.
 
 * DONE Show appendix contents through subsubsection detail
+  :PROPERTIES:
+  :REFNUM:   102.
+  :END:
   - Promote detailed analysis paragraph headings to real subsubsections and add baseline/contact-table headings; update generators so reruns preserve the detail. Keep existing contents depth, rebuild/inspect PDF and run tests last.
   - Promoted financial/contact detail headings from unlisted paragraph headings to numbered subsubsections; added baseline cancellation and contact-summary headings and updated generators. Existing etoc depth now exposes 18 detailed entries. Rebuilt and visually inspected contents and body headings without LaTeX warnings. Final full suite: 621 passed, 16 subtests passed in 31.88s. Changes remain uncommitted.
 
 * DONE Repair report build after input restructuring
+  :PROPERTIES:
+  :REFNUM:   103.
+  :END:
   - Preserve nested appendix organization and user prose. Fix the three moved input paths and survival filename mismatch, rebuild/inspect PDF and run final checks.
   - Fixed the three nested inputs in study_population_analysis.tex with paths relative to the src/latex build root, including the existing survival_anaysis.tex filename. Preserved the user’s nested organization and prose. Initial and repeat make report builds succeed; all 23 inputs resolve uniquely, no LaTeX warnings, rebuilt survival page visually checked. Final checks: 621 passed, 16 subtests passed in 31.31s. Changes remain uncommitted.
 
 * DONE Prepare committed analysis changes and PDF for main
+  :PROPERTIES:
+  :REFNUM:   104.
+  :END:
   - User authorizes committing and merging the current feature branch. Track outputs/pdf, preserve other generated-output exclusions, rebuild/verify report and run final checks before fast-forwarding local main.
   - Updated .gitignore to track outputs/pdf while retaining other generated-output exclusions. Rebuilt the current report and visually inspected it; no LaTeX warnings. Final checks: 621 passed, 16 subtests passed in 32.74s. Current feature work is committed and ready for a fast-forward into local main with the PDF. User explicitly authorizes commit and merge.
 * DONE Stop tracking generated .el files inside auto directories
+  :PROPERTIES:
+  :REFNUM:   105.
+  :END:
   - Remove all tracked .el files beneath auto directories from the Git index while keeping local copies. Add a repository ignore rule and verify no matching files remain tracked. Preserve unrelated report/editor changes; no tests needed. Commit only after approval.
   - Removed seven previously committed .el files from the index with git rm --cached; all seven local copies remain. Added **/auto/**/*.el and verified both direct/nested auto metadata are ignored, while .el files outside auto remain eligible for tracking. No matching tracked files remain; git diff --check passes. Unrelated report/PDF edits preserved; uncommitted pending approval.
 
 * DONE Rename the published report to phds-cmpu-aged-orders-analysis.pdf
+  :PROPERTIES:
+  :REFNUM:   106.
+  :END:
   - Update Make/HOWTO and rename the existing PDF under outputs/reports/pdf. Verify FINAL=1 publishes the requested filename; no data refresh or tests. Commit only after approval.
   - Renamed the existing PDF and updated build copying/status output plus HOWTO references. make report FINAL=1 succeeds; published bytes match build/latex/main.pdf and the previous filename is absent. Compiler log and git diff --check clean. Uncommitted pending approval.
   - User clarified the renamed report is still a draft. Rebuilt the same phds-cmpu-aged-orders-analysis.pdf with FINAL=0; verified the opening DRAFT label and watermark package are restored. The filename and draft-by-default behavior are unchanged.
 
 * DONE Publish the report PDF under outputs/reports/pdf
+  :PROPERTIES:
+  :REFNUM:   107.
+  :END:
   - Change the successful-build copy/printed destination, HOWTO and Git ignore exception to outputs/reports/pdf/cmpu-aged-order-analysis.pdf. Move the existing reviewed PDF to the new location and verify make report FINAL=1 publishes there, preserving default FINAL=0 behavior. No data refresh or test-suite run; commit only after approval.
   - Updated report copying/status output, both HOWTO path references and nested Git ignore exceptions; moved the existing PDF out of outputs/pdf. Verified FINAL=1 builds successfully at the new path and its bytes match build/latex/main.pdf. Other generated report formats/figures remain ignored while the PDF can be tracked. Visually checked the final first page; compiler log and git diff --check clean. No data refresh or tests; uncommitted pending approval.
 
 * DONE Add FINAL=1 report mode without DRAFT markings
+  :PROPERTIES:
+  :REFNUM:   108.
+  :END:
   - Default make report to FINAL=0. FINAL=1 suppresses both the draft watermark and the opening red DRAFT label. Track mode changes in an ignored LaTeX input so switching modes rebuilds correctly without cleaning; retain one published PDF path and document the commands. Verify default draft, final and return-to-draft builds/text/rendering, with no data refresh or test-suite run. Commit only after approval.
   - Added FINAL ?= 0 and report-build-mode, which writes an ignored LaTeX boolean input only when its content changes. Both DRAFT elements use that same conditional; final mode omits the watermark package. Documented commands and one-PDF output behavior in HOWTO.
   - Built default draft, FINAL=1, then FINAL=0 without cleaning. Verified final text has no DRAFT marks and does not load draftwatermark, while draft restores the red heading and watermark; mode changes trigger pdflatex. Visually inspected both first pages. Final LaTeX log and git diff --check clean. Published PDF left in default draft mode; no data refresh or tests run. Uncommitted pending approval.
 
 * DONE Fix make report compilation and missing reproduction references
+  :PROPERTIES:
+  :REFNUM:   109.
+  :END:
   - Reproduce the current build errors. Repair the unmatched closing brace in Suggested Next Steps while preserving the user's wording. Include each missing reproduction fragment from its parent section and preserve contact reproduction on generator reruns. Rebuild and verify final compiler log, references, contents and PDF; no test-suite run or warehouse refresh. Commit only after approval.
   - Reproduced make report Error 12 and the compiler's main.tex:196 extra-closing-brace failure. Removed the stray brace. Moved the missing contact/upload-delay/survival reproduction includes into their parent section files, matching the financial section pattern; updated the contact publisher to retain its include. Current main/report prose preserved.
   - make report now exits successfully; original build/log check passes with no warnings, undefined references, overfull boxes or fatal errors. All four reproduction sections resolve once in contents. Visually inspected executive-summary/list continuation and appendix contents on pages 1--2. git diff --check clean. Used actual build/log verification instead of adding/running tests, honoring the user's instruction; no warehouse refresh. Uncommitted pending approval.
 
 * DONE Highlight the Aged order row in the upload-coverage table
+  :PROPERTIES:
+  :REFNUM:   110.
+  :END:
   - Apply yellow row highlighting to Table 14 and its generator; rebuild and visually check the PDF, preserving the user's corrected narrative. No data refresh or tests; commit only after approval.
   - Added yellow!35 highlighting to the Aged order row and its renderer. Rebuilt and visually verified Table 14 (current PDF page 38); counts unchanged and git diff --check clean. Preserved current user edits; current main omits three reproduction includes, producing existing undefined reproduction-reference warnings. No data refresh or tests; uncommitted pending approval.
 
 * DONE Add prescription-upload coverage by cancellation reason as section 2.3.1
+  :PROPERTIES:
+  :REFNUM:   111.
+  :END:
   - Use the frozen 87,724 first orders / 95,073 first-order lines in the CMPU vet-diet CUSTOMER_UPLOAD study. Show order/line counts, lines with upload and line coverage percentage, plus distinct total/ACCEPTED/REJECTED upload entities by cancellation reason. Preserve the existing discovery window and aged cutoff categories; independently deduplicate TOTAL.
   - Add a cached-only Make target, full Parquet/provenance/audits and bounded Markdown, wire into section reproduction/HOWTO, then rebuild and visually inspect the new landscape table and numbering. Reconcile with 29,715 / 25,606 / 914 total/accepted/rejected uploads and independent DuckDB counts. Preserve user edits; no warehouse refresh or test-suite run; commit only after approval.
   - Implemented make study-upload-coverage-by-cancel-reason and Table 14, section 2.3.1 on landscape PDF page 39; original children renumber automatically. All 16 reason/TOTAL rows reconcile independently in DuckDB, including 29,623 / 95,073 lines with uploads (31.16%) and 777 / 26,443 aged lines (2.94%). Upload totals reconcile to 29,715 / 25,606 / 914. Repeating 1,000 valid associations leaves every metric unchanged.
@@ -763,107 +1100,179 @@
   - Rebuilt/visually inspected the table and updated reproduction page; contents/cross-references, final LaTeX log and git diff --check clean. Flagged the existing executive-summary >99% no-upload sentence as inconsistent with the new 97.06% aged-line no-upload share; left user wording unchanged. No warehouse queries or tests run. Uncommitted pending approval.
 
 * DONE Limit HOWTO to report targets and explicitly retained computations
+  :PROPERTIES:
+  :REFNUM:   112.
+  :END:
   - Keep current report reproduction/build/setup targets and required source/cohort prerequisites. Keep the order-frequency computation explicitly retained when removed from the report. Remove unrelated analysis/skill-management documentation and stale instructions; audit documented targets against the Makefile and report dependencies. Documentation only; no data refresh or test-suite run, commit only after approval.
   - Pruned legacy reorder/WISMO/history/clinic, unrelated timing/ratio and skill-management sections. Retained report targets, first-order cohort/event-time prerequisites and the explicitly retained same-pet/product order-frequency matrix. Updated study-table Make instructions, report paths/layout notes and current baseline styling/date settings. All 33 documented target names exist and map to the report dependency chain or required inputs; explicit frequency retention, excluded families and Markdown fences verified. HOWTO reduced from 2,110 to 1,151 lines relative to the start of this cleanup. Makefile/code/data/PDF untouched by this task; git diff --check passes. No tests or warehouse queries run; uncommitted pending approval.
 
 * DONE Add section reproduction steps and complete report Make coverage
+  :PROPERTIES:
+  :REFNUM:   113.
+  :END:
   - Add a Section Reproduction Steps subsubsection to appendix sections 2.1--2.4. Trace every report table/figure to Make, add missing table renderers/targets, and document retained-snapshot prerequisites and exact commands. Verify cached reproduction, rebuild and inspect the PDF; no warehouse refresh or test-suite run. Commit only after approval.
   - Added reproducible section targets and subsection entries 2.1.7 (page 30), 2.2.6 (page 35), 2.3.4 (page 41), and 2.4.1 (page 43), preserving existing analysis child numbering. Documented exact snapshot dates, required ignored extracts/manifests, Docker prerequisite, constituent table/figure targets and fresh-snapshot limits in the PDF and HOWTO.
   - Added Make-driven renderers for both study-population tables and the previously manual contact-window reorder table. Fingerprint checks, existing cohort validation and independent DuckDB aggregations reproduce all displayed counts, including the 1,184/237 versus 29,198/3,595 timing comparison. Preserved report titles/styling on regeneration. Financial follow-ups, contact results, study tables, Sankey, upload charts and survival replay all pass using retained inputs. Docker rendering retried outside the sandbox after socket permissions prevented the first attempt; no warehouse queries or tests run.
   - Verified all reachable LaTeX inputs and 11 figure assets exist, all four contents entries resolve, and rebuilt/visually checked the PDF reproduction pages. Survival output hash unchanged after replay. Final LaTeX log and git diff --check clean. Changes remain uncommitted pending approval.
 
 * DONE Rename sections 2.2.4 and 2.2.5 to contact/reorder propensity questions
+  :PROPERTIES:
+  :REFNUM:   114.
+  :END:
   - Apply the requested titles, with "more frequent contact" completing the first question grammatically. Update the existing frequency generator; rebuild and inspect both headings and contents. No data refresh or test-suite run; commit only after approval.
   - Updated both report headings and the frequency generator. Rebuilt and visually checked pages 32--33; contents, final LaTeX log and git diff --check clean. Uncommitted pending approval.
 
 * DONE Clarify Table 1 estimated and actual net sales styling
+  :PROPERTIES:
+  :REFNUM:   115.
+  :END:
   - Rename the sales column Estimated net sales, make the TOTAL sales amount gray, and append (actual net sales) to the no-cancellation-reason row label. Persist in the generator, rebuild and visually check the PDF. No data refresh or test-suite run; commit only after approval.
   - Applied all three changes to Table 1 and its generator. Clarified that the gray TOTAL includes both reason-row estimates and the no-recorded-reason amount. Rebuilt PDF and visually checked page 3; final LaTeX log and git diff --check clean. Uncommitted pending approval.
 
 * DONE Rename section 2.2.3 to the requested contact frequency question
+  :PROPERTIES:
+  :REFNUM:   116.
+  :END:
   - Update report and generator to "What was the frequency of contacting Chewy for CMPU aged order customers?" Rebuild and check the PDF title and contents. No data refresh or test-suite run; commit only after approval.
   - PDF rebuilt; section 2.2.3 heading and contents verified on page 32. Visual layout, final LaTeX log and git diff --check clean. Uncommitted pending approval.
 
 * DONE Rename section 2.2.2 to the CMPU aged-order customer contact timing question
+  :PROPERTIES:
+  :REFNUM:   117.
+  :END:
   - Updated the report fragment and generator heading to "When did the CMPU aged order customers contact Chewy relative to the cancellation date?" Rebuilt the PDF and checked section/contents numbering. No data refresh or test-suite run; uncommitted pending approval.
 
 * DONE Rename section 2.2.1 to the requested CMPU customer contact distribution title
+  :PROPERTIES:
+  :REFNUM:   118.
+  :END:
   - Update the report fragment and generator to use the requested title with APPROVAL CHANNEL = CUSTOMER_UPLOAD; rebuild and check heading/contents layout. No data refresh or test-suite run; commit only after approval.
   - Updated both title definitions and rebuilt the PDF. Section 2.2.1 remains on page 30; wrapped heading visually checked, contents updated, final LaTeX log and git diff --check clean. Uncommitted pending approval.
   - Added the requested trailing question mark to the report and generator title.
 
 * DONE Remove shipped-order contact section and its dedicated code
+  :PROPERTIES:
+  :REFNUM:   119.
+  :END:
   - Remove the current section 2.3, its Python/SQL/LaTeX files, Make target, HOWTO and source notes. Preserve the cancellation-reason summary now under 2.2.1. Remove stale cross-references and rebuild/inspect the PDF; no data refresh or test-suite run. Commit only after approval.
   - Deleted the dedicated shipped-contact implementation and removed all live references. Section 2.2.1 remains on page 30; Aged Order Delay Analysis now follows as 2.3 on page 34. Rebuilt PDF and visually checked the following section; no undefined references, LaTeX warnings or overfull boxes, and git diff --check passes. Historical ignored extracts and task/log records retained. Uncommitted pending approval.
 
 * DONE Move cancellation-reason contact summary to section 2.2.1
+  :PROPERTIES:
+  :REFNUM:   120.
+  :END:
   - Place the former 2.3.2 first under 2.2, before its existing first child; preserve this placement on regeneration. Rebuild and visually verify PDF section numbering and contents. No data refresh or test-suite run; commit only after approval.
   - Moved the include into the start of contact_analysis.tex and updated both contact publishers to preserve it. Removed the now-unneeded leading page break. PDF confirms new 2.2.1 on page 30 (Table 6), followed by former 2.2.1 as 2.2.2 on page 31. Contents and cross-references regenerated; page 30 visually inspected, final LaTeX log and git diff --check clean. Counts unchanged; uncommitted pending approval.
 
 * DONE Remove creation-relative day bounds from cancellation-reason contact summary
+  :PROPERTIES:
+  :REFNUM:   121.
+  :END:
   - Include all available matching inbound contacts through the existing observed shipment/cancellation endpoint. Refresh data in a separate cache, reconcile cohort keys and expanded contact counts, update documentation and rebuild/inspect Table 11. Preserve daily-table windows; no test-suite run; commit only after approval.
   - Removed both creation-relative bounds from SQL and Python validation; retained the observed endpoint and matching/inbound rules. Fresh event-capped exports retain all prior contact keys and exactly the same 484,374 order/reason cohort records. Added 56 qualifying contact records involving 32 customers; the distinct contacting total increased by four to 101,227 of 225,434 (44.90%). All reason/global counts reconcile independently in DuckDB. Updated notes/HOWTO, regenerated Table 11 and visually inspected page 34; git diff --check passes. No test-suite run; uncommitted pending approval.
 
 * DONE Add contacting customers by order cancellation reason
+  :PROPERTIES:
+  :REFNUM:   122.
+  :END:
   - Summarize all CMPU vet-diet CUSTOMER_UPLOAD orders with shipment/cancellation activity May--July 2026 by current reason, retaining SQL NULL and blank separately. Use a common creation-relative day -2..+11 window capped at the latest observed shipment/cancellation event, matching inbound contacts on order/customer IDs. Count unique customers per reason and globally; show cohort/contacted counts and percentages, retain provenance and independent verification, add to the contact section and rebuild/inspect the PDF. No test-suite run; commit only after approval.
   - Added Table 11 in section 2.3.2, page 34, with cohort/contacting customer counts and percentages by current reason; Aged order is yellow. Overall: 101,223 of 225,434 customers contacted (44.90%). SQL NULL: 51,979 of 172,878; Aged order: 30,304 of 30,382. TOTAL deduplicates overlapping reason memberships.
   - All 484,374 order/reason cohort keys exactly match the retained financial baseline. All 15 summary rows reconcile to an independent DuckDB calculation and a separately executed Snowflake summary; counts match exactly and percentages agree within 0.000001 percentage points. Retained raw fingerprints, full order/contact exports, audit and warehouse receipt; cached runs recheck the receipt. Added make target, HOWTO and source-connection notes. Rebuilt and visually inspected the PDF; no LaTeX warnings or overfull boxes. No test-suite run; changes remain uncommitted pending approval.
 
 * DONE Add creation-relative contacts for shipped orders with NULL cancellation reason
+  :PROPERTIES:
+  :REFNUM:   123.
+  :END:
   - Use CMPU vet-diet CUSTOMER_UPLOAD orders with qualifying shipments May 1--July 31, 2026 UTC and strict SQL NULL cancellation reason. Count inbound contacts matching order and numeric customer ID on relative days -2 through +11 from order placement, stopping at the latest qualifying shipment. Preserve cohort/order/contact audits and independent SQL reconciliation; add a reproducible target and a similar table to Contact Analysis. Keep existing analyses unchanged; rebuild/inspect PDF, no test-suite run, commit only after approval.
   - Extracted November 2, 2026: 387,273 orders / 172,621 customers, exactly matching the retained financial baseline's strict-NULL observed-shipment order IDs. There are 51,705 contacting customers / 54,347 contacting orders; day 0 has 50,203 customers / 52,630 orders. All 14 daily rows reconcile to independent DuckDB calculation and a separately executed Snowflake summary (28 daily metrics).
   - Added make opportunity-shipped-customer-contacts with fresh/cached/PRINT_SQL and handled-only modes; retained raw query/source fingerprints, full order/contact details, exclusions, daily observation denominators, warehouse reconciliation and bounded Markdown. Added the companion as Table 10 on page 33 in its own shipped-order subsection; aged-contact data and manual headings are preserved. Documented split-shipment endpoint, strict NULL versus blank, overlapping customer cohorts, the 2,117 orders with other cancellation/unshipped evidence and shipment-capped exposure. Extended report source notes and HOWTO.
   - Cached regeneration verifies source and warehouse-result fingerprints; shipment caps and numeric customer matching checked. Rebuilt and visually inspected the PDF with no LaTeX warnings or overfull boxes; git diff --check passes. No test-suite run. New read-only source and validation queries only; changes remain uncommitted pending approval.
 
 * DONE Add financial SQL at the end of section 2.1
+  :PROPERTIES:
+  :REFNUM:   124.
+  :END:
   - Include retained parameter-resolved baseline aggregation, first-order history and six follow-up extraction queries, with table references and post-extraction aggregation notes. Use the existing SQL listing style, token-preserving formatting and retained query manifest checks; prepare locally on make report and preserve SQL-at-end ordering on reruns. Rebuild and visually inspect without tests or warehouse refresh.
   - Added section 2.1.6, "SQL used in the financial analysis", on pages 8--29, containing nine retained SQL listings and source/table references. Added make financial-sql-listings to report preparation, shared token-preserving SQL formatting, retained-query fingerprint checks and generated provenance. The report-order helper keeps SQL once and last; frequency remains excluded.
   - Rebuilt and visually inspected all new SQL pages and the following Contact Analysis transition; no LaTeX warnings or overfull boxes, and git diff --check passes. Original SQL files are unchanged; no queries, tests or warehouse refresh ran. Changes remain uncommitted pending existing approval.
 
 * DONE Combine sections 2.1.5--2.1.7 into an all-Chewy comparison
+  :PROPERTIES:
+  :REFNUM:   125.
+  :END:
   - Combine all three cohorts side by side with yellow Customers columns and title "What percentage of customers place a Chewy order successfully in the following 70 days after their aged order?". Preserve values, denominators, customer-only matching, ECOM physical-line sales, references and reproduction; rebuild and inspect without tests or warehouse refresh.
   - Combined into section 2.1.5 / Table 5 on landscape page 7, with all original table labels and cohort denominators retained. Extended local generation/report ordering and HOWTO; the combined notes distinguish ECOM customer-only matching and NET_SALES per physical line from RxP shipment contributions.
   - Rebuilt and visually inspected pages 7--8. Verified all 480 metric cells across the four combined comparisons, one report inclusion each, and continued frequency exclusion. No LaTeX warnings or overfull boxes; git diff --check passes. No tests or warehouse refresh; changes remain uncommitted pending existing approval.
 
 * DONE Combine sections 2.1.4--2.1.6 into an any-vet-diet comparison
+  :PROPERTIES:
+  :REFNUM:   126.
+  :END:
   - Combine the three existing cohorts side by side with yellow Customers columns and title "What percentage of customers place a successful vet diet order after an aged order in the next 70 days?". Preserve displayed values, denominators, any-pet/product matching, references and reproduction; rebuild and inspect without tests or warehouse refresh.
   - Combined into section 2.1.4 / Table 4 on landscape page 6, preserving all three original labels and cohort denominators. Extended the local comparison generator and report-order helper; documented the any-pet/product endpoint and Markdown export in HOWTO.
   - Rebuilt and visually inspected pages 6--7, verified all 360 metric cells across the three combined comparisons and retained frequency exclusion. No LaTeX warnings or overfull boxes; git diff --check passes. No tests or warehouse refresh; changes remain uncommitted pending existing approval.
 
 * DONE Remove section 2.1.10 from the report while retaining its computation
+  :PROPERTIES:
+  :REFNUM:   127.
+  :END:
   - Remove "Same-pet, same-product orders per returning customer" from report inputs and future automatic report ordering. Retain the frequency computation, exports and standalone LaTeX; update HOWTO, rebuild and inspect the PDF.
   - Removed only the report inclusion and excluded the frequency fragment from the shared report-order helper. Computation and standalone LaTeX are unchanged; exports retained. Rebuilt the PDF, confirmed the section/table are absent from body/contents and checked Contact Analysis now begins on page 12. No LaTeX warnings or overfull boxes; git diff --check passes. No tests or warehouse refresh; changes remain uncommitted pending existing approval.
 
 * DONE Combine sections 2.1.3--2.1.5 into a same-pet/different-product comparison
+  :PROPERTIES:
+  :REFNUM:   128.
+  :END:
   - Combine the three existing cohort tables side by side, with yellow Customers columns, in one section titled "What percentage of customers come back and place a successful order for the same pet but different product after an aged order in the next 70 days?". Preserve values, denominators, vet-diet eligibility, original references and reproduction; rebuild and inspect without tests or warehouse refresh.
   - Added the combined section 2.1.3 / Table 3 on landscape page 5. Reused the local comparison generator, retained the later-line vet-diet/different-part rules, all original labels and three fixed denominators. Updated report ordering and HOWTO; original individual fragments remain the presentation sources.
   - Verified all 240 metric cells across the existing same-product and new different-product comparisons, with one inclusion each; rebuilt and visually inspected pages 4--6. Fixed denominator extraction to exclude trailing punctuation. No LaTeX warnings or overfull boxes; git diff --check passes. No tests or warehouse refresh; changes remain uncommitted pending existing approval.
 
 * DONE Add the aged-order and 70-day scope to the section 2.1.2 title
+  :PROPERTIES:
+  :REFNUM:   129.
+  :END:
   - Set the heading to "What percentage of customers come back and place a successful vet diet order for the same pet and part number after an aged order in the next 70 days?"; rebuild and visually inspect the PDF.
   - Rebuilt and visually checked page 4: the heading fits cleanly above the combined table. No LaTeX warnings or overfull boxes; git diff --check passes. No tests or warehouse refresh; changes remain uncommitted pending existing approval.
 
 * DONE Rename section 2.1.2 to the requested customer-return question
+  :PROPERTIES:
+  :REFNUM:   130.
+  :END:
   - Change the tracked generator heading to "What percentage of customers come back and place a successful vet diet order for the same pet and part number?", correcting percentage spelling; rebuild and inspect the PDF.
   - Rebuilt the PDF and visually checked page 4; the heading fits above the unchanged combined table. No LaTeX warnings or overfull boxes; git diff --check passes. No tests or warehouse refresh; changes remain uncommitted pending existing approval.
 
 * DONE Combine the same-pet/product follow-up tables in sections 2.1.2--2.1.4
+  :PROPERTIES:
+  :REFNUM:   131.
+  :END:
   - Present all aged, first customer-upload vet-diet and first vet-diet cohorts side by side in one section with shared follow-up days and yellow customer-count columns. Preserve every metric, cohort denominator, matching/anchor rule and reference; prepare from existing table fragments on make report, rebuild and inspect the PDF. No tests or warehouse refresh.
   - Combined into section 2.1.2 / Table 2 on landscape page 4, with all three Customers columns highlighted yellow. A local generator combines existing displayed values, validates matching windows/cutoffs, exports Markdown and runs before make report. Shared input ordering preserves the comparison on future analysis reruns; all three original labels resolve to Table 2.
   - Rebuilt and visually inspected the combined table and following section; verified all 120 metric cells over ten windows and exactly one combined report inclusion. No LaTeX warnings or overfull boxes; git diff --check passes. No tests or warehouse refresh. Changes remain uncommitted pending existing approval.
 
 * DONE Highlight the Aged order row in Table 1 yellow
+  :PROPERTIES:
+  :REFNUM:   132.
+  :END:
   - Highlight the full financial-baseline row, preserve the highlight in its generator, rebuild the PDF and visually inspect Table 1. No tests or warehouse refresh.
   - Applied yellow!35 to the Aged order row and added the same conditional formatting to financial_opportunity_latex. Rebuilt and visually inspected Table 1 on page 3; git diff --check passes. Changes remain uncommitted pending existing approval.
 
 * DONE Generate a separate contact-matching diagram
+  :PROPERTIES:
+  :REFNUM:   133.
+  :END:
   - Add a standalone Mermaid source and transparent PNG to the existing tracked generator; show SQL order/time matching, downstream numeric customer and inbound checks, contact deduplication and distinct counting. Render locally and inspect; no warehouse refresh or tests.
   - Generated outputs/diagrams/data-source-connections/contact-matching.mmd and contact-matching.png with the existing Mermaid Docker helper; visually inspected all labels/arrows and documented reproduction in HOWTO. git diff --check passes; no tests, warehouse refresh or report-content changes. Awaiting commit approval.
 * DONE Include the separate contact-matching diagram in the PDF
+  :PROPERTIES:
+  :REFNUM:   134.
+  :END:
   - Add a labeled landscape figure in section 2.2.2 after the contact notes, adapt the diagram layout for the page, rebuild and visually inspect the PDF. No tests or warehouse refresh.
   - Included Figure 5 on page 22 with a three-panel Mermaid layout for cohort eligibility, SQL matching and Python validation/counting. Rebuilt and visually inspected the figure and following source-trace page; no LaTeX warnings or overfull boxes, and git diff --check passes. No tests or warehouse refresh; changes remain uncommitted pending the existing approval request.
 
 * DONE Create an EDL Diagram involving the following tables and how we joined them. Also we need notes on the grains of the tables.
+  :PROPERTIES:
+  :REFNUM:   135.
+  :END:
   - Accepted plan: add section 2.2.2, "How are data sources connected?", after all of 2.2.1's nested analyses; trace the entire current report to active SQL and Python joins, excluding unused exploration.
   - Generate overview, upload-verification, prescription/first-order and financial/reorder/contact Mermaid sources and transparent PNGs under outputs/diagrams/data-source-connections from a tracked generator. Include exact keys, conversions, join direction, source grains, deduplication and analysis-specific rules; export the grain table under outputs/tables.
   - Add make data-source-diagrams, HOWTO instructions and missing/outdated diagram generation to make report. Render/inspect diagrams and PDF, preserve child numbering and run git diff --check. No tests or warehouse refresh; commit only after approval.
@@ -871,6 +1280,9 @@
   - Verified active SQL and Python customer checks, inspected all new PDF pages and diagram placements, confirmed 2.2.1.1--2.2.1.4 and contents numbering, rebuilt the 45-page report and passed git diff --check. An unchanged generation run reuses current PNGs. No tests or warehouse refresh; awaiting review and commit approval.
 
 * DONE Add self-contained upload data verification to the report appendix
+  :PROPERTIES:
+  :REFNUM:   136.
+  :END:
   - Accepted plan: add Data Verification after reproduction instructions, with first subsection "Where is the prescription upload data coming from?".
   - Verify source schemas and count all rows by associated_resource_type in EDLDB.BT_HCA_HCDM.rxp_upload_entity and rxp_notification_service.upload_entity. Include NULL, absent-type zeros and independently reconciled totals.
   - Add reproducible SQL/Python and Make target, retained extracts, bounded Markdown and generated LaTeX table; document in HOWTO.md. Build and visually inspect the report before user review.
@@ -879,16 +1291,25 @@
   - Final verification: 625 tests and 16 subtests pass in 33.19s; git diff --check passes.
 
 * DONE Analyze NULL-resource uploads and context order cancellation reasons
+  :PROPERTIES:
+  :REFNUM:   137.
+  :END:
   - User requested identifier completeness in EDLDB.RXP_NOTIFICATION_SERVICE.UPLOAD_ENTITY where associated_resource_type IS NULL and cancellation reasons from EDLDB.ECOM.ORDERS; no date or additional population filters.
   - Verified case-sensitive JSON keys orderId and orderItemId. At 2026-11-02 15:35 UTC, 1,998 of 40,451 upload entries (4.94%) have both IDs; 38,453 have neither; no one-sided, blank or invalid IDs. These entries reference 1,726 distinct orders and 1,902 distinct order items. Order-item IDs were counted from context, not checked against an order-item table.
   - 1,724 orders match ECOM.ORDERS and two remain unmatched. Cancellation reasons across distinct order IDs: SQL NULL 1,587; Aged Order 67; Customer Initiated Cancellation 43; Customer Request 15; Prescription Issue 7; Pharmacy Rejection 3; Fraud 1; Other 1; unmatched 2. Of 139 orders with status Canceled, two have SQL NULL reason and 67 (48.20%) are Aged Order.
   - Retained raw extracts, upload/order linkage, fingerprints and independent warehouse validation under data/null-resource-upload-analysis; all buckets and totals match. Saved bounded Markdown tables under outputs/tables/null-resource-upload-analysis and visually inspected the transparent canceled-order reason chart under outputs/charts/null-resource-upload-analysis. Added SQL extracts, analysis module and HOWTO commands. No report edits or test-suite runs; changes await review and commit approval.
 
 * DONE Add NULL-resource upload order results to the data verification subsection
+  :PROPERTIES:
+  :REFNUM:   138.
+  :END:
   - User requested a separate table in "Where is the prescription upload data coming from?". Included the all-order cancellation-reason distribution as Table 2, with total 1,726 orders, NULL reasons and unmatched orders retained, identifier-coverage prose (1,998 of 40,451 entries, 4.94%), and denominator, status and extraction notes.
   - Analysis module regenerates the LaTeX block from the same retained extracts as the Markdown tables; HOWTO documents rerendering. Scoped the original no-join/no-deduplication explanation to Table 1. PDF rebuilt and page 3 visually inspected; both tables fit on the same page. No test-suite run or commit; pending user review.
 
 * DONE Compare diet-upload source order cancellation reasons side by side
+  :PROPERTIES:
+  :REFNUM:   139.
+  :END:
   - User requested the subsubsection "What is the distribution of order cancellation reasons in the source tables?" for associated_resource_type DIET_PRESCRIPTION entries with associated order IDs in both sources. HCDM uses ORDER_ID; notification service uses context:orderId. Count each distinct order once per source, without date, order-item, order-status, upload-type, replication or study-cohort filters.
   - Extracted 2026-11-02 15:45 UTC. HCDM: 137,431 / 176,401 diet-upload entries have order IDs, representing 115,929 distinct orders, all matched. Notification service: 140,104 / 179,177 entries have order IDs, representing 116,223 distinct orders, with 116,080 matched and 143 unmatched. All 115,929 HCDM order IDs also occur in the notification source; 294 occur only in notification.
   - Table 3 on page 4 shows counts and source-specific percentages for every reason, including NULL and unmatched orders. Aged Order: 1,938 (1.67%) vs 1,947 (1.68%); NULL reason: 102,797 (88.67%) vs 102,937 (88.57%). Status Canceled: 13,266 vs 13,277, including 134 NULL reasons in each source.
@@ -899,28 +1320,43 @@
   - Removed the redundant bold paragraph opening from the NULL-resource analysis and its generator; the paragraph now begins directly with the counts. Added a safe heading break at the source-table separator. Rebuilt and visually checked page 4: subsection 2.2.3 and Table 3 remain together, with no heading overflow. No tests run or commit.
 
 * DONE Add non-zero prescription-ID entry counts to the source comparison
+  :PROPERTIES:
+  :REFNUM:   140.
+  :END:
   - User requested entries with non-zero prescription IDs in the first verification table. Added all-entry and With Rx ID columns for each source, by associated_resource_type and total. HCDM uses RX_ID; notification service uses ASSOCIATED_RESOURCE_IDS. Each physical entry counts once if any normalized ID token is populated and non-zero; SQL/JSON null, blank, empty-list and numeric-zero values are excluded, without a prescription-registry join.
   - Refreshed at 2026-11-02 16:02:32 UTC. HCDM all / with ID: diet 176,401 / 176,401, drug 39,941 / 39,941, NULL type 1 / 0, total 216,343 / 216,342. Notification all / with ID: diet 179,262 / 179,260, drug 40,516 / 40,516, NULL type 40,452 / 0, total 260,230 / 219,776. Subsequent order analyses retain their labeled earlier snapshots.
   - Both metrics reconcile to independent total aggregates. Independent FLATTEN-based ID counts match every source/type bucket and confirm upload-ID uniqueness against physical counts. Cached rerender works; SQL, renderer, existing test fixtures and HOWTO updated. No tests run or commit.
 
 * DONE Include readable SQL beneath each data-verification table
+  :PROPERTIES:
+  :REFNUM:   141.
+  :END:
   - User requested the SQL queries used beneath each table. Included all eight primary-extraction and independent-verification queries beneath the relevant three Data Verification tables, preserving the source-comparison-before-NULL-analysis order. Other report sections continue omitting SQL.
   - Added scoped SQL listing style with readable indentation, syntax highlighting, line numbers, shaded blocks and long-line wrapping. make report automatically prepares formatted local SQL/LaTeX copies under src/autogenerated/data-verification-sql; original executable queries stay unchanged. Formatter verifies unchanged SQL tokens and records source hashes. No warehouse queries or tests run during report preparation.
   - Rebuilt PDF and visually inspected verification/listing pages 3--8; tables occur on pages 3, 5 and 7, with their SQL immediately afterward. No clipping or overfull lines; the long subsection heading causes a cosmetic underfull contents line. Updated HOWTO and checked git diff --check. Changes await review and commit approval; no commit or log.org update.
 
 * DONE Add minimum and maximum upload creation-time coverage
+  :PROPERTIES:
+  :REFNUM:   142.
+  :END:
   - User requested a time-coverage table in the first verification subsection, then requested minimum/maximum times rounded to the nearest second. Added Table 2 on page 5 with both source minima/maxima by associated_resource_type and overall, followed by its formatted SQL. Source counts are now Table 1; diet order comparison and NULL-resource order analysis are Tables 3 and 4.
   - All available entries included without date or ID filters. HCDM uses CREATED_TS_UTC; notification-service CREATED_AT is converted to UTC before aggregation. Extracted 2026-11-02 16:09:54 UTC; no missing creation timestamps. Grouped counts and exact extrema reconcile to overall aggregates.
   - Overall UTC ranges, displayed to nearest second: HCDM 2026-07-30 19:51:39 to 2026-11-02 04:32:31; notification source 2026-07-29 17:23:29 to 2026-11-02 15:54:48. Half-second ties round upward. Raw Parquet retains full precision; observed extrema do not establish continuous coverage or full system history.
   - Added SQL, renderer, retained source/summary/fingerprints, bounded Markdown, generated LaTeX and HOWTO instructions. Report build now prepares nine SQL listings for four verification tables. Rebuilt and visually inspected page 5; git diff --check passes. No tests run or commit; changes await review.
 
 * DONE Add approved CMPU prescription coverage across both upload sources
+  :PROPERTIES:
+  :REFNUM:   143.
+  :END:
   - User requested "What is the coverage of CMPU Prescriptions with Approval Channel = CUSTOMER_UPLOAD and Status= Approved?" for prescriptions created on or after 2026-07-30, joining on rx_id. Verified RX_STATUS = APPROVED, PRESCRIPTION_SOURCE = CMPU, APPROVAL_CHANNEL = CUSTOMER_UPLOAD and inclusive creation cutoff 2026-07-30 00:00 UTC. No upper date bound or additional prescription-category filter.
   - Split/trim HCDM RX_ID and notification-service ASSOCIATED_RESOURCE_IDS into distinct prescription-ID sets, excluding empty, null and zero tokens. Joined only on rx_id; no customer, order, upload-date or associated-resource-type restrictions. One row per eligible prescription, verified unique and with no missing IDs.
   - Extracted 2026-11-02 16:17:12 UTC. Eligible 50,009; HCDM any 31,660 (63.31%); notification any 31,660 (63.31%); both 31,660; HCDM only 0; notification only 0; neither 18,349 (36.69%). Four disjoint outcomes reconcile to the denominator; independent Snowflake membership aggregates match all counts.
   - Added source and independent-validation SQL, retained row-level coverage/validation/fingerprints, bounded Markdown and generated LaTeX. Table 3 is on page 6, with readable SQL on pages 6--7; later cancellation tables renumbered 4 and 5. Report preparation now includes eleven SQL queries for five verification tables. Updated HOWTO, rebuilt and visually inspected pages 6--7; no overfull content, git diff --check passes. No tests run or commit; changes await review.
 
 * DONE Compare approval channels of all uploaded vet-diet prescriptions
+  :PROPERTIES:
+  :REFNUM:   144.
+  :END:
   - User requested "What's the approval channel of all the vet diet prescriptions in the upload tables?". Expanded all HCDM RX_ID and notification-service ASSOCIATED_RESOURCE_IDS tokens, deduplicated per source/rx_id, and joined to RXP_PRESCRIPTIONS on rx_id only. Vet-diet inclusion is IS_VET_DIET_FLAG = TRUE from the registry; no date, CMPU, approval-channel, status or upload-resource-type filters.
   - Extracted 2026-11-02 16:23:12 UTC. HCDM: 232,111 distinct IDs, 182,246 matched vet-diet and 49,865 non-vet-diet, no unmatched/unknown flag. Notification: 233,285 distinct IDs, 182,347 matched vet-diet, 50,261 non-vet-diet and 677 unmatched; no unknown matched flags. Unmatched IDs are not assigned a vet-diet category or channel and are excluded from denominators.
   - CUSTOMER_UPLOAD: 153,015 (83.96%) vs 153,083 (83.95%); PH: 20,739 vs 20,760; FAX: 2,801 vs 2,809; CLINIC_EMAIL: 2,146 vs 2,148; VERBAL: 1,784 vs 1,786; CUSTOMER_EMAIL: 1,389 each; PARTNER: 330 each; RHAPSODY: 32 each; SNAIL_MAIL: 9 each; RE_AUTH: 1 each. Overall notification-minus-HCDM difference +101.
@@ -932,11 +1368,17 @@
   - User clarified that section 2.2.3 must include only vet-diet prescriptions. Added IS_VET_DIET_FLAG = TRUE to both primary and independent SQL, retaining all statuses/sources, CUSTOMER_UPLOAD channel and the July 30 cutoff. Refreshed and reconciled every status and total; all counts remain unchanged (337,820 eligible). Updated heading, caption, prose, metadata, SQL listing title and HOWTO to explicitly state vet diet. Rebuilt and visually checked page 8 with no overflow; git diff --check passes. No tests run or commit.
 
 * DONE Fix make report failure from verbatim text in a heading
+  :PROPERTIES:
+  :REFNUM:   145.
+  :END:
   - Reproduced make report failing with Error 12 and the cached previous pdflatex failure. A forced latexmk rebuild reproduced the actual Missing $ inserted error at data_verification.tex:53: verbatim commands with unescaped underscores were used inside a subsubsection heading.
   - Replaced the two heading-level verb commands with robust texttt formatting and escaped underscores, preserving the user's wording and monospace intent. No Makefile change or data refresh needed; unrelated title edits and editor-generated files preserved.
   - make report succeeds after the fix and on a second cached invocation; rebuilt PDF page 8 visually checked, no overfull content, git diff --check passes. The direct failing/passing build is the regression check; no test suite run or tests added. Changes await commit approval; no log.org update.
 
 * DONE Break down section 2.2.3 coverage by prescription source and RX_STATUS
+  :PROPERTIES:
+  :REFNUM:   146.
+  :END:
   - User clarified option 1: section 2.2.3 upload coverage, not financial follow-up section 2.3.3. Retained vet-diet-only, CUSTOMER_UPLOAD channel, all statuses/sources and inclusive July 30 creation cutoff. Added PRESCRIPTION_SOURCE to row-level extraction and independent source/status, source-subtotal, status-subtotal and overall SQL aggregates.
   - Refreshed at 2026-11-02 17:49:55 UTC: 337,820 eligible prescriptions across nine sources and 33 source/status combinations. Source totals / both-source matches: CMPU 170,600 / 42,780; CUSTOMER_UPLOAD 116,859 / 72,339; PRACTICE_HUB 36,595 / 28,147; FAX 6,536 / 4,622; CLINIC_EMAIL 6,444 / 4,603; PARTNER_API 450 / 347; DIGITAL 278 / 129; CVC 51 / 41; RHAPSODY 7 / 6. Overall HCDM any/both 153,014, notification any 153,129, notification only 115, neither 184,691.
   - Table 4 now has separate prescription-source and RX_STATUS columns, per-group eligible denominators, source coverage, source-only/neither counts, source subtotals and the overall total. Percentages use each row's denominator; subtotal/detail overlap is documented. Retained status-only, source-only and joint numeric Parquets plus bounded Markdown and fingerprints. Every subgroup, marginal and grand total reconciles to independent Snowflake counts.
@@ -945,5 +1387,8 @@
   - Renamed section 2.1 from "Reproducing the Numerical Results" to "How do I reproduce the results and the report?" at user request. Rebuilt PDF and verified both the heading and contents entry. No tests run or commit.
   - Nested former sections 2.2.2--2.2.5 beneath 2.2.1 as numbered paragraph headings 2.2.1.1--2.2.1.4. Preserved titles, content, order and labels. SQL headings are now unnumbered so they do not consume child numbering; appendix contents includes paragraph depth to show all four children. Updated HOWTO, rebuilt and visually checked the contents and a child heading; no tests run, data refresh or commit.
 * DONE Recreate all upload-source verification work through one make target
+  :PROPERTIES:
+  :REFNUM:   147.
+  :END:
   - Added make upload-data-verification-all to run the thirteen existing extraction/validation queries, six table generators and SQL listings. Preserved the original first-table-only target. CACHED=1 preflights retained inputs and rebuilds without Snowflake; failures stop the pipeline. Documented fresh/cached workflows and validation limits in HOWTO and the report.
   - Successfully ran the aggregate target with CACHED=1 and rebuilt the PDF. All six analyses and SQL listings completed; git diff --check passes. No fresh warehouse queries, tests or commit.
