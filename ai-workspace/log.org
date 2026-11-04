@@ -424,3 +424,17 @@
     to the pre-move copies. No warehouse refresh or push.
   - Used a path-limited commit to preserve unrelated staged generated outputs
     and the user's unstaged .gitignore edit.
+
+* 2026-11-04 Correct Sankey output ownership and refresh the published figure
+  - User approved the fixes and PDF update; committed as 365c801 on
+    feat/analysis-target-structure.
+  - Removed and unstaged six unused report-level retained diagram exports.
+    Sankey writers now choose target-owned directories, rendering resolves
+    final destinations, and unowned diagram paths fail instead of falling back.
+  - Cached rendering exposed a stale report figure caused by the old routing.
+    Rebuilt the PDF assembly with the corrected diagram: page 18 now shows
+    95,106 CUSTOMER_UPLOAD lines rather than 95,073. Visually inspected it.
+  - All 685 tests and 16 subtests, Ruff, hierarchy/ownership checks, diff checks
+    and commit hooks passed. No warehouse refresh; retired directory stays absent.
+  - Preserved unrelated staged generated artifacts and the .gitignore edit.
+    No push was performed.
