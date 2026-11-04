@@ -383,3 +383,20 @@
     so the instructions immediately precede the Executive summary target.
   - Verified generated order, 80-column width and git diff --check. Commit
     hooks passed; no warehouse queries or report rebuild were needed.
+
+* 2026-11-04 Move retained sources and shared SQL into target owners
+  - User approved both migrations; committed as fde6003 on
+    feat/analysis-target-structure.
+  - Relocated 12 Python generators, 39 LaTeX fragments and 11 SQL/query
+    templates without changing their bytes. Removed both retained source
+    directories, shared/sql and the duplicate stylesheet.
+  - Updated source registries, fragment readers/writers, shared helper query
+    resolution, target metadata, reproduction instructions and validation.
+  - All 682 tests and 16 subtests, Ruff, SQLFluff, hierarchy/ownership checks
+    and commit hooks passed. Cached report reproduction after the retained
+    migration produced a byte-identical PDF; SQL relocation preserved query
+    hashes and required no new warehouse extraction or PDF rebuild.
+  - Twenty-two Org exports matched prior hashes. Checked the remaining
+    upload-resource export against all cached LaTeX cells and corrected its
+    pre-existing percentage labels to prescription-ID count labels.
+  - No generated data, SQL history or PDF changes were committed. No push.
