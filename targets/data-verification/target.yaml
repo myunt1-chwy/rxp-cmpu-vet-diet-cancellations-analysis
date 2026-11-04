@@ -1,0 +1,24 @@
+id: data-verification
+level: subsection
+parent: appendix
+children:
+- upload-source-origins
+- upload-approval-channel-distribution
+- upload-coverage-by-rx-status
+- upload-order-cancellation-distribution
+- null-resource-order-cancellations
+- data-source-connections
+question: How did we verify the data?
+title: How did we verify the data?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/data-verification/src/latex/data_verification.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

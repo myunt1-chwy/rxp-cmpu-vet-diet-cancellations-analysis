@@ -1,0 +1,183 @@
+% Generate the CUSTOMER_UPLOAD input with the cached first-order-line target in HOWTO.md.
+\clearpage
+\nolinenumbers
+\subsection{What are the delays in processing uploaded prescriptions?}\label{app:aged-order-analysis}
+An order becomes an aged order when canceled automatically after the
+time between order creation and time of shipment or any other
+cancellation exceeds 11 days. A detailed breakdown of cancellation
+reasons can be found in Figure \ref{fig:first-order-lines-customer-upload}
+for the study population.
+
+The population of orders for this study consists of first orders and
+first order lines for prescriptions as we would like to analyze issues at
+prescription upload and approval.
+
+For this analysis; 95,073 vet diet prescriptions created between
+August 15, 2026 and October 15, 2026 were used with
+\verb|CUSTOMER_UPLOAD| as the approval channel. This corresponds to
+87,724 distinct orders and 95,073 order lines. The 24,408 orders
+described in \verb|OMS| with the cancellation reason
+\verb|AGED_ORDER| constitute the  aged orders leading to 26,443 line
+items, 26,443 corresponding prescriptions and 20,587 customers.
+
+The difference in counts between first orders and order lines and all
+orders and order lines is shown in Table
+{tab:first-all-order-cancellations}.
+
+
+Factors that might be contributing to an order aging are: delay in
+prescription upload by the customer, delay in processing the upload,
+and delay in approving the prescription after the uploaded
+prescription document is accepted.
+
+Matched upload coverage is 29,623 of 95,073 study first-order lines
+(31.16\%), compared with 777 of 26,443 aged first-order lines (2.94\%);
+25,666 aged lines (97.06\%) have no matched upload in the retained window
+(Table \ref{tab:study-upload-coverage-by-cancellation-reason}).
+The matched lines link to 29,715 distinct upload entities overall and
+782 in the aged subset (Table \ref{tab:study-population-counts}).
+These are different counting units: one entity can link to multiple
+prescriptions or lines. Unmatched evidence does not establish customer
+non-response, and uploads are not required to precede cancellation.
+
+Of the 782 matched aged-order upload entities, 52 (6.65\%) are currently
+ACCEPTED. Separately, 6 of 26,443 aged prescriptions (0.02\%) have a
+recorded approval (Table \ref{tab:study-population-prescription-decisions}).
+These snapshot counts do not form a same-grain conversion funnel from
+upload through approval. The median time for the accepted entities
+to become accepted was 10 days after upload, as a result
+missing the aged order cancellation deadline (Figure
+\ref{fig:entity-upload-state-time-aged}).  For comparison, the
+distributions of the time difference between upload of the documents
+and their final states are in Figure
+\ref{fig:entity-upload-state-time-overall} for all entities.
+Customers seem to upload at similar delays after order creation for
+overall and aged order prescriptions (Figure
+\ref{fig:entity-upload-vs-order-creation}).
+
+From the available entity upload data, it takes less than a minute to
+approve an accepted prescription document see Figure
+\ref{fig:accepted-upload-to-approval-cumulative}.
+
+\begin{table}[htbp]
+\centering
+\caption{Study population and uploaded-document counts. Counts are distinct within each population.}
+\label{tab:study-population-counts}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.28\linewidth}rrrrrr@{}}
+\toprule
+& & & & & \multicolumn{2}{c}{Uploaded documents} \\
+\cmidrule(lr){6-7}
+Population & Prescriptions & Orders & \shortstack[r]{Order\\lines} & Customers & Total & Accepted \\
+\midrule
+All approval channels, matched to first-order lines & 103,550 & 95,567 & 103,550 & 80,651 & 30,770 & 26,294 \\
+\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines & 95,106 & 87,757 & 95,106 & 73,906 & 29,750 & 25,645 \\
+\texttt{CUSTOMER\_UPLOAD} aged-cancellation subset & 26,443 & 24,408 & 26,443 & 20,587 & 782 & 52 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} CMPU vet-diet prescriptions created from August 15, 2026 inclusive
+through October 15, 2026 exclusive, UTC. The aged-cancellation subset includes
+qualifying cancellations observed through October 27, 2026, 00:00 UTC.
+Line associations and document counts were refreshed on November 04, 2026.
+Uploaded documents count distinct linked \texttt{DIET\_PRESCRIPTION} upload entities
+created August 1--October 25, 2026, UTC, with a matched first-order line; entities
+shared by prescriptions count once per row. Accepted documents have current
+\texttt{STATE\_NAME = ACCEPTED}.
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Prescription decisions for the study populations.}
+\label{tab:study-population-prescription-decisions}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.45\linewidth}rrrr@{}}
+\toprule
+Population & Prescriptions & Approved & Unknown & Rejected \\
+\midrule
+All approval channels, matched to first-order lines & 103,550 & 36,908 & 66,595 & 47 \\
+\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines & 95,106 & 30,537 & 64,569 & 0 \\
+\texttt{CUSTOMER\_UPLOAD} aged-cancellation subset & 26,443 & 6 & 26,437 & 0 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Distinct prescriptions in the same populations as
+Table~\ref{tab:study-population-counts}. Approved means
+\texttt{PRESCRIPTION\_APPROVED = TRUE}, consistent with the prescription registry's
+\texttt{APPROVED\_NUMERATOR}. Rejected means current \texttt{RX\_STATUS = DENIED}
+without an approval flag. Unknown includes cancelled and pending prescriptions
+without a recorded approval or rejection outcome. The three categories are
+mutually exclusive and sum to the prescription count in each row.
+Decisions use the current source snapshot refreshed November 04, 2026;
+approval and denial times are not restricted to the aged-cancellation cutoff.
+\end{minipage}
+\end{table}
+
+% BEGIN FIRST-ALL-ORDER-CANCELLATION-COMPARISON
+\begin{table}[htbp]
+\centering
+\caption{Cancellation reasons, order counts and net sales for first orders and all linked orders.}
+\label{tab:first-all-order-cancellations}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.28\linewidth}rrrrrr@{}}
+\toprule
+ & \multicolumn{3}{c}{First orders} & \multicolumn{3}{c}{All orders} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Cancellation reason & Orders & Lines & Net sales & Orders & Lines & Net sales \\
+\midrule
+{[Aged order outside cutoff]} & 372 & 398 & \textcolor{gray}{33,489.70} & 372 & 398 & \textcolor{gray}{33,489.70} \\
+{[No recorded cancellation reason]} & 38,424 & 40,870 & 3,161,976.99 & 64,865 & 73,958 & 5,748,033.82 \\
+{Aged order} & 24,408 & 26,443 & \textcolor{gray}{2,236,727.20} & 24,409 & 26,445 & \textcolor{gray}{2,236,909.55} \\
+{Customer initiated cancellation} & 11,603 & 13,129 & \textcolor{gray}{995,465.64} & 12,381 & 14,083 & \textcolor{gray}{1,076,754.83} \\
+{Customer request} & 4,891 & 5,487 & \textcolor{gray}{428,945.72} & 5,049 & 5,698 & \textcolor{gray}{448,008.69} \\
+{Duplicate order} & 61 & 64 & \textcolor{gray}{5,237.98} & 76 & 82 & \textcolor{gray}{6,635.26} \\
+{Fraud} & 13 & 15 & \textcolor{gray}{1,809.92} & 13 & 15 & \textcolor{gray}{1,809.92} \\
+{Inventory issue} & 3 & 3 & \textcolor{gray}{264.42} & 3 & 3 & \textcolor{gray}{264.42} \\
+{No response} & 541 & 575 & \textcolor{gray}{48,509.38} & 565 & 600 & \textcolor{gray}{50,813.21} \\
+{Other} & 302 & 336 & \textcolor{gray}{25,662.96} & 318 & 355 & \textcolor{gray}{26,944.01} \\
+{Payment declined} & 2,449 & 2,688 & \textcolor{gray}{221,833.07} & 2,567 & 2,821 & \textcolor{gray}{232,508.70} \\
+{Payment issue} & 15 & 17 & \textcolor{gray}{1,503.07} & 17 & 19 & \textcolor{gray}{1,694.00} \\
+{Pharmacy rejection} & 150 & 171 & \textcolor{gray}{14,278.29} & 150 & 171 & \textcolor{gray}{14,278.29} \\
+{Prescription issue} & 4,524 & 4,909 & \textcolor{gray}{412,858.46} & 4,524 & 4,910 & \textcolor{gray}{412,972.44} \\
+{Reseller} & 1 & 1 & \textcolor{gray}{132.99} & 1 & 1 & \textcolor{gray}{132.99} \\
+\midrule
+{TOTAL} & 87,757 & 95,106 & 7,588,695.79 & 115,310 & 129,559 & 10,291,249.83 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} prescriptions created
+August 15--October 14, 2026, UTC. All orders includes first and subsequent linked
+orders, without an order-placement window. Qualifying aged cancellations are
+observed on or before October 27, 2026, 00:00 UTC; current aged reasons outside
+that cutoff are shown separately for reconciliation. Other reasons reflect
+the comparison snapshot. Counts are distinct orders and physical lines within
+each group. Net sales sum \texttt{ORDER\_LINE\_NET\_SALES} once per
+shipment/line record, for qualifying lines only. Amounts are displayed
+to two decimals; five-decimal values remain in the data exports.
+Gray net-sales amounts have a recorded cancellation reason and represent
+unrealized sales, not realized revenue. TOTAL includes these gray amounts. The financial cohort is derived from current prescription/order records and reconciled to the current first-order population.
+\end{minipage}
+\end{table}
+% END FIRST-ALL-ORDER-CANCELLATION-COMPARISON
+
+\clearpage
+% Matching upload evidence uses currently ACCEPTED entities.
+\begin{center}
+\includegraphics[width=\linewidth,height=0.80\textheight,keepaspectratio]{../../outputs/diagrams/2026-08-15_2026-10-14/cmpu-first-order-lines_customer-upload_uploads-2026-08-01_2026-10-25_accepted-state-change_order-placed_sankey.png}
+\captionof{figure}{CMPU vet-diet first-order lines: \texttt{CUSTOMER\_UPLOAD} approval channel.}\label{fig:first-order-lines-customer-upload}
+\end{center}
+\clearpage
+\linenumbers
+
+\input{appendix/study_upload_coverage_by_cancel_reason}
+\input{appendix/entity_upload_analysis}
+\input{appendix/approval_analysis}
+\input{appendix/reproduction_upload_delays}

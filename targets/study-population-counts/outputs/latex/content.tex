@@ -1,0 +1,35 @@
+\paragraph{How many prescriptions, orders, lines, customers, and uploaded documents are in each study population?}
+Study population and uploaded-document counts. Counts are distinct within each population.
+
+\begin{table}[htbp]
+\centering
+\caption{Study population and uploaded-document counts. Counts are distinct within each population.}
+\label{tab:study-population-counts}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.28\linewidth}rrrrrr@{}}
+\toprule
+& & & & & \multicolumn{2}{c}{Uploaded documents} \\
+\cmidrule(lr){6-7}
+Population & Prescriptions & Orders & \shortstack[r]{Order\\lines} & Customers & Total & Accepted \\
+\midrule
+
+All approval channels, matched to first-order lines & 103,550 & 95,567 & 103,550 & 80,651 & 30,770 & 26,294 \\
+
+\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines & 95,106 & 87,757 & 95,106 & 73,906 & 29,750 & 25,645 \\
+
+\texttt{CUSTOMER\_UPLOAD} aged-cancellation subset & 26,443 & 24,408 & 26,443 & 20,587 & 782 & 52 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} CMPU vet-diet prescriptions created from August 15, 2026 inclusive
+through October 15, 2026 exclusive, UTC. The aged-cancellation subset includes
+qualifying cancellations observed through October 27, 2026, 00:00 UTC.
+Line associations and document counts were refreshed on November 04, 2026.
+Uploaded documents count distinct linked \texttt{DIET\_PRESCRIPTION} upload entities
+created August 1--October 25, 2026, UTC, with a matched first-order line; entities
+shared by prescriptions count once per row. Accepted documents have current
+\texttt{STATE\_NAME = ACCEPTED}.
+\end{minipage}
+\end{table}

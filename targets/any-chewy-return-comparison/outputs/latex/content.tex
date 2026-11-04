@@ -1,0 +1,70 @@
+\begin{landscape}
+\paragraph{How do successful Chewy return rates and net sales compare across the three customer cohorts over 70 days?}
+All-Chewy follow-up, across all product categories: cumulative customers, cohort percentages, distinct orders and matching-line net sales across three aged-customer cohorts.
+
+\begin{table}[!htbp]
+\centering
+\caption{All-Chewy follow-up, across all product categories: cumulative customers, cohort percentages, distinct orders and matching-line net sales across three aged-customer cohorts.}
+\label{tab:financial-opportunity-reorder-all-chewy}
+\label{tab:financial-opportunity-new-upload-all-chewy}
+\label{tab:financial-opportunity-new-vet-diet-all-chewy}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}r >{\columncolor{yellow!35}}r rrr >{\columncolor{yellow!35}}r rrr >{\columncolor{yellow!35}}r rrr@{}}
+\toprule
+ & \multicolumn{4}{c}{\shortstack{All aged customers\\$N = 30,382$}}
+ & \multicolumn{4}{c}{\shortstack{First \texttt{CUSTOMER\_UPLOAD}\\vet-diet order aged; $N = 11,550$}}
+ & \multicolumn{4}{c}{\shortstack{First vet-diet order aged\\$N = 5,097$}} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
+Days & Customers & Cohort (\%) & Orders & Net sales & Customers & Cohort (\%) & Orders & Net sales & Customers & Cohort (\%) & Orders & Net sales \\
+\midrule
+
+7 & 6,477 & 21.32\% & 8,512 & 702,653.54 & 2,198 & 19.03\% & 2,653 & 213,634.05 & 826 & 16.21\% & 971 & 74,076.57 \\
+
+14 & 10,265 & 33.79\% & 15,918 & 1,307,072.48 & 3,492 & 30.23\% & 4,913 & 391,195.10 & 1,310 & 25.70\% & 1,784 & 130,066.57 \\
+
+21 & 13,193 & 43.42\% & 23,645 & 1,912,382.98 & 4,589 & 39.73\% & 7,278 & 560,344.43 & 1,780 & 34.92\% & 2,685 & 179,905.10 \\
+
+28 & 14,804 & 48.73\% & 30,064 & 2,440,287.16 & 5,197 & 45.00\% & 9,308 & 718,308.85 & 2,035 & 39.93\% & 3,448 & 232,910.41 \\
+
+35 & 15,917 & 52.39\% & 36,535 & 2,970,675.24 & 5,610 & 48.57\% & 11,423 & 885,109.85 & 2,183 & 42.83\% & 4,142 & 282,786.69 \\
+
+42 & 16,689 & 54.93\% & 42,616 & 3,471,241.76 & 5,938 & 51.41\% & 13,515 & 1,054,750.51 & 2,306 & 45.24\% & 4,921 & 340,077.07 \\
+
+49 & 17,370 & 57.17\% & 49,096 & 4,009,256.32 & 6,201 & 53.69\% & 15,674 & 1,231,469.99 & 2,402 & 47.13\% & 5,643 & 393,935.24 \\
+
+56 & 17,835 & 58.70\% & 55,122 & 4,499,630.84 & 6,411 & 55.51\% & 17,688 & 1,392,251.83 & 2,482 & 48.70\% & 6,370 & 449,169.84 \\
+
+63 & 18,246 & 60.06\% & 61,142 & 4,993,682.85 & 6,574 & 56.92\% & 19,772 & 1,559,311.55 & 2,539 & 49.81\% & 7,064 & 501,643.27 \\
+
+70 & 18,564 & 61.10\% & 66,914 & 5,468,610.59 & 6,712 & 58.11\% & 21,905 & 1,730,599.16 & 2,591 & 50.83\% & 7,863 & 561,424.64 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Cohorts and anchors:} All aged customers includes every qualifying aged cancellation,
+without a prescription-creation or first-order restriction. For each first-order cohort,
+the customer's first qualifying aged order is the sole anchor; later aged orders do not reset follow-up.
+The first customer-upload cohort uses the earliest observed vet-diet \texttt{CUSTOMER\_UPLOAD}
+order across historical prescription sources, using linked prescriptions and ECOM order history.
+The first vet-diet cohort uses earliest observed vet-diet orders across all historical approval
+channels and prescription sources, using RxP vet-diet lines and ECOM order history.
+Each percentage divides returning customers by its group's fixed full cohort, including
+customers without a qualifying reorder or with unusable matching keys. The cohorts overlap;
+do not add their counts.
+
+\textit{Shared follow-up rules:} Match the same numeric customer ID only; include all Chewy product categories and any pet or product. Use a different order
+placed strictly after the matched cancellation through the indicated day, inclusive.
+Follow-up orders come from \texttt{EDLDB.ECOM.ORDER\_LINE}; no later prescription, approval-channel, prescription-source, vet-diet, product or pet restriction applies.
+Exclude the entire later order if any line or order has status X, a recorded cancellation reason,
+a cancellation timestamp or unknown line status. Statuses and prescription channels reflect
+the extraction snapshot. All windows require complete follow-up through 2026-10-28 00:00 UTC.
+Each customer, order and matching physical line counts once per window, despite repeated
+anchor associations. Windows overlap and must not be added. Net sales sum \texttt{NET\_SALES} on all qualifying ECOM order lines once per physical order line, preserving zero and negative amounts. Exact source duplicates collapse and conflicting line values fail validation; missing sales make totals incomplete.
+Sales can be recorded after the placement window and do not prove recovered revenue.
+Amounts display two decimals; ECOM supplies four-decimal amounts, retained exactly in five-decimal exports. N/A denotes a zero cohort denominator.
+\end{minipage}
+\end{table}
+\end{landscape}
+

@@ -1,0 +1,19 @@
+id: estimated-sales-loss
+level: subsubsection
+parent: financial-impact
+children:
+- cancellation-sales-baseline
+question: What is the estimated net sales lost from CMPU aged orders?
+title: What is the estimated net sales lost from CMPU aged orders?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/cancellation-sales-baseline/src/latex/financial_opportunity.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

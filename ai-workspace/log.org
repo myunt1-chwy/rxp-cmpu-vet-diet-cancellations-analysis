@@ -1,0 +1,440 @@
+* 2026-11-04 Root analysis directory retirement
+  - User approved the migration; committed 5b69f81 on feat/analysis-target-structure.
+  - Moved src/ignore to playground; retired root src/data and compatibility links. Retained evidence and artifacts have target owners; root outputs contains the published PDF only.
+  - Updated imports, source metadata, path routing, documentation and lint exclusions. The SQL hook excludes playground while continuing to enforce maintained SQL checks.
+  - Full suite: 639 passed and 16 subtests passed. Commit hooks, Ruff, ownership/hierarchy validators and git diff --check pass. All 34 paragraph artifacts regenerate and the retained-data PDF preview builds.
+  - No warehouse refresh or published-PDF change. Normal report build still stops on the existing financial-query fingerprint mismatch.
+
+* 2026-11-04 Migration test repairs
+  - User approved committing all repairs; committed 7240f0c on feat/analysis-target-structure.
+  - Repaired all 62 migration-era failures while preserving analytical assertions, scalar SQL APIs and cache provenance checks.
+  - Fixed importlib compatibility, timezone validation, test fixtures and setup mocks. Explicit Ruff first-party configuration makes isolated staged checks consistent with local linting.
+  - Full suite: 634 passed and 16 subtests passed. Python/SQL commit hooks and git diff --check passed.
+  - No warehouse refresh or PDF rebuild; the retained-query fingerprint limitation remains documented.
+
+* 2026-11-04 Analysis target migration and source linting
+  - User approved the commit before test repairs. Committed a178ef4 on feat/analysis-target-structure with Python and SQL pre-commit checks passing.
+  - Migrated analysis sources to target owners, added reproducible target structure and cleaned Python/SQL lint failures. Generated table files were untracked without deleting local artifacts.
+  - Baseline: 570 tests passed, 62 failed, 16 subtests passed. Those migration-era failures are the next authorized task.
+  - No warehouse refresh. Cached report rebuilding stops on the changed financial query fingerprint; retained manifests were not relabeled.
+
+* 2026-11-03 Financial line-status breakdown and restored join diagrams
+  - User approved committing both pending report updates. Implementation committed
+    as 57d90c6 on feat/financial-line-status, including the rebuilt draft PDF.
+  - Table 1 in section 2.1.1 now splits cancellation reasons by line-item status.
+    No-recorded-reason D: 432,587 lines and 35,784,664.08 net sales. No-recorded-
+    reason X: 464 lines and 36,720.77, shown gray as unrealized sales. Retained
+    customer/order counts, yellow aged-order highlighting and 44,519,634.43 total.
+  - Added status-summary exports and independent raw-source DuckDB verification;
+    updated executable financial SQL and reproduction documentation. Original
+    reason summary, line, shipment and association Parquets remained byte-identical.
+  - Restored the data_source_connections input removed in c498386. The 67-page
+    report includes section 2.6.6 from page 58, its source-grain and join notes,
+    and all five diagrams on pages 58, 60, 61, 63 and 65.
+  - Cached regeneration, independent exact-decimal reconciliation, make report,
+    visual PDF inspection and git diff --check passed. No warehouse refresh or
+    test suite; commit hooks disabled to preserve that constraint. Editor and
+    system artifacts excluded. No merge or push performed for this update.
+
+* 2026-11-03 Prescription upload status tables and reproduction
+  - User approved committing the pending report updates. Implementation committed
+    as 03c9479 on feat/data-source-connections, including the current report prose,
+    product-manager review/task records and rebuilt draft PDF.
+  - Table 14 now groups upload coverage by cancellation reason and line-item
+    status, with distinct prescriptions. Frozen totals remain 87,724 orders,
+    95,073 prescriptions/lines and 29,715 upload entities.
+  - Added Table 15 for the original 40,864 no-recorded-reason prescriptions:
+    40,841 still have no reason in the November 3 status extraction; 23 newly
+    populated reasons are audited. Retained lines: 26,272 with uploads and
+    14,569 without. Added source SQL, fresh extraction and validated cached replay.
+  - Table 16 uses the same status columns and counting rules for aged orders:
+    26,443 prescriptions/lines, 777 with uploads and 25,666 without. Retained
+    prescription statuses: APPROVED 5, CLOSED 1, SYSTEM_CLOSED 26,436 and
+    VET_REVIEW 1. Archived the earlier status extract and SQL with fingerprints.
+  - Added make study-upload-tables to regenerate Tables 14--16 sequentially from
+    retained inputs. make report and the upload-section reproduction target use
+    it automatically. Updated HOWTO and the report reproduction instructions.
+  - Fresh no-reason extraction, cached regeneration, independent DuckDB count
+    reconciliation and PDF build passed. Visually checked tables on pages 39--40
+    and reproduction instructions on page 43; git diff --check passed. No test
+    suite or unrelated warehouse refresh; hooks disabled to retain that constraint.
+    Ignored extracts/outputs and editor backup files excluded; no merge or push.
+
+* Clinic shipment history and vet-analysis retirement
+  - User approved committing and merging to main. Implementation committed as
+    63e62cb (feat: add prior clinic history and 21-day reorder distribution).
+  - Added aged-customer-prior-same-clinic-shipments using order-line CLINIC_ID,
+    strict shipment-before-aged-order-placement cutoffs, distinct customers and
+    explicit unknown classifications. All 26,443 aged lines have clinic IDs.
+  - Of 20,587 aged customers: 15,974 prior same-clinic, 1,335 other-clinic-only,
+    3,253 without qualifying prior shipments and 25 unknown.
+  - Added aged-customer-21d-reorder-clinic-history using verified frozen inputs,
+    complete follow-up and same customer/product/pet reorder keys. Of 5,382
+    reordered customers: 4,244 same-clinic, 306 other-clinic-only, 829 without
+    qualifying prior shipments and three unknown. Each customer counts once.
+  - Removed the superseded vet-ID analysis, target, SQL, tests, data and generated
+    artifacts. Retained its required calculation and edge-case coverage directly
+    in the clinic module/tests, without vet-code dependencies or adapters.
+  - Both clinic targets regenerate successfully from cache; all 16 clinic
+    Parquet files stayed byte-identical during the retirement. Verified 456
+    tests and 16 subtests, source/export fingerprints and Markdown size caps.
+    Generated outputs remain outside the commit; existing tracked artifacts
+    are preserved. git diff --check passes.
+
+* Accepted analysis updates and verification, October 27, 2026
+  - User requested merging the completed analysis branch into main. Their
+    committed work is preserved, including commits 5915ed9, 89f7f9a and 5c4dce0.
+  - Added audited first-order-line event times and survival curves, same-customer/
+    product/pet 7/14/21-day reorders, prescription/channel/upload evidence Sankeys,
+    and contact distributions around aged-order cancellation.
+  - Added prior shipment history for aged customers and the full CMPU vet-diet
+    cohort, before cancellation and order placement respectively. Counts retain
+    unknown references separately and exclude the analysed orders from history.
+  - Full-cohort snapshot: 84,425 customers, 75,553 assessable references; prior
+    inclusive pharmacy/vet diet/CMPU vet diet counts are 59,554/55,184/25,671.
+    Aged-customer counts remain 17,360/16,589/7,942 of 20,587; corresponding
+    21-day reordered-customer counts are 4,554/4,355/2,401 of 5,382.
+  - Retired the requested legacy and Segment workflows, bounded generated
+    Markdown to 1 MB, simplified first-order Sankeys, and corrected generated
+    code/query history paths to src/autogenerated/.
+  - Verified the branch with 411 tests and 16 subtests passing. Removed one
+    trailing-whitespace issue found by the comparison against main; no runtime
+    behavior changed during merge preparation.
+
+* Interactive project setup
+  - Accepted by the user and committed as cb76a69
+    (feat: add interactive project setup).
+  - Added first-run metadata prompts, Python 3.12 environment bootstrap,
+    dependency synchronization, documentation, and generated-output ignores.
+  - Included the requested runtime dependencies and pytest>=9.1.1 for development.
+  - Verified seven tests, fresh default/custom setup, and no-input repeat runs.
+  - Dependency synchronization succeeded; uv warned that Snowflake connector
+    5.0.0 lacks the secure-local-storage extra. Requested constraints preserved.
+* Mermaid diagram skill
+  - Accepted by the user and committed as a8539c1
+    (feat: add Docker Mermaid diagram skill).
+  - Added the discoverable skill and Docker render helper with transparent PNG
+    defaults, SVG/PDF support, prerequisite checks, and preserved output on failure.
+  - Added PyYAML to runtime dependencies and setup defaults; updated uv.lock.
+  - Verified skill metadata, 13 tests and 7 subtests, and a visually inspected
+    transparent PNG rendered with Docker using paths containing spaces.
+* Explicit template initialization
+  - Accepted by the user and committed as f827fd3
+    (feat: add explicit template initialization).
+  - Added make init to update project name and description while preserving
+    dependencies, other settings, and TOML formatting with tomlkit.
+  - Preserved make setup behavior; updated setup documentation and uv.lock.
+  - Untracked five Python cache files while retaining local copies.
+  - Verified 18 unit tests, fresh-copy initialization and lockfile metadata,
+    repeat setup without prompts, and Git whitespace checks.
+* Matt Pocock skills installation and removal
+  - Accepted by the user and committed as 3416464
+    (feat: add Matt Pocock skills install and uninstall targets).
+  - Added make setup-mattpocock-skills and make uninstall-mattpocock-skills,
+    prerequisite checks, HOWTO instructions, 38 installed skills, and lockfile.
+  - Uninstall selects only mattpocock/skills entries and removes project-local
+    files and agent links while preserving unrelated skills and global installs.
+  - Verified installation, missing-npx handling, and temporary-copy uninstall,
+    including unrelated lock entries, repeat runs, missing locks, and invalid inputs.
+  - Working repository retains all 38 installed skills.
+* Prescription upload distributions and aged-order lifecycle states
+  - Accepted by the user and committed as cf09aa5
+    (feat: add prescription upload and aged lifecycle distributions).
+  - Added reproducible SQL and Make targets for the UTC upload cohort from
+    July 30 through October 20, 2026, with SQL-only and cached-rendering modes.
+  - Counted distinct prescriptions from expanded upload RX_ID lists, requiring
+    diet-prescription resource type, associated prescriptions, and uploaded files.
+  - Generated the 50-bin distribution, cancellation-reason breakdown, five
+    separate group figures, and Markdown audit/bin tables for 120,773 prescriptions.
+  - Preserved the 2,220-prescription aged cohort and joined latest lifecycle
+    states, with cohort fingerprints, duplicate checks, and missing-state handling.
+  - Verified 40 tests, live and cached execution, unique state matches, exact
+    bin-count reconciliation, and visually inspected transparent PNGs.
+  - Generated data and figures remain ignored; existing src/ignore playground
+    files were left untracked. User specified Mehmet Yunt <myunt1@chewy.com>
+    as the commit identity; configured it locally for this repository.
+
+* CMPU upload matching, first-order comparisons and Sankey diagrams
+  - User reviewed the analyses and diagrams and approved committing on
+    2026-10-26. Implementation committed as 5fc117b
+    (feat: add CMPU upload matching and first-order Sankeys).
+  - Added Segment customer/product and prescription-ID matching SQL,
+    prescription-property coverage summaries, later canceled-order analysis,
+    actual prescription-item shipment analysis and first-order ID comparisons.
+  - Implemented REFNUM 14 with make cmpu-prescription-first-order-status,
+    independent prescription/upload start dates, SQL-only and fingerprint-checked
+    cached modes, classified extracts and Markdown distributions/audits.
+  - Final defaults: prescriptions August 15–October 14 inclusive; uploads
+    August 1–October 14 inclusive. Cohort: 113,608 prescriptions, 33,429 with
+    matching uploads. CUSTOMER_UPLOAD: 104,307 prescriptions, 32,229 matched.
+    The earlier upload window adds one VERBAL match and no CUSTOMER_UPLOAD match.
+  - Generated full and CUSTOMER_UPLOAD-only Mermaid/SVG/transparent PNG Sankeys
+    in approval-channel -> upload-presence -> first-order-status order. Added
+    scoped percentages, titles, bold labels and an adjusted multicolor palette
+    with light blue replacing green. Chromium export preserves SVG colors.
+  - Upload ORDER_ID differs from FIRST_ORDER_ID for 527 prescriptions, including
+    520 CUSTOMER_UPLOAD prescriptions. Usage history has additional orders for
+    17,103 prescriptions, all of which also reference their first order.
+  - Verified 99 working-tree tests and 53 tests in an isolated staged checkout;
+    all new modules import without pre-existing uncommitted analyses. Source
+    uniqueness, date bounds, group/flow conservation, cache fingerprints,
+    browser-export failure handling and visual checks passed.
+  - Committed only this conversation's code and documentation changes. Existing
+    unrelated work remains unstaged; generated data, figures, environment files
+    and src/ignore playground files remain outside the commits.
+
+* CMPU first-order-line Sankeys and first-usage approval timing
+  - User reviewed the analyses and figure revisions and approved committing on
+    2026-10-26. Implementation committed as 3107d73
+    (feat: add order-line Sankeys and approval timing analysis).
+  - Revised REFNUM 14 to join FIRST_ORDER_ID and numeric FIRST_ORDERITEM_ID
+    to ORDER_ID and ORDER_LINE_ID in certified ORDER_LINE_COST_MEASURES_RXP.
+    Collapse shipment rows and count each matched order line once. Preserve
+    missing-key/unmatched/conflicting-source audits and cached SQL fingerprints.
+  - Full and CUSTOMER_UPLOAD figures show channel -> first-order cancel reason
+    -> line status -> status-specific item block -> status-specific upload presence.
+    D/unknown block reasons are not applicable. X/D and other status paths retain
+    separate upload/no-upload endpoints. Denominators: 103,514 and 95,071 lines.
+  - The non-D figure includes CUSTOMER_UPLOAD only (65,147 lines), omits the
+    explicit status column, and retains status-specific block/upload labels.
+    Added aligned column headers, shorter visible labels and purple/light-blue
+    stages. Fixed labels hidden by flow bands and tall-layout JSON dimensions.
+  - Added make cmpu-order-to-approval-distributions with first-usage approval
+    minus first-order placement, one-hour count histograms, percentile-table PNG,
+    eligibility audits and fingerprint-checked cached/SQL-only modes. Of 41,083
+    uncanceled-order prescriptions, 29,971 have eligible approval timestamps:
+    24,244 with uploads (median 26.43 hours), 5,727 without (median 12.52 hours).
+  - Follow-up checks found all 27,454 available RxP-view line items on 24,868
+    cohort aged orders have line status X, including 26,957 cohort first lines.
+    Other non-Rx items outside the certified view are not covered by that check.
+  - Verified 140 working-tree tests and 94 tests in an isolated staged checkout
+    (22 subtests each), SQL/source/date/line-grain checks, status/upload endpoint
+    reconciliation, cached rendering, and visual inspection of all latest PNGs.
+  - Committed only this conversation's code/docs. Generated extracts, SQL logs,
+    tables and figures remain ignored; unrelated edits and playground/environment
+    files remain outside the commits.
+
+* First-order-line timing distributions and extended-upload Sankeys
+  - User accepted the changes and approved committing on 2026-10-27.
+  - Implementation committed as 73eb3ae (feat: add line timing distributions
+    and extend Sankey uploads).
+  - Added latest-approval-minus-line, upload-minus-line, and latest-approval-minus-upload
+    histograms, exact cumulative distributions, hourly counts, line details,
+    eligibility audits and unbinned percentile tables. Reference verticals at
+    24/72/144/240 hours; negative upload-based durations excluded and audited.
+  - Kept prescriptions before October 15 and extended upload creation through
+    October 25 inclusive. Upload-to-approval N=24,938 after six missing approvals;
+    upload-minus-line N=24,701 after excluding 243 negatives. Unique-line totals,
+    histogram/CDF counts and Sankey upload matches reconcile exactly.
+  - Generated three updated Sankeys, with Mermaid sources under dated src/diagrams
+    and PNG/SVG figures under dated outputs/diagrams. Timing charts use one flat
+    prescription-date folder with descriptive filenames. SQL templates stay in
+    src/sql; generated SQL/history use src/autogenerated. Extracts/fingerprints
+    and Markdown tables remain under data and outputs/tables. Removed obsolete
+    October 14 upload-window figures and their companion notes as requested.
+  - Verified 180 working-tree tests and 134 tests in an isolated staged checkout,
+    plus 22 subtests in each, fresh/cached/SQL-only execution, alias behavior,
+    fingerprints, boundary cases, flow conservation and visual inspection.
+  - Generated data, sources and figures remain ignored by Git. Unrelated VDAM,
+    cancellation, editor, playground, AGENTS and diagram-example edits were not
+    included in the implementation commit.
+
+* REFNUM 18 upload timing ratios and flat table outputs
+  - User accepted the work and approved committing on 2026-10-27.
+    Implementation committed as e63fc95 (feat: add upload timing ratios and
+    flat table outputs).
+  - Added make cmpu-upload-time-ratio-distribution with shared source loading,
+    fingerprint validation, cached/SQL-only modes, 0.01 ratio histogram and
+    exact CDF. The ratio is upload-minus-line duration divided by latest
+    approval-minus-line duration, using the established CMPU/CUSTOMER_UPLOAD
+    D-status first-order-line cohort and October 25 upload cutoff.
+  - Eligible N=24,695 after six missing approvals and 243 negative upload
+    durations. Mean ratio 0.787476, median 0.992258. Saved mean/quantiles,
+    line details, eligibility, bin/CDF counts and source provenance.
+  - Added elapsed-time OLS scatter and a natural-log OLS scatter with fitted
+    intercepts. Linear slope 0.960573, intercept -3.072068 hours, R²=0.952879.
+    Log slope 1.028342, log intercept -0.774953, power multiplier 0.460725,
+    R²(log)=0.741830. Strictly positive log-time pairs retain all 24,695 lines.
+    Figures, fit tables, transparency and independent calculations verified.
+  - Migrated all 207 saved Markdown tables into flat date folders without
+    changing contents. Filenames identify analysis, upload/filter variant and
+    table kind. Tracked table generators use the new layout by default;
+    explicit summary output-dir overrides remain supported. Historical
+    unbounded summaries use 2026-10-09_onward with snapshot dates in filenames.
+  - Verified 208 working-tree tests and 162 tests in an isolated staged
+    checkout, plus 22 subtests each. Cached regeneration, SQL-only behavior,
+    boundary/deduplication/empty/fit cases, source and migration hashes,
+    quantitative reconciliation and git diff --check passed. HOWTO updated.
+  - Data, generated SQL, figures and tables remain ignored. Unrelated SQL/VDAM
+    filter edits, AGENTS/editor/example changes and pre-existing untracked
+    analyses were excluded. Local table-layout adaptations in those untracked
+    analyses remain outside these commits.
+
+* 2026-10-29 Reviewed analysis report prepared for main
+  - User approved integrating feat/accepted-upload-timing into local main, including outputs/pdf. Existing analysis/report work is in 335620e and 65bed67.
+  - Committed the rebuilt report PDF and .gitignore exception in 2b6c5e0 (docs: track compiled analysis report PDF). Other generated analysis outputs and raw data remain ignored.
+  - make report succeeds without LaTeX warnings; rebuilt PDF visually inspected. Full final suite: 621 passed, 16 subtests passed in 32.74s. git diff --check passed.
+  - Feature branch is ready for fast-forward integration; no remote push was requested.
+
+* 2026-11-02 Upload source data verification appendix
+  - User accepted and authorized committing the self-contained Data Verification appendix, including the rebuilt PDF. First subsection compares all physical rows by associated_resource_type in EDLDB.BT_HCA_HCDM.rxp_upload_entity and EDLDB.rxp_notification_service.upload_entity.
+  - Both source schemas verified. Extracted 2026-11-02 15:28:36 UTC: HCDM total 216,343; notification-service total 260,144. Both grouped sums reconcile to independent source totals; SQL NULL and source-only resource types are retained.
+  - Added reproducible Make/SQL/Python workflow, fingerprint-verified cache, bounded Markdown export, generated LaTeX table, documentation and four focused tests. Generated extracts and table files remain ignored.
+  - Report rebuilt without LaTeX warnings and page 3 visually inspected. Before commit approval, 625 tests and 16 subtests passed in 33.19s. No tests rerun during committing, as explicitly requested; commit hooks disabled for this operation.
+  - Committed on feat/upload-data-verification. Pre-existing diagram TODO left uncommitted; no merge or remote push requested.
+* 2026-11-02 Reproducible upload-source verification and report expansion
+  - User accepted the pending upload-verification work and authorized committing. Added six source-backed appendix tables covering resource types/non-zero Rx IDs, UTC creation-time coverage, vet-diet approval channels, CUSTOMER_UPLOAD coverage by prescription source/status, diet-upload cancellation reasons and NULL-resource context/order analysis.
+  - Added the source and independent validation SQL, retained-input renderers, readable SQL listings, nested data-source headings, reproduction instructions and rebuilt PDF. make upload-data-verification-all recreates the six tables and SQL listings; CACHED=1 reuses retained inputs. HOWTO documents commands and validation limits.
+  - Verified cached aggregate regeneration, existing reconciliation checks, PDF build, visual layout and git diff --check. No tests or fresh warehouse queries run for this task; commit hooks disabled as requested. Generated data, tables and SQL listings remain ignored.
+  - Committed on feat/upload-data-verification. Unrelated diagram TODO and editor artifacts left out; no merge or push requested.
+
+* 2026-11-02 Report source connections and customer contact analysis
+  - User accepted the report changes and authorized committing. Implementation committed as 0a0fdb5 on feat/data-source-connections, including the rebuilt PDF.
+  - Added reproducible Mermaid source-connection diagrams and a separate contact-matching diagram, combined the four financial follow-up comparisons with yellow customer columns, highlighted Aged order, omitted the computed order-frequency section and placed financial SQL at the end of the financial section.
+  - Added creation-relative daily contacts for shipped SQL-NULL-reason orders and a customer contact summary by cancellation reason. At the user's request, removed the summary's creation-relative -2..+11 bounds while retaining the observed shipment/cancellation endpoint and original order/customer inbound matching. Daily-table windows remain unchanged.
+  - Final Table 11, section 2.3.2, page 34: 101,227 distinct contacting customers of 225,434 (44.90%). All 484,374 order/reason cohort records are unchanged, all previously qualifying contacts remain, and 56 additional contact records qualify. Independent DuckDB calculations reconcile all reason and overall metrics. Earlier windowed and shipped-daily results also have retained independent Snowflake reconciliations.
+  - Reproduction targets, source/cache fingerprints, bounded Markdown exports, SQL and documentation are retained. Generated data/figures remain ignored; tracked generators reproduce them. PDF rebuilt and visually inspected, final LaTeX log and git diff --check clean. No test-suite run; commit hooks disabled to preserve the user's instruction. Editor artifacts excluded; no merge or push requested.
+
+* 2026-11-03 Report section reproduction and focused HOWTO
+  - User approved committing the pending report/documentation changes. Implementation committed as 102b713 on feat/data-source-connections, including the rebuilt PDF and current report text. Editor backups and generated editor metadata were excluded.
+  - Moved the cancellation-reason contact summary to section 2.2.1, removed the separate shipped-order contact section and its dedicated Python/SQL/Make implementation, updated contact/reorder question titles, and clarified Table 1's Estimated net sales heading, gray TOTAL and actual-net-sales row label.
+  - Added Section Reproduction Steps to sections 2.1--2.4, four retained-snapshot replay targets, and Make-driven renderers for study-population tables and the contact-window reorder comparison. Cached financial/contact/study/chart/Sankey/survival calculations passed; independent DuckDB checks reproduce the displayed counts. No warehouse refresh or test-suite run.
+  - Reduced HOWTO to report targets, required cohort/event-time prerequisites, and the same-pet/product order-frequency computation explicitly retained outside the report. Verified all 33 documented target names against the Makefile and report/input dependencies; removed unrelated legacy-analysis and skill-management instructions without deleting their code or targets.
+  - Before committing, preserved newer report edits and restored the three reproduction includes missing from the current main file. Rebuilt PDF, verified all four reproduction contents entries and inspected the updated executive-summary page. Final LaTeX log and git diff --check clean; commit hooks disabled to avoid rerunning tests. No merge or remote push requested.
+
+* 2026-11-03 Prescription-upload coverage and report build repairs
+  - User accepted and approved committing the pending upload-coverage/report fixes. Committed as 81ca304 on feat/data-source-connections, including current report prose and the rebuilt PDF; editor artifacts excluded.
+  - Added section 2.3.1 / Table 14 with first-order/line counts and line-item upload coverage by cancellation reason, plus distinct total/accepted/rejected upload entities. Frozen study totals: 87,724 orders, 95,073 lines, 29,623 lines with uploads (31.16%), and 29,715 / 25,606 / 914 total/accepted/rejected uploads. Aged-line coverage is 777 / 26,443 (2.94%); Aged order row highlighted yellow. User corrected the narrative separately.
+  - Added cached-only make study-upload-coverage-by-cancel-reason, section reproduction/HOWTO integration, full Parquet/audit/provenance exports and bounded Markdown. All 16 summary rows independently reconcile in DuckDB; repeating 1,000 valid associations leaves metrics unchanged. Audited 44 originally blank cancellation reasons populated in the later retained snapshot while freezing membership.
+  - Fixed the fatal extra closing brace in Suggested Next Steps. Included contact/upload-delay/survival reproduction fragments from their parent sections and preserved the contact include on generator reruns, resolving all three missing references. make report now succeeds with no warnings, undefined references or overfull boxes; PDF and contents visually checked and git diff --check clean.
+  - No warehouse refresh or test-suite run. Commit hooks disabled to preserve the user's instruction; no merge or remote push requested.
+
+* 2026-11-03 Draft/final report modes and publication filename
+  - User approved committing the pending mode/path/filename changes. Committed as 2d64716 on feat/data-source-connections, including the current report prose and rebuilt draft PDF; editor artifacts excluded.
+  - Added FINAL ?= 0. make report FINAL=1 omits both the watermark package and opening red DRAFT label; default/FINAL=0 retains both. An ignored generated LaTeX boolean input changes only when the mode changes, allowing latexmk to rebuild correctly without cleaning.
+  - Moved and renamed the tracked report to outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf. Both modes publish to this same path; updated Make status/copying, HOWTO and nested Git ignore exceptions. Other generated analysis/report formats remain ignored.
+  - Verified default draft, final and return-to-draft builds, text/package checks and rendered first pages. Rebuilt once more before committing to match the latest report source, verified PDF bytes against the compiler output and confirmed the report remains a draft as requested. Final LaTeX log and git diff --check clean.
+  - No data refresh or test-suite run; commit hooks disabled. No merge or remote push requested.
+
+* 2026-11-03 Ignore generated Emacs auto metadata
+  - User approved committing the editor-file cleanup. Committed as f156a07 on feat/data-source-connections: removed seven previously committed .el files beneath auto directories from tracking and added **/auto/**/*.el to .gitignore.
+  - Local copies of all seven files remain. Verified no matching files are tracked, direct/nested auto metadata are ignored, and .el files outside auto remain eligible for tracking. git diff --check clean; no tests or data operations needed.
+  - Used an isolated index to commit only the cleanup and task record, preserving the user's staged main.tex and report PDF contents exactly. No report changes included, no history rewrite, merge or remote push requested; commit hooks disabled.
+
+* 2026-11-03 Install repository SQL coding skill
+  - User approved the skill and task entry; committed as d3713a1 on feat/financial-line-status.
+  - Added my-sql-code-skill for database-side analytical computation, self-contained CLI-ready SQL, database-derived cohorts without uploaded row/identifier payloads, scalar templates, and human-reviewable query logic.
+  - Skill validation and staged diff checks passed. Included only the skill and its task entry; pending report and auto-reorder analysis changes remain uncommitted. No warehouse queries, test suite, merge or push.
+
+* 2026-11-03 Require separate Jinja SQL templates
+  - User approved the skill update; committed as ac0befb on feat/financial-line-status.
+  - SQL and SQL fragments, including validation/DuckDB queries, must live in separate files. Python renders templates with Jinja2 and StrictUndefined; no embedded or concatenated SQL.
+  - Skill validation and staged diff checks passed; the pre-commit hook remained enabled. Pending SQLFluff configuration, hook setup, analysis and report changes were excluded. No warehouse access, merge or push.
+
+* 2026-11-04 Define reproducible analysis structure
+  - User approved my-analysis-structure and its task entry; committed as 38f1766 on feat/financial-line-status.
+  - Recorded the agreed question-led hierarchy, first-class flat targets, stable IDs, YAML ordering, included per-target Makefiles, portable target folders/shared dependencies, authoritative Org tables, parent LaTeX narrative, explicit refresh behavior and ordered reproduction documentation with optional REPRO=1.
+  - Skill validation, YAML examples, linked SQL skill and staged diff checks passed. Commit hook remained enabled. No migration, warehouse queries, report rebuild, merge or push; unrelated pending changes excluded.
+
+* 2026-11-04 Define main-document assembly in analysis skill
+  - User approved the update; committed as cad4ef0 on feat/financial-line-status.
+  - Defined make report with first-class executive-summary, next-steps and appendix dependencies in document order, question-heading exceptions, analysis subsections beneath Appendix, YAML parent relationships, and propagated REFRESH/REPRO options.
+  - Skill/YAML validation and staged diff checks passed. Pre-commit hook remained enabled. Existing report implementation and unrelated pending changes were excluded; no merge or push.
+
+* 2026-11-04 Commit staged SQL tooling, auto-reorder analysis and report updates
+  - User approved committing all staged changes; committed as 421e190 on feat/financial-line-status. Included SQLFluff dependency/configuration and pre-commit checks, standalone auto-reorder split, financial reproduction/report updates, skill guidance and staged task documentation.
+  - SQLFluff initially failed on the legacy requested_keys template fragment. Added zero-row lint context and default-rule style corrections; documented that dynamic fragment contents require separate validation. The legacy runtime lookup remains unchanged.
+  - Staged diff check and actual SQLFluff pre-commit hook passed with hooks enabled. Earlier analysis reconciliation and report verification are recorded in task history; no new warehouse refresh or report rebuild for this commit. Untracked .DS_Store excluded. No merge or push.
+
+
+* 2026-11-04 Coordinate study-population and upload-coverage refresh
+  - User approved committing the implementation; committed as fed42e8 on feat/analysis-target-structure.
+  - Added scalar-parameter warehouse extraction for prescription decisions and uploaded-document associations, database-derived financial membership, and shared status evidence for both coverage detail tables. Reconciled membership, customers, first-order keys, cancellation reasons and statuses, with run IDs and input fingerprints; removed fixed historical count requirements and the upload-coverage refresh blocker.
+  - Authorized warehouse refresh succeeded: 103,550 matched prescriptions, 36,147 upload associations, and 95,106 CUSTOMER_UPLOAD coverage lines. Detail tables reconcile 40,870 no-recorded-reason lines and 26,443 aged-order lines. Cached replay and all three coverage target builds pass without warehouse queries.
+  - Focused coverage tests cover empty subgroups, duplicate shipment evidence, changed keys/customers/reasons/statuses, mixed runs and installation rollback. Related population/financial tests, Ruff, SQLFluff, source/hierarchy checks and diff checks passed; commit hooks remained enabled and required two formatting corrections.
+  - Updated target reproduction instructions, generated HOWTO and task records. Full-report staging, validation and PDF publication remain pending. No merge or push. Untracked .DS_Store excluded.
+
+* 2026-11-04 Publish refreshed draft and keep SQL history local
+  - User approved committing the report update and fixes, excluding SQL execution history. Committed as 2ce1f81 on feat/analysis-target-structure.
+  - Added missing first-order customer cohort prerequisites to financial-return refresh and corrected appendix verification writers to use target-owned paths. All report extraction pipelines completed; plain make report then reproduced the 40-page draft from cached inputs without warehouse refresh.
+  - Updated numerical summary/study prose and extraction-date notes to match refreshed tables. Published PDF matches the target build hash; visually reviewed pages 1, 16, 20 and 21. Forty-three related population/coverage/financial tests, Ruff, ownership/hierarchy checks and diff checks passed.
+  - SQL-history files are timestamped execution logs, separate from reviewed SQL sources. No history files were tracked or staged. Moved 263 files from targets into ignored .cache/sql-history, centralized future history routing there, and added legacy-history ignore rules. Four focused tests verify placement and path boundaries without warehouse access.
+  - Commit hooks passed. No merge or push; untracked .DS_Store excluded. Isolated staged publication remains pending separately from the successful full refresh and cached reproduction.
+
+* 2026-11-04 Commit remaining staged change
+  - User requested committing all remaining changes. The only pending file was the already staged .DS_Store; committed as dedce15. No SQL history or cache files were added.
+
+* 2026-11-04 Scaffold analysis units and consolidate reproduction instructions
+  - User approved the pending changes; committed as 46cfd3a on
+    feat/analysis-target-structure.
+  - Added a scaffold command for paragraphs, subsubsections and subsections,
+    requiring a question and valid parent. Generates target Makefiles and
+    boilerplate, attaches children and restores parent files on failure.
+  - Documented hierarchy additions and generated Makefiles in target READMEs
+    and HOWTO. Moved current methodology out of docs and removed historical
+    migration notes. HOWTO now uses question-first headings and 80 columns.
+  - Fifteen focused tests, Ruff lint/format, hierarchy/ownership validation,
+    diff checks and commit hooks passed. No warehouse refresh, report rebuild,
+    merge or push was performed for these tooling and documentation changes.
+
+* 2026-11-04 Place scaffold instructions before Executive summary
+  - User approved the placement change; committed as a5a1b44.
+  - Moved scaffold usage to the end of the report README and regenerated HOWTO
+    so the instructions immediately precede the Executive summary target.
+  - Verified generated order, 80-column width and git diff --check. Commit
+    hooks passed; no warehouse queries or report rebuild were needed.
+
+* 2026-11-04 Move retained sources and shared SQL into target owners
+  - User approved both migrations; committed as fde6003 on
+    feat/analysis-target-structure.
+  - Relocated 12 Python generators, 39 LaTeX fragments and 11 SQL/query
+    templates without changing their bytes. Removed both retained source
+    directories, shared/sql and the duplicate stylesheet.
+  - Updated source registries, fragment readers/writers, shared helper query
+    resolution, target metadata, reproduction instructions and validation.
+  - All 682 tests and 16 subtests, Ruff, SQLFluff, hierarchy/ownership checks
+    and commit hooks passed. Cached report reproduction after the retained
+    migration produced a byte-identical PDF; SQL relocation preserved query
+    hashes and required no new warehouse extraction or PDF rebuild.
+  - Twenty-two Org exports matched prior hashes. Checked the remaining
+    upload-resource export against all cached LaTeX cells and corrected its
+    pre-existing percentage labels to prescription-ID count labels.
+  - No generated data, SQL history or PDF changes were committed. No push.
+
+* 2026-11-04 Move agent work records into ai-workspace
+  - User requested pushing the pending move; committed as 842fd7f on
+    feat/analysis-target-structure.
+  - Moved todo.org and log.org, updated AGENTS.md references and adjusted
+    relative Org file links. Diff checks and commit hooks passed.
+
+* 2026-11-04 Consolidate shared Python sources
+  - User approved the reorganization; committed as d0a6ffc on
+    feat/analysis-target-structure. All 27 shared Python files now reside
+    under shared/python, including build/scaffold tooling under analysis/.
+  - Updated imports, repository-root discovery, package search paths, Make
+    commands, target dependencies, AGENTS.md and generated HOWTO instructions.
+  - Preserved upload-state cached replay through an explicitly recorded
+    pre-import-move implementation identity. SQL, parameters, populations and
+    Parquet checks remain enforced; extraction metadata stays unchanged.
+  - Full tests passed 681 cases before correcting one import-order fixture;
+    all 23 related hook/scaffold/HOWTO tests and all 18 upload-state tests then
+    passed. Ruff, hierarchy/ownership checks and commit hooks passed.
+  - Resumed cached report validation after the cache lookup fix, reusing
+    successful pipelines. Final PDF and all 23 Org tables are byte-identical
+    to the pre-move copies. No warehouse refresh or push.
+  - Used a path-limited commit to preserve unrelated staged generated outputs
+    and the user's unstaged .gitignore edit.
+
+* 2026-11-04 Correct Sankey output ownership and refresh the published figure
+  - User approved the fixes and PDF update; committed as 365c801 on
+    feat/analysis-target-structure.
+  - Removed and unstaged six unused report-level retained diagram exports.
+    Sankey writers now choose target-owned directories, rendering resolves
+    final destinations, and unowned diagram paths fail instead of falling back.
+  - Cached rendering exposed a stale report figure caused by the old routing.
+    Rebuilt the PDF assembly with the corrected diagram: page 18 now shows
+    95,106 CUSTOMER_UPLOAD lines rather than 95,073. Visually inspected it.
+  - All 685 tests and 16 subtests, Ruff, hierarchy/ownership checks, diff checks
+    and commit hooks passed. No warehouse refresh; retired directory stays absent.
+  - Preserved unrelated staged generated artifacts and the .gitignore edit.
+    No push was performed.

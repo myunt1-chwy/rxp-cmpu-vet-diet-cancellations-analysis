@@ -1,0 +1,13 @@
+\subsubsection{What is the coverage of vet diet prescriptions with \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD}, by \texttt{RX\_STATUS}?}
+\label{subsec:cmpu-approved-prescription-upload-coverage}
+% Generate from retained extracts with python -m shared.python.analyze_cmpu_approved_prescription_upload_coverage.
+Table~\ref{tab:cmpu-approved-prescription-upload-coverage} starts from all vet-diet prescriptions in \texttt{EDLDB.BT\_HCA\_HCDM.RXP\_PRESCRIPTIONS} with \texttt{IS\_VET\_DIET\_FLAG = TRUE} and \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD}, created on or after July 30, 2026, 00:00 UTC, and shows upload-source coverage by \texttt{PRESCRIPTION\_SOURCE} and current \texttt{RX\_STATUS}. All statuses and prescription sources are included; there is no upper creation-date bound. Each qualifying prescription counts once.
+\input{targets/customer-upload-rx-status-coverage/outputs/latex/content.tex}
+
+\Needspace{12\baselineskip}
+\noindent\textit{Notes:} Coverage requires at least one current upload-source entry with the same \texttt{rx\_id}. HCDM \texttt{RX\_ID} and notification-service \texttt{ASSOCIATED\_RESOURCE\_IDS} are split into individual trimmed IDs; NULL, blank and zero tokens are excluded. Each upload source is reduced to a distinct set of prescription IDs before joining, so multiple uploads do not increase the prescription count. The join uses \texttt{rx\_id} only, without customer, order, upload-date or associated-resource-type restrictions. HCDM and Notification count any match in that source and overlap. Within each prescription-source/status group, Both, HCDM only, Notification only and Neither partition the eligible prescriptions. Percentages use the eligible count on that row. All statuses rows are prescription-source subtotals; All sources / All statuses is the overall total. Do not add subtotals to their detail rows. The two only columns show counts. SQL NULL source or status is retained when present. Percentages may not sum to 100\% after rounding. No current match does not establish that an upload never existed. The row-level joins and independent Snowflake aggregates agree for every source/status group, source subtotal, status subtotal and overall. Extraction: 2026-11-02 17:49:55 UTC.
+
+
+
+\clearpage
+

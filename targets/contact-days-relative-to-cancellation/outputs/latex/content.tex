@@ -1,0 +1,71 @@
+\paragraph{How many customers contacted Chewy on each day relative to aged-order cancellation?}
+Customer-initiated inbound contacts by day relative to aged-order cancellation: distinct customers contacting and distinct aged order IDs, from 13 days before through day 3 after cancellation. A total of 30,299 distinct customers contacted across this window.
+
+\begin{table}[!htbp]
+\centering
+\caption{Customer-initiated inbound contacts by day relative to aged-order cancellation: distinct customers contacting and distinct aged order IDs, from 13 days before through day 3 after cancellation. A total of 30,299 distinct customers contacted across this window.}
+\label{tab:aged-customer-contacts-by-cancellation-day}
+\begin{tabular}{@{}rrr@{}}
+\toprule
+Days relative to cancellation & Customers contacting & Aged order IDs \\
+\midrule
+
+-13 & 38 & 38 \\
+
+-12 & 858 & 861 \\
+
+-11 & 19,267 & 23,158 \\
+
+-10 & 11,364 & 13,530 \\
+
+-9 & 571 & 575 \\
+
+-8 & 215 & 215 \\
+
+-7 & 143 & 143 \\
+
+-6 & 123 & 123 \\
+
+-5 & 106 & 106 \\
+
+-4 & 99 & 99 \\
+
+-3 & 128 & 128 \\
+
+-2 & 251 & 256 \\
+
+-1 & 248 & 248 \\
+
+0 & 71 & 71 \\
+
+1 & 53 & 53 \\
+
+2 & 28 & 28 \\
+
+3 & 22 & 23 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Customer-initiated is defined by
+\texttt{SESSION\_INITIAL\_DIRECTION=inbound} in
+\texttt{EDLDB.BT\_CUSTOMER\_CARE.FCT\_CONTACTS\_BRD}, across all contact
+categories. Include handled, unhandled and unknown-handled inbound attempts. Match the original aged \texttt{ORDER\_ID} and require
+the contact's numeric \texttt{CUSTOMER\_ID} to match the order's customer.
+Use UTC \texttt{SESSION\_START\_DTTM}. Day $n$ is the elapsed 24-hour interval
+$[n,n+1)$ days relative to cancellation: day $-1$ is the preceding 24 hours,
+and day $0$ starts exactly at cancellation. These are elapsed bins rather
+than calendar-date differences. All seventeen rows from $-13$ through $+3$
+are retained, with zero for missing days. Count each customer and aged order
+once per day, regardless of repeat contact legs, sessions or qualifying order
+lines. Counts may overlap across days and should not be added as global unique
+totals. Missing timestamps or customer IDs, mismatching customer IDs, unknown
+directions and outbound contacts remain audited and are excluded from this
+table. Email contacts with Other ingress are included; inbound direction is
+a source proxy and does not establish human initiation. Full channel/ingress
+audits are exported with the data. Original eligibility uses cancellation
+dates and all qualifying orders, without a first-order or prescription-creation
+restriction. Observation cutoff: 2026-10-28 00:00 UTC, allowing the full positive-day window.
+\end{minipage}
+\end{table}

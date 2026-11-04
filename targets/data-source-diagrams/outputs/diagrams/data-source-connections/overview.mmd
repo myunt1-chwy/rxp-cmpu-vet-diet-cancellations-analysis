@@ -1,0 +1,20 @@
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "18px", "primaryTextColor": "#172b4d", "lineColor": "#456078", "edgeLabelBackground": "#f2f5f9"}, "flowchart": {"htmlLabels": true, "useMaxWidth": false, "nodeSpacing": 25, "rankSpacing": 35}}}%%
+flowchart LR
+classDef physical fill:#e3f2fd,stroke:#235789,stroke-width:2px;
+classDef derived fill:#fff2d5,stroke:#9b6916,stroke-dasharray:5 3;
+U["HCDM.RXP_UPLOAD_ENTITY<br/>notification_service.UPLOAD_ENTITY"]:::physical
+P["HCDM.RXP_PRESCRIPTIONS"]:::physical
+L["HCDM.ORDER_LINE_COST_MEASURES_RXP"]:::physical
+O["ECOM.ORDERS / ECOM.ORDER_LINE<br/>BT_CUSTOMER_CARE.FCT_CONTACTS_BRD"]:::physical
+V["Upload verification<br/>source entries, RX coverage, order reasons"]:::derived
+S["Study population, Sankey, survival,<br/>document upload and approval figures"]:::derived
+F["Financial opportunity, reorders,<br/>first observed order cohorts and contacts"]:::derived
+U -->|"expanded RX_ID or ASSOCIATED_RESOURCE_IDS;<br/>ORDER_ID or context:orderId"| V
+P -->|"RX_ID only for registry verification"| V
+O -->|"ORDERS.ORDER_ID = numeric upload order ID"| V
+P -->|"FIRST_ORDER_ID; numeric FIRST_ORDERITEM_ID"| S
+L -->|"ORDER_ID + ORDER_LINE_ID"| S
+U -->|"expanded RX_ID + numeric CUSTOMER_ID"| S
+P -->|"RX_ID + CUSTOMER_ID eligibility"| F
+L -->|"TRIM RX_ID; physical lines and shipments"| F
+O -->|"ORDER_ID for chronology / contacts;<br/>CUSTOMER_ID for Chewy follow-up"| F

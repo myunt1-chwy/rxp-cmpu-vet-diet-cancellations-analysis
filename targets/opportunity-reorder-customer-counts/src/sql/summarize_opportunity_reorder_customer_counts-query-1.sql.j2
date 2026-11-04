@@ -1,0 +1,18 @@
+-- sqlfluff:dialect:duckdb
+WITH window_counts AS (
+    SELECT
+        original_order_id,
+        original_customer_id,
+        original_product_part_number,
+        original_pet_id,
+        original_cancel_utc,
+        COUNT(DISTINCT reorder_order_id) AS n
+    FROM matches
+    GROUP BY ALL
+)
+
+SELECT
+    original_customer_id,
+    MAX(n) AS audit_value
+FROM window_counts
+GROUP BY original_customer_id

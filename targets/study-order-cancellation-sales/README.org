@@ -1,0 +1,63 @@
+#+TITLE: How do cancellation reasons, order counts, and net sales compare between first orders and all linked orders?
+
+* Ownership
+Target: =study-order-cancellation-sales=. Level: =paragraph=.
+Parent: =study-population-context=.
+Ordered children: none.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make study-order-cancellation-sales
+make study-order-cancellation-sales REPRO=1
+make study-order-cancellation-sales REFRESH=1
+#+end_src
+Default builds replay the validated extract and derived membership. =REFRESH=1= derives prescription and first-order membership in SQL and fetches current shipment/line evidence. Its first-order key set is reconciled to the first-order population refreshed by the shared =study-population= pipeline. Study dates and the October 27, 2026 00:00 UTC aged cutoff remain unchanged.
+
+* Inputs and dependencies
+Generator batch: =study-population=, defined in =shared/analysis/pipelines.yaml=. The batch is shared by related paragraphs and runs once per make invocation.
+The shared =study-population= pipeline runs this extraction and the population summaries once per make invocation.
+
+Retained input folders and ownership:
+- =targets/first-order-upload-status-flow/data/=
+- =targets/study-population-counts/data/=
+- =targets/study-prescription-decisions/data/=
+- =targets/study-order-cancellation-sales/data/=
+
+The cohort uses CMPU vet-diet CUSTOMER_UPLOAD prescriptions created August 15 through October 14, 2026 UTC. SQL derives prescription and first-order membership; it does not load saved identifier lists.
+- =targets/study-order-cancellation-sales/src/python/summarize_prescription_cohort_order_comparison.py=
+- =targets/study-order-cancellation-sales/src/sql/prescription_cohort_order_sales.sql=
+- =targets/study-order-cancellation-sales/src/sql/summarize_prescription_cohort_order_comparison-query-1.sql.j2=
+
+Imported analysis dependencies:
+- =shared/python/markdown_tables.py=
+- =shared/python/opportunity_report_tables.py=
+- =targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py=
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/python/paths.py=
+- =shared/python/__init__.py=
+- =shared/python/markdown_tables.py=
+- =shared/python/opportunity_report_tables.py=
+- =shared/source-ownership.yaml=
+- =shared/python/sql_templates.py=
+
+* Outputs
+Generated content: =targets/study-order-cancellation-sales/outputs/latex/content.tex=.
+Tables are exported to =outputs/tables/table.org= and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; =outputs/tables/provenance.json= records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's =outputs/build/= folder.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+
+* Cohort definition
+SQL derives the prescription creation cohort, converts numeric first-order
+item IDs to line keys, and selects both first-order keys and all linked vet-diet
+lines matching prescription and customer. Physical order/line keys are
+unioned and deduplicated before shipment evidence is selected. Sales retain
+the shipment-level source grain; shipment aggregation and distinct physical
+line/order counts are validated before presentation.
+
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned =src/sql/= source;
+=make cohort-sql-review= renders the registered cohort queries and
+=make cohort-sql-check= lints them without warehouse access.

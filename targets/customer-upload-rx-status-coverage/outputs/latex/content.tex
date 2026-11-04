@@ -1,0 +1,105 @@
+\paragraph{How does upload-source coverage vary by prescription source and status for customer-upload vet-diet prescriptions?}
+Upload-source coverage by prescription source and current status for vet-diet customer-upload prescriptions created on or after July 30, 2026.
+
+\begin{longtable}{@{}llrrrrrrr@{}}
+\caption{Upload-source coverage by prescription source and current status for vet-diet customer-upload prescriptions created on or after July 30, 2026.}
+\label{tab:cmpu-approved-prescription-upload-coverage}\\
+\toprule \shortstack[l]{Prescription\\source} & \texttt{RX\_STATUS} & Eligible & HCDM (\%) & Notification (\%) & Both (\%) & \shortstack{HCDM\\only} & \shortstack{Notification\\only} & Neither (\%) \\
+\midrule
+\endfirsthead
+\toprule \shortstack[l]{Prescription\\source} & \texttt{RX\_STATUS} & Eligible & HCDM (\%) & Notification (\%) & Both (\%) & \shortstack{HCDM\\only} & \shortstack{Notification\\only} & Neither (\%) \\
+\midrule
+\endhead
+
+{CMPU} & {SYSTEM\_CLOSED} & 111,789 & 9,707 (8.68\%) & 9,707 (8.68\%) & 9,707 (8.68\%) & 0 & 0 & 102,082 (91.32\%) \\
+
+{CMPU} & {APPROVED} & 50,723 & 32,394 (63.86\%) & 32,394 (63.86\%) & 32,394 (63.86\%) & 0 & 0 & 18,329 (36.14\%) \\
+
+{CMPU} & {VET\_REVIEW} & 7,897 & 352 (4.46\%) & 370 (4.69\%) & 352 (4.46\%) & 0 & 18 & 7,527 (95.31\%) \\
+
+{CMPU} & {CLOSED} & 2,665 & 1,323 (49.64\%) & 1,323 (49.64\%) & 1,323 (49.64\%) & 0 & 0 & 1,342 (50.36\%) \\
+
+{CMPU} & {DENIED} & 1 & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 & 0 & 1 (100.00\%) \\
+\midrule
+{CMPU} & {All statuses} & 173,075 & 43,776 (25.29\%) & 43,794 (25.30\%) & 43,776 (25.29\%) & 0 & 18 & 129,281 (74.70\%) \\
+\addlinespace[2pt]
+{CUSTOMER\_UPLOAD} & {APPROVED} & 101,783 & 58,884 (57.85\%) & 58,884 (57.85\%) & 58,884 (57.85\%) & 0 & 0 & 42,899 (42.15\%) \\
+
+{CUSTOMER\_UPLOAD} & {SYSTEM\_CLOSED} & 13,900 & 13,697 (98.54\%) & 13,697 (98.54\%) & 13,697 (98.54\%) & 0 & 0 & 203 (1.46\%) \\
+
+{CUSTOMER\_UPLOAD} & {CLOSED} & 4,387 & 1,938 (44.18\%) & 1,938 (44.18\%) & 1,938 (44.18\%) & 0 & 0 & 2,449 (55.82\%) \\
+
+{CUSTOMER\_UPLOAD} & {VET\_REVIEW} & 1,404 & 895 (63.75\%) & 899 (64.03\%) & 895 (63.75\%) & 0 & 4 & 505 (35.97\%) \\
+\midrule
+{CUSTOMER\_UPLOAD} & {All statuses} & 121,474 & 75,414 (62.08\%) & 75,418 (62.09\%) & 75,414 (62.08\%) & 0 & 4 & 46,056 (37.91\%) \\
+\addlinespace[2pt]
+{PRACTICE\_HUB} & {APPROVED} & 34,450 & 27,352 (79.40\%) & 27,352 (79.40\%) & 27,352 (79.40\%) & 0 & 0 & 7,098 (20.60\%) \\
+
+{PRACTICE\_HUB} & {CLOSED} & 1,998 & 1,377 (68.92\%) & 1,377 (68.92\%) & 1,377 (68.92\%) & 0 & 0 & 621 (31.08\%) \\
+
+{PRACTICE\_HUB} & {SYSTEM\_CLOSED} & 771 & 40 (5.19\%) & 40 (5.19\%) & 40 (5.19\%) & 0 & 0 & 731 (94.81\%) \\
+
+{PRACTICE\_HUB} & {VET\_REVIEW} & 3 & 3 (100.00\%) & 3 (100.00\%) & 3 (100.00\%) & 0 & 0 & 0 (0.00\%) \\
+\midrule
+{PRACTICE\_HUB} & {All statuses} & 37,222 & 28,772 (77.30\%) & 28,772 (77.30\%) & 28,772 (77.30\%) & 0 & 0 & 8,450 (22.70\%) \\
+\addlinespace[2pt]
+{FAX} & {APPROVED} & 5,813 & 4,379 (75.33\%) & 4,379 (75.33\%) & 4,379 (75.33\%) & 0 & 0 & 1,434 (24.67\%) \\
+
+{FAX} & {CLOSED} & 457 & 312 (68.27\%) & 312 (68.27\%) & 312 (68.27\%) & 0 & 0 & 145 (31.73\%) \\
+
+{FAX} & {SYSTEM\_CLOSED} & 380 & 35 (9.21\%) & 35 (9.21\%) & 35 (9.21\%) & 0 & 0 & 345 (90.79\%) \\
+
+{FAX} & {DENIED} & 4 & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 & 0 & 4 (100.00\%) \\
+
+{FAX} & {VET\_REVIEW} & 4 & 1 (25.00\%) & 1 (25.00\%) & 1 (25.00\%) & 0 & 0 & 3 (75.00\%) \\
+\midrule
+{FAX} & {All statuses} & 6,658 & 4,727 (71.00\%) & 4,727 (71.00\%) & 4,727 (71.00\%) & 0 & 0 & 1,931 (29.00\%) \\
+\addlinespace[2pt]
+{CLINIC\_EMAIL} & {APPROVED} & 5,788 & 4,363 (75.38\%) & 4,363 (75.38\%) & 4,363 (75.38\%) & 0 & 0 & 1,425 (24.62\%) \\
+
+{CLINIC\_EMAIL} & {CLOSED} & 483 & 312 (64.60\%) & 312 (64.60\%) & 312 (64.60\%) & 0 & 0 & 171 (35.40\%) \\
+
+{CLINIC\_EMAIL} & {SYSTEM\_CLOSED} & 282 & 19 (6.74\%) & 19 (6.74\%) & 19 (6.74\%) & 0 & 0 & 263 (93.26\%) \\
+
+{CLINIC\_EMAIL} & {VET\_REVIEW} & 4 & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 & 0 & 4 (100.00\%) \\
+
+{CLINIC\_EMAIL} & {DENIED} & 1 & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 & 0 & 1 (100.00\%) \\
+\midrule
+{CLINIC\_EMAIL} & {All statuses} & 6,558 & 4,694 (71.58\%) & 4,694 (71.58\%) & 4,694 (71.58\%) & 0 & 0 & 1,864 (28.42\%) \\
+\addlinespace[2pt]
+{PARTNER\_API} & {APPROVED} & 429 & 343 (79.95\%) & 343 (79.95\%) & 343 (79.95\%) & 0 & 0 & 86 (20.05\%) \\
+
+{PARTNER\_API} & {CLOSED} & 20 & 12 (60.00\%) & 12 (60.00\%) & 12 (60.00\%) & 0 & 0 & 8 (40.00\%) \\
+
+{PARTNER\_API} & {SYSTEM\_CLOSED} & 10 & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 & 0 & 10 (100.00\%) \\
+\midrule
+{PARTNER\_API} & {All statuses} & 459 & 355 (77.34\%) & 355 (77.34\%) & 355 (77.34\%) & 0 & 0 & 104 (22.66\%) \\
+\addlinespace[2pt]
+{DIGITAL} & {SYSTEM\_CLOSED} & 143 & 31 (21.68\%) & 31 (21.68\%) & 31 (21.68\%) & 0 & 0 & 112 (78.32\%) \\
+
+{DIGITAL} & {APPROVED} & 133 & 100 (75.19\%) & 100 (75.19\%) & 100 (75.19\%) & 0 & 0 & 33 (24.81\%) \\
+
+{DIGITAL} & {CLOSED} & 3 & 2 (66.67\%) & 2 (66.67\%) & 2 (66.67\%) & 0 & 0 & 1 (33.33\%) \\
+
+{DIGITAL} & {VET\_REVIEW} & 3 & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 & 0 & 3 (100.00\%) \\
+\midrule
+{DIGITAL} & {All statuses} & 282 & 133 (47.16\%) & 133 (47.16\%) & 133 (47.16\%) & 0 & 0 & 149 (52.84\%) \\
+\addlinespace[2pt]
+{CVC} & {APPROVED} & 51 & 42 (82.35\%) & 42 (82.35\%) & 42 (82.35\%) & 0 & 0 & 9 (17.65\%) \\
+
+{CVC} & {CLOSED} & 1 & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 & 0 & 1 (100.00\%) \\
+
+{CVC} & {VET\_REVIEW} & 1 & 1 (100.00\%) & 1 (100.00\%) & 1 (100.00\%) & 0 & 0 & 0 (0.00\%) \\
+\midrule
+{CVC} & {All statuses} & 53 & 43 (81.13\%) & 43 (81.13\%) & 43 (81.13\%) & 0 & 0 & 10 (18.87\%) \\
+\addlinespace[2pt]
+{RHAPSODY} & {APPROVED} & 7 & 6 (85.71\%) & 6 (85.71\%) & 6 (85.71\%) & 0 & 0 & 1 (14.29\%) \\
+
+{RHAPSODY} & {CLOSED} & 1 & 1 (100.00\%) & 1 (100.00\%) & 1 (100.00\%) & 0 & 0 & 0 (0.00\%) \\
+\midrule
+{RHAPSODY} & {All statuses} & 8 & 7 (87.50\%) & 7 (87.50\%) & 7 (87.50\%) & 0 & 0 & 1 (12.50\%) \\
+\addlinespace[2pt]
+\midrule
+{All sources} & {All statuses} & 345,789 & 157,921 (45.67\%) & 157,943 (45.68\%) & 157,921 (45.67\%) & 0 & 22 & 187,846 (54.32\%) \\
+\bottomrule
+\end{longtable}

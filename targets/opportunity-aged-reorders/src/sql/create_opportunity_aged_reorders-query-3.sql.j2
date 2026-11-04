@@ -1,0 +1,37 @@
+-- sqlfluff:dialect:duckdb
+WITH selected AS (
+    SELECT * FROM matches
+    WHERE qualifying_non_cancelled AND (
+        {% if study == "same-part-pet" %}
+            original_pet_id = reorder_pet_id
+            AND original_product_part_number = reorder_product_part_number
+            AND NULLIF(TRIM(original_product_part_number), '') IS NOT NULL
+            AND NULLIF(TRIM(reorder_product_part_number), '') IS NOT NULL
+        {% elif study == "same-pet-different-part" %}
+            original_pet_id = reorder_pet_id
+            AND original_product_part_number <> reorder_product_part_number
+            AND reorder_is_vet_diet = TRUE
+            AND NULLIF(TRIM(original_product_part_number), '') IS NOT NULL
+            AND NULLIF(TRIM(reorder_product_part_number), '') IS NOT NULL
+        {% elif study == "any-vet-diet" %}
+            reorder_is_vet_diet = TRUE
+        {% elif study == "any-chewy" %}
+            TRUE
+        {% endif %}
+    )
+
+),
+
+physical_lines AS (
+    SELECT DISTINCT
+        reorder_order_id,
+        reorder_line_id
+    FROM selected
+)
+
+SELECT
+    COUNT(DISTINCT reorder_order_id) AS orders,
+    (SELECT COUNT(*) FROM physical_lines) AS physical_lines_count,
+    COUNT(DISTINCT original_customer_id) AS customers,
+    COUNT(DISTINCT original_order_id) AS aged_orders
+FROM selected

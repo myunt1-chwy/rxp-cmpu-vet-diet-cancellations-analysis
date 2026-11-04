@@ -1,0 +1,23 @@
+id: customer-contact-patterns
+level: subsection
+parent: appendix
+children:
+- contacts-by-cancellation-reason
+- contact-timing
+- contact-frequency
+- contact-frequency-and-returns
+- contact-proximity-and-returns
+question: What is the contact pattern of CMPU aged order customers?
+title: What is the contact pattern of CMPU aged order customers?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/contact-days-relative-to-cancellation/src/latex/contact_analysis.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

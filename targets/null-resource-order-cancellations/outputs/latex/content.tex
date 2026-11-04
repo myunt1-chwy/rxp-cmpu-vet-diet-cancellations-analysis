@@ -1,0 +1,12 @@
+\subsubsection{What are the order cancellation reasons for null associated resource type entries in the rxp\_notification\_service.\texorpdfstring{\allowbreak}{}upload\_entity table?}
+\label{subsec:null-resource-upload-order-cancellation-reasons}
+% Generate from the retained extracts with python -m shared.python.analyze_null_resource_uploads.
+\Needspace{18\baselineskip}
+\noindent Of the 40,451 notification-service upload entries with \texttt{associated\_resource\_type IS NULL}, 1,998 (4.94\%) have both a non-null \texttt{context:orderId} and \texttt{context:orderItemId}; 38,453 have neither. These entries reference 1,726 distinct orders, of which 1,724 match \texttt{EDLDB.ECOM.ORDERS} and 2 are unmatched. Table~\ref{tab:null-resource-upload-order-cancel-reasons} shows the cancellation-reason distribution across these distinct order IDs.
+\input{targets/null-resource-cancellation-reasons/outputs/latex/content.tex}
+
+\noindent\textit{Notes:} All available NULL-type uploads are included, without date or other filters. Missing JSON keys and JSON null count as missing identifiers. Each order counts once regardless of upload count; percentages use all 1,726 distinct order IDs, including unmatched IDs. A NULL cancellation reason does not imply that the order was not canceled. Of 139 matched orders with status \texttt{Canceled}, 2 have a NULL reason and 67 (48.20\%) have reason \texttt{Aged Order}. Percentages may not sum to 100\% because of rounding. Upload extraction: 2026-11-02 15:35:14.335 Z; order extraction: 2026-11-02 15:35:15.577 Z (UTC).
+
+
+\clearpage
+

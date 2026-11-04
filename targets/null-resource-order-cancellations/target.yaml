@@ -1,0 +1,21 @@
+id: null-resource-order-cancellations
+level: subsubsection
+parent: data-verification
+children:
+- null-resource-cancellation-reasons
+question: What are the order cancellation reasons for null associated resource type entries in the rxp\_notification\_service.\texorpdfstring{\allowbreak}{}upload\_entity
+  table?
+title: What are the order cancellation reasons for null associated resource type entries in the rxp\_notification\_service.\texorpdfstring{\allowbreak}{}upload\_entity
+  table?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/data-verification/src/latex/data_verification.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

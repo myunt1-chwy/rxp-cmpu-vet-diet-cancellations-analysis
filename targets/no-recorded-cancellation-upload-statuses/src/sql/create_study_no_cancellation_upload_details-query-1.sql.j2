@@ -1,0 +1,31 @@
+-- sqlfluff:dialect:duckdb
+SELECT
+    s.rx_status,
+    s.order_status,
+    s.line_item_status,
+    COALESCE(s.order_cancellation_reason, '[No recorded cancellation reason]')
+        AS order_cancellation_reason,
+    COUNT(DISTINCT s.rx_id) AS prescriptions,
+    COUNT(DISTINCT ROW(s.order_id, s.order_line_id)) AS line_items,
+    COUNT(
+        DISTINCT CASE
+            WHEN u.upload_id IS NOT NULL THEN (s.order_id, s.order_line_id)
+        END
+    ) AS with_upload,
+    COUNT(
+        DISTINCT CASE
+            WHEN u.upload_id IS NULL THEN (s.order_id, s.order_line_id)
+        END
+    ) AS without_upload
+FROM snapshot AS s LEFT JOIN uploads AS u
+    ON
+        s.rx_id = u.rx_id AND s.customer_id = u.customer_id
+        AND s.order_id = u.order_id AND s.order_line_id = u.order_line_id
+WHERE
+    COALESCE(
+        NULLIF(TRIM(s.order_cancellation_reason), ''),
+        '[No recorded cancellation reason]'
+    )
+    = $1
+GROUP BY ALL
+ORDER BY ALL

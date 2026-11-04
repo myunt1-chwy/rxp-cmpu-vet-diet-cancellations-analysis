@@ -1,0 +1,30 @@
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "18px", "primaryTextColor": "#172b4d", "lineColor": "#456078", "edgeLabelBackground": "#f2f5f9"}, "flowchart": {"htmlLabels": true, "useMaxWidth": false, "nodeSpacing": 25, "rankSpacing": 35}}}%%
+flowchart TB
+classDef physical fill:#e3f2fd,stroke:#235789,stroke-width:2px;
+classDef derived fill:#fff2d5,stroke:#9b6916,stroke-dasharray:5 3;
+P["EDLDB.BT_HCA_HCDM.RXP_PRESCRIPTIONS"]:::physical
+L["EDLDB.BT_HCA_HCDM.ORDER_LINE_COST_MEASURES_RXP"]:::physical
+A["Eligible CMPU vet-diet CUSTOMER_UPLOAD lines<br/>baseline: shipped/cancelled reporting window;<br/>aged anchors: cancellation window"]:::derived
+O["EDLDB.ECOM.ORDERS"]:::physical
+H["First observed vet-diet / CUSTOMER_UPLOAD order<br/>per CUSTOMER_ID: ORDER_PLACED_DTTM, ORDER_ID;<br/>exclude ambiguous earliest-time ties / missing history"]:::derived
+R["RxP reorder candidates (LEFT from originals)<br/>same CUSTOMER_ID; different ORDER_ID;<br/>same PET_ID + PRODUCT_PART_NUMBER,<br/>or same pet / different part, or any vet diet"]:::derived
+C["EDLDB.BT_CUSTOMER_CARE.FCT_CONTACTS_BRD"]:::physical
+J["Aged orders LEFT JOIN contacts on ORDER_ID<br/>SESSION_START_DTTM in cancellation [-13,+4) days;<br/>Python: numeric CUSTOMER_ID equality + inbound"]:::derived
+E["EDLDB.ECOM.ORDER_LINE"]:::physical
+Q["Any Chewy follow-up (LEFT from originals)<br/>CUSTOMER_ID only; different ORDER_ID;<br/>NET_SALES once per physical line"]:::derived
+Z["Customer outcomes and contact segments<br/>each cancellation has its own (0,N] day window;<br/>placement at or before as_of; distinct customer/order counts"]:::derived
+P -->|"registry grouped by RX_ID; validate variants"| A
+L -->|"TRIM line RX_ID = registry RX_ID;<br/>CUSTOMER_ID equality in SQL or baseline Python"| A
+A -->|"anchor CUSTOMER_ID selects customer history"| H
+L -->|"history CUSTOMER_ID = anchor CUSTOMER_ID;<br/>vet-diet lines; upload subset via registry"| H
+O -->|"ORDER_ID = history ORDER_ID;<br/>also require matching CUSTOMER_ID"| H
+A -->|"original CUSTOMER_ID / PET_ID / PRODUCT_PART_NUMBER"| R
+L -->|"reorder keys; SUM sales per distinct<br/>ORDER_ID + ORDER_LINE_ID + SHIPMENT_KEY"| R
+A -->|"GROUP BY ORDER_ID; cancellation time"| J
+C -->|"contact ORDER_ID = aged ORDER_ID;<br/>customer check after extraction"| J
+A -->|"original CUSTOMER_ID + cancellation time"| Q
+E -->|"reorder CUSTOMER_ID = original CUSTOMER_ID"| Q
+H -->|"first-order cohorts restrict original anchors"| Z
+R -->|"ORDER_PLACED_DTTM after cancellation;<br/>whole-order cancellation/status exclusions"| Z
+Q -->|"same time window; whole-order exclusions"| Z
+J -->|"distinct relative days per CUSTOMER_ID;<br/>join reorder outcomes by CUSTOMER_ID"| Z

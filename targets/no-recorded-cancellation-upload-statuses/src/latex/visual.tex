@@ -1,0 +1,36 @@
+\begin{table}[htbp]
+\centering
+\caption{Prescription and order statuses for first-order lines with no currently recorded cancellation reason, by retained upload coverage.}
+\label{tab:study-no-cancellation-upload-details}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{llllrrrr}
+\toprule
+RX\_STATUS & Order status & Order cancellation reason & Line-item status & Prescriptions & Line items & With upload & Without upload \\
+\midrule
+{{ table_rows }}
+\bottomrule
+\end{tabular}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Start with the frozen 40,864 prescriptions/first-order lines
+(38,413 orders) in the no-recorded-reason rows of
+Table~\ref{tab:study-upload-coverage-by-cancellation-reason}.
+At the status extraction (2026-11-03T19:33:58.744000+00:00),
+40,841 lines still had a null or blank reason;
+23 lines with newly populated reasons are excluded and retained in the audit.
+Prescriptions count distinct \texttt{RX\_ID}s and equal line-item counts in this
+one-prescription-per-first-order-line cohort. Each physical first-order line
+counts once. Validate both first-order keys and
+customer identity; collapse shipment rows only when their customer, statuses and
+reason agree. Status codes are shown as recorded; a missing cancellation reason
+does not establish that an order shipped successfully.
+
+With/without upload counts refer to lines with/without at least one matched
+entity, not the number of entities. Reuse the frozen HCDM diet-prescription
+upload associations from the preceding table: match prescription ID, customer ID,
+order ID and line ID. The August 1--October 25, 2026 inclusive UTC discovery window,
+unknown-creation-time rule and all entity states are retained. Uploads need not
+precede cancellation and are not refreshed with these statuses.
+\end{minipage}
+\end{table}

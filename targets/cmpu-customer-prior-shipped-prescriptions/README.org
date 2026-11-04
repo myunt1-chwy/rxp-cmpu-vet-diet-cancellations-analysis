@@ -1,0 +1,12 @@
+#+TITLE: Retained cmpu-customer-prior-shipped-prescriptions analysis
+
+This existing command is retained outside the report hierarchy. Moving its source does not add a report section.
+
+* Reproduction
+Run =make cmpu-customer-prior-shipped-prescriptions CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
+
+* Owned source
+- =targets/cmpu-customer-prior-shipped-prescriptions/src/python/create_cmpu_customer_prior_shipped_prescriptions.py=
+- =targets/cmpu-customer-prior-shipped-prescriptions/src/sql/cmpu_customer_prior_shipped_prescriptions.sql=
+
+Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.

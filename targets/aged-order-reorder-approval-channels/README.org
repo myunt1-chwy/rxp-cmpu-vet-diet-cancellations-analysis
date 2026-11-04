@@ -1,0 +1,23 @@
+#+TITLE: Retained aged-order-reorder-approval-channels analysis
+
+This existing command is retained outside the report hierarchy. Moving its source does not add a report section.
+
+* Reproduction
+Run =make aged-order-reorder-approval-channels CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
+
+* Owned source
+- =targets/aged-order-reorder-approval-channels/src/python/create_aged_order_reorder_approval_channels.py=
+- =targets/aged-order-reorder-approval-channels/src/sql/aged_order_reorder_approval_channels.sql=
+
+Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.
+
+* Cohort definition
+The seven-day approval-channel query derives reordered prescriptions from
+eligible same-customer, same-product pairs in SQL. This earlier analysis does
+not require same-pet matching. Approval-channel evidence is joined to those
+prescriptions without uploading saved identifiers.
+
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned =src/sql/= source;
+=make cohort-sql-review= renders the registered cohort queries and
+=make cohort-sql-check= lints them without warehouse access.

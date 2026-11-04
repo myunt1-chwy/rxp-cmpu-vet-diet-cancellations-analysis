@@ -1,0 +1,87 @@
+\begin{landscape}
+\paragraph{What proportion of first-order lines have prescription uploads by cancellation reason and line-item status?}
+Prescription upload coverage by first-order cancellation reason and line-item status: CMPU vet-diet CUSTOMER\_UPLOAD prescriptions created August 15--October 14, 2026, inclusive, UTC.
+
+\begin{table}[!htbp]
+\centering
+\caption{Prescription upload coverage by first-order cancellation reason and line-item status: CMPU vet-diet CUSTOMER\_UPLOAD prescriptions created August 15--October 14, 2026, inclusive, UTC.}
+\label{tab:study-upload-coverage-by-cancellation-reason}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}llrrrrrrrr@{}}
+\toprule
+Cancellation reason & \shortstack{Line-item\\status} & \shortstack{First\\orders} & Prescriptions & \shortstack{First-order\\line items} & \shortstack{Line items\\with upload} & \shortstack{Upload\\coverage (\%)} & \shortstack{Total\\uploads} & \shortstack{Accepted\\uploads} & \shortstack{Rejected\\uploads} \\
+\midrule
+
+{[Aged order outside cutoff]} & X & 372 & 398 & 398 & 14 & 3.52\% & 14 & 0 & 9 \\
+
+{[No recorded cancellation reason]} & D & 28,996 & 29,972 & 29,972 & 24,991 & 83.38\% & 25,069 & 24,962 & 94 \\
+
+{[No recorded cancellation reason]} & R & 4 & 4 & 4 & 4 & 100.00\% & 4 & 4 & 0 \\
+
+{[No recorded cancellation reason]} & S & 16 & 19 & 19 & 17 & 89.47\% & 17 & 17 & 0 \\
+
+{[No recorded cancellation reason]} & X & 9,780 & 10,875 & 10,875 & 1,290 & 11.86\% & 1,299 & 92 & 251 \\
+\rowcolor{yellow!35}
+{Aged order} & X & 24,408 & 26,443 & 26,443 & 777 & 2.94\% & 782 & 52 & 194 \\
+
+{Customer initiated cancellation} & X & 11,603 & 13,129 & 13,129 & 1,160 & 8.84\% & 1,161 & 311 & 150 \\
+
+{Customer request} & X & 4,891 & 5,487 & 5,487 & 1,082 & 19.72\% & 1,083 & 145 & 174 \\
+
+{Duplicate order} & X & 61 & 64 & 64 & 14 & 21.88\% & 14 & 6 & 2 \\
+
+{Fraud} & X & 13 & 15 & 15 & 0 & 0.00\% & 0 & 0 & 0 \\
+
+{Inventory issue} & X & 3 & 3 & 3 & 0 & 0.00\% & 0 & 0 & 0 \\
+
+{No response} & X & 541 & 575 & 575 & 9 & 1.57\% & 9 & 8 & 0 \\
+
+{Other} & X & 302 & 336 & 336 & 74 & 22.02\% & 74 & 16 & 8 \\
+
+{Payment declined} & X & 2,449 & 2,688 & 2,688 & 15 & 0.56\% & 15 & 13 & 1 \\
+
+{Payment issue} & X & 15 & 17 & 17 & 1 & 5.88\% & 1 & 1 & 0 \\
+
+{Pharmacy rejection} & X & 150 & 171 & 171 & 14 & 8.19\% & 14 & 3 & 1 \\
+
+{Prescription issue} & X & 4,524 & 4,909 & 4,909 & 193 & 3.93\% & 194 & 15 & 47 \\
+
+{Reseller} & X & 1 & 1 & 1 & 0 & 0.00\% & 0 & 0 & 0 \\
+\midrule
+{TOTAL} & All & 87,757 & 95,106 & 95,106 & 29,655 & 31.18\% & 29,750 & 25,645 & 931 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Coverage = 100 $\times$ distinct first-order lines with at least
+one matched upload $\div$ all study first-order lines in that reason/status group, including
+lines without uploads. Prescriptions count distinct \texttt{RX\_ID}s and equal
+line-item counts in this validated one-prescription-per-first-order-line cohort.
+Orders and physical order/line pairs count distinctly;
+shipment rows cannot multiply counts. The validated population is the same as
+Table~\ref{tab:study-population-counts}.
+Uploads are distinct \texttt{UPLOAD\_ID}s from HCDM
+\texttt{rxp\_upload\_entity}, restricted to \texttt{DIET\_PRESCRIPTION} entities.
+Expand prescription IDs and match both prescription and numeric customer IDs,
+then both first-order keys. Upload discovery is August 1--October 25 inclusive,
+UTC; missing creation timestamps follow the existing study's unknown-window rule
+and are audited. No requirement that upload precede cancellation is imposed.
+Accepted and rejected refer to current entity \texttt{STATE\_NAME=ACCEPTED} and
+\texttt{REJECTED}, not prescription approval or denial. Other entity states
+remain in Total uploads, so Accepted plus Rejected need not equal Total.
+Reasons are trimmed and case-insensitive. Aged order uses the inclusive
+October 27, 2026, 00:00 UTC cancellation cutoff; later or undated aged reasons
+remain in the outside-cutoff row. Missing/blank reasons do not prove an uncancelled
+order. Line-item status is \texttt{ORDER\_ORDER\_LINE\_STATUS} from the coordinated first-order-line extract, with shipment-row consistency checked.
+Codes are shown as recorded; missing status is explicit. Table~\ref{tab:study-no-cancellation-upload-details}
+uses reconciled status/reason evidence.
+An entity may match multiple prescriptions/lines and reason/status groups;
+an order can also span groups. TOTAL independently deduplicates both and is not
+the sum of overlapping rows. Cancellation reasons/times use the retained
+prescription-decision extract and agree with the upload and status extracts.
+Counts describe the validated source snapshots.
+\end{minipage}
+\end{table}
+\end{landscape}
+

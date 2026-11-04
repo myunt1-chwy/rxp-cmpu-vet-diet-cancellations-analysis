@@ -1,0 +1,47 @@
+-- sqlfluff:dialect:duckdb
+WITH classified AS (
+    SELECT
+        order_id,
+        customer_id,
+        CASE
+            WHEN
+                placed_at_utc IS NULL OR first_order_placed_utc IS NULL
+                THEN 'Unknown'
+            WHEN
+                CAST(placed_at_utc AS DATE)
+                = CAST(first_order_placed_utc AS DATE)
+                THEN 'New on aged-order day'
+            WHEN
+                CAST(first_order_placed_utc AS DATE)
+                < CAST(placed_at_utc AS DATE)
+                THEN 'Existing customer'
+            ELSE 'Unknown'
+        END AS status
+    FROM orders
+),
+
+customers AS (
+    SELECT
+        customer_id,
+        CASE
+            WHEN
+                COUNT(*) FILTER (WHERE status = 'New on aged-order day') > 0
+                THEN 'New on aged-order day'
+            WHEN COUNT(*) FILTER (WHERE status = 'Unknown') > 0 THEN 'Unknown'
+            ELSE 'Existing customer'
+        END AS status
+    FROM classified
+    GROUP BY customer_id
+)
+
+SELECT
+    'order' AS grain,
+    order_id AS id,
+    status
+FROM classified
+UNION ALL
+SELECT
+    'customer' AS grain,
+    customer_id,
+    status
+FROM customers

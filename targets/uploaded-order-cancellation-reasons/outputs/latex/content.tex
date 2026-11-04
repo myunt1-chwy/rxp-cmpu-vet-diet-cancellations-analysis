@@ -1,0 +1,45 @@
+\paragraph{How are cancellation reasons distributed among orders associated with vet-diet uploads?}
+Order cancellation reasons for diet-prescription uploads with associated order IDs.
+
+\begin{longtable}{@{}lrrr@{}}
+\caption{Order cancellation reasons for diet-prescription uploads with associated order IDs.}
+\label{tab:diet-upload-source-cancel-reasons}\\
+\toprule
+Order cancellation reason & \shortstack{\texttt{EDLDB.BT\_HCA\_HCDM.}\\\texttt{rxp\_upload\_entity}\\Orders (\%)} & \shortstack{\texttt{rxp\_notification\_service.}\\\texttt{upload\_entity}\\Orders (\%)} & \shortstack{Difference\\Notification\\minus HCDM} \\
+\midrule
+\endfirsthead
+\toprule Order cancellation reason & HCDM orders (\%) & Notification orders (\%) & Difference \\
+\midrule
+\endhead
+
+{No recorded reason (SQL NULL)} & 105,843 (88.62\%) & 105,940 (88.58\%) & +97 \\
+
+{Customer Initiated Cancellation} & 5,007 (4.19\%) & 5,010 (4.19\%) & +3 \\
+
+{Customer Request} & 4,462 (3.74\%) & 4,463 (3.73\%) & +1 \\
+
+{Aged Order} & 2,020 (1.69\%) & 2,032 (1.70\%) & +12 \\
+
+{Pharmacy Rejection} & 1,108 (0.93\%) & 1,108 (0.93\%) & 0 \\
+
+{Prescription Issue} & 568 (0.48\%) & 569 (0.48\%) & +1 \\
+
+{Other} & 274 (0.23\%) & 274 (0.23\%) & 0 \\
+
+{Duplicate Order} & 57 (0.05\%) & 57 (0.05\%) & 0 \\
+
+{No Response} & 48 (0.04\%) & 48 (0.04\%) & 0 \\
+
+{Payment Declined} & 29 (0.02\%) & 29 (0.02\%) & 0 \\
+
+{No matching ECOM order} & 0 (0.00\%) & 53 (0.04\%) & +53 \\
+
+{Fraud} & 14 (0.01\%) & 14 (0.01\%) & 0 \\
+
+{Payment Issue} & 2 (0.00\%) & 2 (0.00\%) & 0 \\
+
+{Reseller} & 1 (0.00\%) & 1 (0.00\%) & 0 \\
+\midrule
+{Total} & 119,433 (100.00\%) & 119,600 (100.00\%) & +167 \\
+\bottomrule
+\end{longtable}

@@ -1,0 +1,51 @@
+\subsubsection{Where is the prescription upload data coming from?}
+\label{subsec:upload-data-sources}
+The report's upload analyses use
+\texttt{EDLDB.BT\_HCA\_HCDM.rxp\_upload\_entity}.
+Table~\ref{tab:upload-source-resource-types} compares the entries in that
+source with \texttt{rxp\_notification\_service.upload\_entity}, resolved in
+the \texttt{EDLDB} database, by \texttt{associated\_resource\_type}.
+
+This verification covers all rows currently available in each source,
+without date, CMPU, vet-diet, upload-type, or study-population filters.
+In Table~\ref{tab:upload-source-resource-types}, each physical row counts
+once; no deduplication or joins are applied.
+These source counts therefore describe the source tables rather than the report's
+study cohort. They do not establish record-level equivalence between the
+two sources or document their upstream lineage.
+
+\input{targets/upload-resource-types/outputs/latex/content.tex}
+
+\noindent\textit{Extraction:} 2026-11-02 16:02:32 UTC.
+
+
+\noindent\textit{Notes:} Rows include every resource type present in either
+source. A zero means that the source has no entries for that type.
+\texttt{[SQL NULL]} denotes a missing resource type, separately from any
+literal string value. Totals are queried independently from each source
+and reconciled against the sum of its grouped counts before publication.
+The extraction time above records the snapshot used for this comparison;
+rerunning the query may change the counts as sources are updated.
+\textit{With Rx ID} counts entries with at least one populated, non-zero
+prescription identifier in HCDM \texttt{RX\_ID} or notification-service
+\texttt{ASSOCIATED\_RESOURCE\_IDS}. Braces, array delimiters and quotes are
+removed before checking individual comma-separated IDs; SQL NULL, JSON null,
+blank, empty-list and numeric-zero values are excluded. An entry counts once
+regardless of how many IDs it contains. IDs are checked for presence, without
+joining to the prescription registry. Both count columns reconcile to their
+separately queried source totals.
+This table is refreshed independently of the subsequent order analyses;
+each analysis reports its own extraction time.
+
+
+% Generate from retained aggregates with python -m shared.python.analyze_upload_source_time_coverage.
+\Needspace{20\baselineskip}
+Table~\ref{tab:upload-source-time-coverage} shows the minimum and maximum creation timestamps of the entries currently available in each source, by resource type and overall. All timestamps are shown in UTC.
+\input{targets/upload-source-date-coverage/outputs/latex/content.tex}
+
+\noindent\textit{Notes:} No date, order-ID or prescription-ID filters are applied. HCDM uses \texttt{CREATED\_TS\_UTC}; notification-service \texttt{CREATED\_AT} is converted to UTC before aggregation. Minimum and maximum ignore missing timestamps. Displayed values are rounded to the nearest second (half seconds round upward); the retained extract preserves full precision. Missing creation timestamps: 0 in HCDM and 0 in the notification-service source. The ranges describe available entries, without establishing continuous coverage or the full history of either system. Extraction: 2026-11-02 16:09:54 UTC.
+
+
+
+\clearpage
+
