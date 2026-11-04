@@ -1415,3 +1415,7 @@
   - Captured the agreed question-led paragraph/subsubsection/subsection/section model, flat first-class targets with stable IDs, target.yaml relationships, analysis.yaml ordering, target-owned Makefiles, and declared shared dependencies.
   - Specified self-contained target src/data/outputs folders, generated SQL location, authoritative Org table data with derived LaTeX additions, parent LaTeX narrative between children, explicit REFRESH=1 with missing/stale-cache instructions, per-target README.org assembled into HOWTO.md, and optional REPRO=1 document inclusion (default 0).
   - Installed and validated .agents/skills/my-analysis-structure/SKILL.md. No existing analysis migration or build implementation; user approved committing the skill and task entry.
+
+* DONE Define the main document in my-analysis-structure
+  - Added the first-class report target and make report dependencies: executive-summary, next-steps, appendix. Fixed document order and heading exceptions; detailed analysis begins at subsection level beneath Appendix.
+  - Updated YAML document/parent relationships, README/HOWTO ordering, and propagation of REFRESH/REPRO. Skill validation passed; existing report implementation unchanged. User approved committing this skill update.

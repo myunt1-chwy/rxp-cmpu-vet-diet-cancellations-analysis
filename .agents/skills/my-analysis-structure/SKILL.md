@@ -9,13 +9,29 @@ Organize an analysis around independently reproducible ideas and an explicit doc
 
 ## Analysis units and questions
 
-The hierarchy is section → subsection → subsubsection → paragraph.
+The hierarchy is main document → section → subsection → subsubsection → paragraph. Detailed analysis lives under the Appendix section.
 
 - A **paragraph** is the smallest analysis unit. It contains one prose paragraph and at most one figure, diagram, or table in total. It may contain no visual. There is no smaller analysis unit, although implementation helpers and intermediate artifacts may exist.
 - Every paragraph has a bold heading that is a question. Ask the user what that question is before defining the paragraph. If the user already supplied it, use it rather than asking again.
-- Every subsubsection, subsection, and section also has a question as its title. Ask the user for that question unless already supplied. Use the agreed question verbatim as the title in every output document.
+- Every subsubsection, subsection, and section also has a question as its title, except the fixed Executive summary and Appendix headings defined below. Ask the user for that question unless already supplied. Use the agreed question verbatim as the title in every output document.
 - Multiple paragraphs form a subsubsection; subsubsections form subsections; subsections form sections. Paragraphs are first-class targets, not files hidden inside their parents.
 - Parents may have their own LaTeX narrative before, between, and after children. This prose is an explicit exception to paragraph ownership of analysis content. Parents compose documents; independent computations, tables, figures, and diagrams belong to paragraph targets.
+
+## Main document
+
+`make report` builds the main document. The main document is a first-class target with ID `report`, its own `targets/report/` folder, `target.yaml`, Makefile, README.org, and LaTeX assembly source. It composes these three first-class section targets in this order:
+
+| Target ID | Exact document heading |
+| --- | --- |
+| `executive-summary` | Executive summary |
+| `next-steps` | What are the next steps? |
+| `appendix` | Appendix |
+
+Each section owns its own flat target folder and Makefile. Executive summary and Appendix are explicit exceptions to question-style titles; do not ask the user to turn these fixed headings into questions. The next-steps question is already agreed.
+
+The report target has all three section targets as actual Make prerequisites. Its assembly preserves their declared document order even when prerequisites build in parallel. Propagate `REFRESH` and `REPRO` through the whole dependency graph, with the same default cache behavior and `REPRO=0` as individual targets.
+
+Place the detailed analysis beneath Appendix as subsections, then subsubsections, then paragraphs. What would otherwise be a top-level analysis section is an Appendix subsection; do not add another analysis-section level. Retain normal section/subsection numbering as in the existing report rather than introducing alphabetic appendix numbering. Executive summary and next steps may use their own parent-level LaTeX narrative and cite results owned by analysis targets without duplicating their computations.
 
 ## Flat target layout and portability
 
@@ -59,23 +75,28 @@ Create only directories needed by the target. Paragraph targets own their comput
 Use root `analysis.yaml` to list section IDs in document order:
 
 ```yaml
+document: report
 sections:
-  - customer-retention
+  - executive-summary
+  - next-steps
+  - appendix
 ```
 
 Each target has a `target.yaml`. For example:
 
 ```yaml
 id: customer-retention
-level: section
+level: subsection
 question: "Do customers return after an aged order?"
-parent: null
+parent: appendix
 children:
   - same-product-retention
 shared_dependencies: []
 ```
 
-Use `section`, `subsection`, `subsubsection`, or `paragraph` for `level`. A section has a null parent; other units name their parent target ID. A paragraph has an empty children list. Shared dependencies name paths relative to root `shared/`.
+Use `document`, `section`, `subsection`, `subsubsection`, or `paragraph` for `level`. Only `report` has level `document` and a null parent. The three sections name `report` as their parent; detailed analysis subsections name `appendix`. Other units name their immediate parent ID. A paragraph has an empty children list. Shared dependencies name paths relative to root `shared/`.
+
+For `executive-summary` and `appendix`, use `title` with their fixed heading and `question: null`. For `next-steps`, use `question: "What are the next steps?"`. The document target itself does not require a question heading; its document title follows the user's report title. Its ordered children must match root `analysis.yaml` sections exactly. The Appendix target lists its analysis subsections as ordered children.
 
 The ordered children list defines child document order. Parent LaTeX includes children in this order and may interleave its own narrative. Treat YAML as the ordering source of truth; keep LaTeX inclusion order consistent with it. Validate unique IDs, resolvable references, matching parent/child declarations, correct hierarchy levels, and absence of cycles. Questions in examples are illustrative, not defaults to assign without asking the user.
 
@@ -96,9 +117,9 @@ Figures belong in `outputs/figures/`, diagrams in `outputs/diagrams/`. A paragra
 
 ## Reproduction documentation
 
-Each target owns a `README.org` documenting its question, inputs, dependencies, build command, explicit refresh command, parameters, output paths, and relevant limitations or prerequisites. Include enough information to reproduce the unit without reverse-engineering its generator.
+Each target owns a `README.org` documenting its question (or fixed heading/document title), inputs, dependencies, build command, explicit refresh command, parameters, output paths, and relevant limitations or prerequisites. Include enough information to reproduce the unit without reverse-engineering its generator.
 
-Assemble these instructions into root `HOWTO.md` in document order: sections in `analysis.yaml` order, then each parent's children in their declared order. Generate this documentation from the target READMEs rather than maintaining duplicate instructions by hand.
+Assemble these instructions into root `HOWTO.md` in document order: main-document reproduction instructions first, then sections in `analysis.yaml` order, then each parent's children in their declared order. Generate this documentation from the target READMEs rather than maintaining duplicate instructions by hand.
 
 Support `REPRO=1` to include reproduction instructions in final output documents. Default to `REPRO=0`, excluding them from documents while still generating HOWTO.md. Propagate the option through parent assemblies and keep included instructions in the same document order.
 
