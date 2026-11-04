@@ -1,3 +1,10 @@
+* 2026-11-04 Migration test repairs
+  - User approved committing all repairs; committed 7240f0c on feat/analysis-target-structure.
+  - Repaired all 62 migration-era failures while preserving analytical assertions, scalar SQL APIs and cache provenance checks.
+  - Fixed importlib compatibility, timezone validation, test fixtures and setup mocks. Explicit Ruff first-party configuration makes isolated staged checks consistent with local linting.
+  - Full suite: 634 passed and 16 subtests passed. Python/SQL commit hooks and git diff --check passed.
+  - No warehouse refresh or PDF rebuild; the retained-query fingerprint limitation remains documented.
+
 * 2026-11-04 Analysis target migration and source linting
   - User approved the commit before test repairs. Committed a178ef4 on feat/analysis-target-structure with Python and SQL pre-commit checks passing.
   - Migrated analysis sources to target owners, added reproducible target structure and cleaned Python/SQL lint failures. Generated table files were untracked without deleting local artifacts.
