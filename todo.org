@@ -1,50 +1,3 @@
-* DONE Restore data-source join explanations and diagrams in the report
-  - Restore the data_source_connections inclusion removed by commit c498386. Rebuild the published PDF and verify the contents entry, join notes and all five diagrams, preserving the current section order and draft mode. No data refresh or test suite.
-  - Restored the LaTeX input after the verification analyses. make report succeeded; section 2.6.6 starts on page 58 in the 67-page PDF. Verified the contents entry, source-grain/deduplication notes and all five rendered figures on pages 58, 60, 61, 63 and 65. No clipping, overflow or unresolved references; git diff --check passed. Current financial-table changes retained; no commit.
-
-* DONE Split section 2.1.1 financial table by line-item status
-  - Update Table 1 with the displayed cancellation-reason/line-item-status breakdown, retaining customer/order counts and yellow aged-order highlighting. Show status X sales as gray unrealized amounts even with no recorded cancellation reason.
-  - Update the existing generator, bounded Markdown/Parquet export, independent raw-source verification and displayed SQL; preserve downstream reason-only and line/shipment snapshots. Replay cached data, rebuild and visually inspect the draft PDF; no warehouse refresh or test suite.
-  - Added the Line-item status column to Table 1 on page 3. No-recorded-reason D: 172,621 customers, 387,273 orders, 432,587 lines and 35,784,664.08 net sales. No-recorded-reason X: 432 customers, 434 orders, 464 lines and 36,720.77, displayed gray. Overall net sales remain 44,519,634.43; aged-order highlighting preserved.
-  - Cached generator reconciles both summaries independently against raw-source DuckDB aggregates at exact retained precision. Original reason summary, associations, shipments and order-line exports are byte-identical. Added status-summary.parquet, bounded Markdown, reproducible status-grouped financial SQL and HOWTO/reproduction notes. make report succeeded; page 3 visually checked, no overflow or undefined references, git diff --check passed. No tests, warehouse refresh or commit.
-
-* DONE Add one make target for Tables 14--16
-  - Add make study-upload-tables to regenerate the coverage, no-recorded-reason detail and aged-order detail tables sequentially from retained snapshots. Integrate with make report and section reproduction, document the command, and verify generation/PDF build without a warehouse refresh or test suite.
-  - Added the aggregate target with explicit CACHED=1 for the status replay, preserving source-before-detail ordering even under parallel make. make report and reproduce-upload-delay-section now use it; removed the redundant internal cached-only alias. Documented the aggregate and individual targets in HOWTO and report reproduction steps.
-  - make study-upload-tables and make report succeeded with every group's existing independent validation. Checked reproduction instructions on page 43 and git diff --check; no warehouse queries or test suite. Changes await commit approval.
-
-* DONE Change Table 16 to match Table 15
-  - Replace the aged-only coverage row with RX_STATUS, order status, cancellation reason, line-item status, prescriptions, line items, with upload and without upload. Use the retained aged-order status extraction and frozen upload associations, shared Table 15 validation and distinct counting. Rebuild and visually inspect the draft PDF; no warehouse refresh or test suite.
-  - Reused the November 3 18:56:48 UTC extraction with archived SQL and fingerprints. Four RX_STATUS groups: APPROVED 5, CLOSED 1, SYSTEM_CLOSED 26,436, VET_REVIEW 1. Totals reconcile independently to 26,443 prescriptions/lines, 777 with uploads and 25,666 without. All order and line statuses are X and reasons aged order.
-  - Shared Table 15 identity checks, grouping, distinct-count verification and row rendering; Table 15's cached results unchanged. Updated HOWTO and reproduction notes. make study-aged-order-upload-coverage and make report passed; both tables fit page 40 with no clipping. git diff --check passed. No warehouse refresh, test suite or commit.
-
-* DONE Add a separate aged-order table with Table 14's columns
-  - Use the frozen eligible aged-order subset and identical prescription/order/line/upload metrics, retaining yellow highlighting. Add a cached-only make target, bounded Markdown/Parquet/provenance and report/reproduction integration; reconcile independently and inspect the rebuilt draft PDF. No warehouse refresh or test suite.
-  - Added Table 16 below Table 15 on page 40 in section 2.3.1. One status-X row: 24,408 orders; 26,443 prescriptions/lines; 777 lines with uploads (2.94%); 782 entities, 52 accepted and 188 rejected. All counts reconcile independently to the retained study; yellow highlight preserved.
-  - make study-aged-order-upload-coverage and make report passed. Visually checked both tables and notes on page 40 without clipping; git diff --check passed. Added HOWTO and section reproduction instructions, with cached-only report generation. No warehouse refresh, test suite or commit.
-
-* DONE Add prescription counts to Table 15
-  - Add distinct RX_ID counts by the existing status groups and overall, preserving the retained no-current-cancellation-reason cohort. Reconcile independently, replay cached data and visually inspect the rebuilt draft PDF; no warehouse refresh or test suite.
-  - Added Prescriptions column with distinct RX_ID counts, independently reconciled each group and the 40,841 total; counts equal first-order lines in this cohort. Updated notes, audit, Markdown/Parquet exports and HOWTO. Cached target and make report passed; page 40 visually checked with no overflow or unresolved references. git diff --check passed; no commit.
-
-* DONE Add prescription counts to Table 14
-  - Add distinct RX_ID counts for each cancellation-reason/line-item-status group and the overall total. Validate independently with DuckDB, regenerate the table and inspect the rebuilt draft PDF; no warehouse refresh or test suite.
-  - Added Prescriptions column using distinct RX_ID, independently reconciled every group and the total of 95,073 (26,443 aged-order prescriptions). Counts equal first-order-line counts in this frozen cohort; documented the grain in table notes and HOWTO. Rebuilt and visually checked page 39; totals and yellow highlight retained, no overflow or unresolved references. git diff --check passed; no commit.
-
-* DONE Split Table 14 by line-item status
-  - Add line-item status from the retained first-order-line snapshot to the cancellation-reason groups. Preserve all upload metrics, overall distinct totals and yellow aged-order highlighting. Keep the frozen cohort and upload-association exports unchanged for Table 15.
-  - Regenerate with make study-upload-coverage-by-cancel-reason, reconcile every reason/status group independently, rebuild and visually inspect the draft PDF. No warehouse refresh or test suite.
-  - Split all reasons by ORDER_ORDER_LINE_STATUS from the retained October 28 snapshot, with identity and shipment-consistency checks. No-recorded-reason statuses are C/D/R/S/X; aged order remains X and yellow. Overall 87,724 orders, 95,073 lines and 29,715 upload entities unchanged; reason/status groups reconcile independently in DuckDB.
-  - Preserved the original study-lines/upload-association fingerprints, so Table 15 cached replay passes. Updated HOWTO, reproduction notes and Table 15's reference to the multiple no-reason rows. make report succeeded; Table 14 remains on page 39 and was visually checked without clipping or overflow. git diff --check passed; no warehouse refresh, test suite or commit.
-
-* DONE Add no-current-cancellation-reason upload details to section 2.3.1
-  - Accepted plan: add make study-no-cancellation-upload-details, tracked SQL and generator, with fresh status extraction and CACHED=1 replay. Start from the frozen 40,864 prescriptions/first-order lines; retain only currently null/blank cancellation reasons and audit newly populated reasons.
-  - Seven columns: RX_STATUS, order status, order cancellation reason, line-item status, line-item count, with upload and without upload. Omit STATE_CHANGE_REASON. Reuse the frozen upload associations and validate prescription/customer/both first-order keys and shipment consistency.
-  - Preserve the original coverage table; add details in the same 2.3.1 without a new numbered subsection. Export Parquet, bounded Markdown, provenance and LaTeX. Integrate cached-only report/reproduction targets and HOWTO.
-  - Verify fresh extraction, cached replay, independent DuckDB counts, draft PDF placement/layout and git diff --check. No test suite, unrelated refresh or commit before approval.
-  - Implemented and extracted 2026-11-03 19:33:58 UTC: 40,841 retained lines across 38,395 orders; 26,272 lines with upload and 14,569 without. Excluded 23 newly populated reasons (12 pharmacy rejection, 10 payment declined, 1 customer initiated cancellation); complete excluded-line audit retained.
-  - Fresh target, fingerprint-validated cached replay, independent DuckDB reconciliation of every group and make report succeeded. Visually checked Table 15 on page 40 between the unchanged coverage table and section 2.3.2; draft watermark retained, no overflow or unresolved references. git diff --check passed. No test suite, unrelated refresh or commit; awaiting approval.
-
 * Product manager review: CMPU aged-order report (2026-11-03)
   :PROPERTIES:
   :REFNUM:   1.
@@ -83,14 +36,6 @@
    - Evidence: section 2.3.4 / Figure 5 only includes current D-status lines, nonnegative approval gaps of 0--60 seconds, and normalizes to that subset; longer gaps are omitted. The current source executive summary says approval after acceptance is not significant and takes less than a minute. The published PDF omits that summary sentence but already makes the less-than-a-minute claim in section 2.3 on page 36.
    - Action / done when: label this as a conditional result. Show the full eligible denominator, share omitted above 60 seconds, missing/pending outcomes and relevant upper-tail measures before making a process-wide speed claim. Distinguish acceptance-to-approval from order-to-upload and upload-to-acceptance; prioritize stages only after these exclusions are visible.
 
-** TODO [#A] Replace the unsupported upload-timing significance claim with a descriptive comparison
-   :PROPERTIES:
-   :REFNUM:   1.4.
-   :END:
-   - Comment: similar-looking boxplots do not establish equivalent customer behavior or rule out upload timing as a useful intervention point.
-   - Evidence: page 1 and section 2.3.2 / Figure 2 (page 40) say timing does not differ significantly. The figure compares 782 aged entities with an overall group that includes those same entities, rather than with the "rest" of the study as the summary says. Its generator exports descriptive statistics, not a reported significance/equivalence analysis. Retained medians are 17.32 hours for aged entities and 20.56 hours overall; 3,621 overall entities lack matched placement and are excluded. See [[file:src/python/create_cmpu_upload_entity_order_creation_distributions.py][figure generator]] and [[file:outputs/tables/2026-08-15_2026-10-14/cmpu-upload-entity-order-creation-distributions/statistics.md][retained statistics]].
-   - Action / done when: describe the observed medians/spread and conditional population without claiming statistical equivalence. If a comparison is needed for a product decision, define a disjoint non-aged comparison, meaningful effect size and uncertainty, accounting for repeated customer/order associations. State that these are customers with observed uploads; they cannot explain why most aged lines have no matched upload.
-
 ** TODO [#A] Correct the acceptance-delay value and verify whether processing missed the deadline
    :PROPERTIES:
    :REFNUM:   1.5.
@@ -99,7 +44,6 @@
    - Evidence: section 2.3 (page 36) says the median acceptance delay was ten days after upload, "as a result" missing the deadline. The retained Figure 4 [[file:outputs/tables/2026-08-15_2026-10-14/cmpu-upload-entity-state-change-distributions/aged-order-statistics.md][aged-state statistics]] show 318.79 hours, or 13.28 days, for the 52 currently ACCEPTED entities. Figure 4 measures creation to current state change, is not capped at cancellation, and includes 538 REVIEW_REQUIRED entities whose time to that state is not time spent waiting in review.
    - Action / done when: reconcile the stated median with the retained figure data. Compare upload and acceptance timestamps with each matched order's actual cancellation timestamp to report how many documents were submitted before cancellation but accepted afterward, versus submitted afterward or still unresolved. Define review entry, review completion and pending time separately; describe deadline timing as an association until an operational trace supports the cause. Do not attribute all aged cancellations to processing delays among this small observed-upload subset.
 
-** TODO [#A] Reframe the contact findings as observed associations and verify human-contact meaning
    :PROPERTIES:
    :REFNUM:   1.6.
    :END:
@@ -107,75 +51,6 @@
    - Evidence: Executive Summary / Tables 7--10. Table 7 uses cancellation-relative days, not order-creation-relative bins, so it does not directly prove most contacts occurred at creation. Its notes say inbound is a proxy, not verified human initiation. Table 10's 20.02% versus 12.31% reorder comparison includes contacts through day +3 after cancellation; reorder activity or customer intent can influence group membership.
    - Action / done when: report the actual counts/windows and distinguish sessions, contact days and human contacts. Validate the large Email/Other-ingress component and compare contact timestamps directly with placement before asserting creation-time contact. Do not infer that more/later contact causes reordering or that reminders will have the same effect. Verify outbound reminder coverage separately before claiming no outbound contact exists.
    - Second-review clarification: Table 6's 30,304 contacting aged customers (99.74%) and Table 7's 30,299 use different windows and need not reconcile exactly. Table 9 only compares one versus two relative contact-day bins: 12.38% versus 14.10%; it omits 83 zero-contact and 226 three-or-more-day customers, so it does not establish a general frequency-response pattern. Table 10's comparison group is the rest of the cohort, not a no-contact group; the contact and reorder can concern different aged orders for the same customer. Make these limits visible beside the conclusions.
-
-** TODO [#A] Present the reminder business case as an incremental-value hypothesis
-   :PROPERTIES:
-   :REFNUM:   1.7.
-   :END:
-   - Comment: the observed 221K seven-day reorder sales and roughly 390K fourteen-day scenario are not demonstrated incremental gains or a defensible upper bound for reminders. Advancing a purchase that would occur anyway may create little additional revenue.
-   - Evidence: Executive Summary / Tables 1--2 and the financial table notes. The 3.47M aged-order amount is recorded line-sales opportunity, not proven recoverable revenue. The forecast assumes historical post-cancellation returners respond similarly to a pre-cancellation email, and assumes an additional avoided skipped reorder without treatment evidence.
-   - Action / done when: separate observed sales, displaced/delayed purchases and incremental demand. Make assumptions explicit, show sensitivity rather than a single expected uplift, and include contribution margin and reminder/support costs. Define how the experiment will measure incremental fulfilled orders/value over a fixed horizon, net of natural reorders and timing shifts, before using the estimate to justify rollout spend.
-   - Second-review clarification: show which population and sales denominator produce the claimed 1% increase. Distinguish the 221K avoided-cancellation scenario from the additional 221K skipped-reorder assumption and explain whether they overlap. Estimate reachable customers still awaiting action at the chosen trigger; the retrospective 30,382 aged customers are not the prospective day-three eligible audience.
-
-** TODO [#B] Make the product decision and accountable next step explicit
-   :PROPERTIES:
-   :REFNUM:   1.8.
-   :END:
-   - Comment: the research recommendations are sensible, but a decision-maker still needs to know what is being requested now and what evidence will unlock the next investment.
-   - Reference: Executive Summary / "What should we do next?".
-   - Action / done when: open with a concise decision brief: customer problem, evidence confidence, proposed discovery/pilot, target segment, named accountable owner, required partner teams/resources, decision date and go/no-go criteria. Distinguish approval for learning from approval for a scaled reminder program or prescription-pickup service. Do not invent owners, budgets or target lifts; obtain them from the responsible teams.
-
-** TODO [#B] Define retention and measure excess attrition against a suitable baseline
-   :PROPERTIES:
-   :REFNUM:   1.9.
-   :END:
-   - Comment: not buying the same pet/product again within 70 days is not synonymous with leaving Chewy. Purchase cadence, product switching and prior customer experience can explain part of the observed differences.
-   - Evidence: sections 2.1.2--2.1.5 / Tables 2--5. At 70 days, the whole aged cohort has 26.15% same-pet/part return versus 61.12% any-Chewy return. The 30,382 / 11,550 / 5,097 cohorts overlap and are not independent treatment groups.
-   - Action / done when: define the primary retention endpoint and label the other endpoints as distinct behaviors. Compare aged customers with a comparable non-aged/customer-history baseline, accounting for prior activity and plausible replenishment cadence; show uncertainty. Position first-time vet-diet customers as a priority hypothesis until the excess attrition/opportunity is established, rather than attributing the entire difference to aging.
-   - Second-review clarification: all-aged follow-up can qualify against any of a customer's aged cancellations, whereas first-order cohorts use one fixed anchor. The difference in opportunities to qualify is another reason not to read these rates as a causal segment comparison. Describe first-ever status as first observed in available history, and use a common anchor definition for any proposed like-for-like comparison.
-
-** TODO [#B] Make upload observability and the failure-stage funnel actionable
-   :PROPERTIES:
-   :REFNUM:   1.10.
-   :END:
-   - Comment: missing matched upload evidence is not by itself proof that the customer never uploaded, and current entity state is not a complete historical journey.
-   - Evidence: sections 2.3 and 2.6 / Tables 11--14. Table 14 shows only 777 aged lines with a matched upload, but it also permits uploads after cancellation and applies a bounded discovery window. The narrative's 33,336 overall entities, Table 11's 29,715 matched uploads and Table 14's 29,623 covered lines have different grains/matching populations.
-   - Action / done when: reconcile these populations visibly and validate a sample of no-upload and rejected cases against operational evidence and both source systems. Build a same-cohort, event-time funnel at order/line grain: eligible, uploaded before deadline, accepted, approved and fulfilled, with unknown/unlinked records explicit. Separate customer non-response, acquisition difficulty, upload/linkage failure, rejection and review delay before choosing the intervention.
-
-** TODO [#B] Align cohort periods and business definitions across the summary and appendices
-   :PROPERTIES:
-   :REFNUM:   1.11.
-   :END:
-   - Comment: the financial and process analyses answer related questions using different populations; readers should not interpret their metrics as one joined funnel or assume all missing-reason orders shipped.
-   - Evidence: financial/contact analyses use May--July 2026 activity and 30,382 aged customers; upload analysis uses August--October prescription creation and frozen first-order membership. Table 1 says missing cancellation reason does not prove an uncancelled order. The summary describes aging after ten days while the appendix describes an interval exceeding eleven days. "Successful" follow-up currently means non-cancelled/status-qualified, not necessarily verified fulfillment within the window.
-   - Action / done when: add a compact metric/cohort key with dates, counting unit, eligibility, observation cutoff and exact aging/fulfillment definition. Validate the cancellation policy with operations and state the timestamp/time-zone rule consistently. Use an observed-shipment baseline for shipment claims, and explicitly justify any transfer of findings between the financial and process cohorts.
-   - Second-review clarification: Table 6 explicitly documents 434 NULL-reason order/reason records with cancellation but no qualifying shipment, so the missing-reason group is demonstrably not a pure shipped baseline. Section 2.6's source-connection notes also describe an exclusive October 27 survival upload bound, whereas Figure 6 and section 2.4.1 specify exclusive October 26. Reconcile against the retained run manifest; distinguish upload discovery, event censoring and extraction dates rather than silently changing the analysis window.
-
-** TODO [#B] Specify the reminder experiment before implementation
-   :PROPERTIES:
-   :REFNUM:   1.12.
-   :END:
-   - Comment: "email customers after three days" is a starting hypothesis, not yet an executable product experiment.
-   - Reference: Executive Summary action 2 and section 2.4.
-   - Action / done when: define the observable day-three trigger, still-open eligible orders, exclusions for already uploaded/accepted/cancelled cases, and treatment versus current-practice control. Choose a randomization unit that prevents one customer's multiple orders crossing arms; specify segment stratification, attribution and follow-up. Set a primary fulfilled-order/aged-cancellation outcome, incremental value, longer-horizon retention, and customer/support/clinic-workload guardrails. Document sample-size/MDE rationale, duration, accountable owner, monitoring and stop/rollout thresholds before launch; do not assume the existing 221K scenario is treatment lift.
-   - Second-review clarification: define the reminder's customer action, upload destination and help path for customers who cannot obtain a prescription. Separate no-upload customers from submitted-but-pending or rejected customers who need a different action. Log eligibility, assignment, delivery and upload/fulfillment outcomes; use all assigned eligible customers for the primary comparison rather than only email openers or eventual aged customers.
-
-** TODO [#B] Turn customer research into a prioritized problem backlog
-   :PROPERTIES:
-   :REFNUM:   1.13.
-   :END:
-   - Comment: a prescription-pickup service, upload-flow repair and a reminder solve different problems. Contacting only customers who cancelled may miss what successful customers did differently.
-   - Reference: Executive Summary action 1; upload and contact findings in sections 2.2--2.3.
-   - Action / done when: define questions and a sampling plan covering first-time/repeat customers, aged/customer-cancelled orders and comparable successful upload journeys. Separate obtaining the prescription, understanding requirements, finding the upload entry point, technical submission issues and document rejection. Combine interviews/surveys with a coded review of validated contact logs and operational traces; report response/selection limits. Deliver ranked unmet needs, evidence confidence and a smallest next experiment for each, before selecting an expensive service intervention.
-
-** TODO [#C] Prepare a concise, synchronized decision-ready publication
-   :PROPERTIES:
-   :REFNUM:   1.14.
-   :END:
-   - Comment: the auditability is valuable, but the product reader needs the decision, key outcomes and uncertainty before extensive SQL and source documentation.
-   - Evidence: the main story is followed by a long SQL appendix; the current LaTeX executive summary contains an approval-after-acceptance conclusion that is absent from the published draft PDF reviewed here. Page 36 prints the literal label "tab:first-all-order-cancellations" instead of Table 13. Figure 2's axis labels and counts are very small at the published page size; the symmetric-log scale needs to remain readable.
-   - Action / done when: organize the opening around a few supported takeaways, the decision request and prioritized actions; retain detailed SQL/reproduction evidence in the appendix. Put each key denominator and caveat beside its claim, use consistent currency/unit formatting and avoid treating overlapping endpoints as additive. Proofread, regenerate the PDF from the reviewed source, verify links/figures, and record the evidence cutoff and reviewer sign-off before circulation. Do not change existing titles or remove analytical material without author agreement.
-   - Second-review clarification: fix the literal table reference, make Figure 2 readable at normal viewing size, and define D status and ACCEPTED versus prescription approval near their first use. Keep the requested SQL and reproduction sections; do not turn this review into an unrequested report restructure. Retain draft mode until the author requests final publication.
 
 * DONE Retired: VDAM upload distribution
   :PROPERTIES:
@@ -1402,10 +1277,11 @@
   :END:
   - Added make upload-data-verification-all to run the thirteen existing extraction/validation queries, six table generators and SQL listings. Preserved the original first-table-only target. CACHED=1 preflights retained inputs and rebuilds without Snowflake; failures stop the pipeline. Documented fresh/cached workflows and validation limits in HOWTO and the report.
   - Successfully ran the aggregate target with CACHED=1 and rebuilt the PDF. All six analyses and SQL listings completed; git diff --check passes. No fresh warehouse queries, tests or commit.
+  - Installed SQLFluff 4.5.0 as a uv development dependency, added .sqlfluff with only dialect = snowflake, documented make sql-lint/sql-format with SQL_PATH, and updated my-sql-code-skill. Sample formatting and linting, skill validation, uv lock --check and git diff --check passed. Repository-wide lint completed with existing style and template/parsing violations; no bulk SQL formatting, data queries or test suite. Awaiting commit approval.
 
-* DONE Install my-sql-code-skill in this repository
-  - Added .agents/skills/my-sql-code-skill/SKILL.md: keep analytical computation in SQL; derive cohorts and identifiers from database tables; prohibit uploaded identifiers/external row payloads, including DuckDB workflows; permit scalar date/window templates; require self-contained, CLI-executable, human-reviewable SQL.
-  - Skill validation passed; user approved committing the skill and this task entry.
+* DONE Check staged SQL and SQL templates with SQLFluff before commits
+  - Install a repository pre-commit hook via make setup/install-git-hooks. Check exact staged SQL/template contents with staged Snowflake configuration, fail on lint/parse/template errors, preserve partial staging, and skip deleted files. Document manual replay and verify hook behavior without warehouse access or bulk SQL edits.
+  - Installed .githooks/pre-commit through make setup. Added staged-content runner, non-overwriting installer, manual make target and HOWTO instructions. Verified no-SQL commits, staged/unstaged isolation in both directions, template failures and staged context, and deletions in an isolated Git fixture. No warehouse access or bulk SQL changes; awaiting commit approval.
 
 * DONE Require separate SQL templates rendered with Jinja
   - Updated my-sql-code-skill: SQL statements and fragments, including validation and DuckDB SQL, belong in separate files; Python loads and renders templates with Jinja2 and StrictUndefined rather than embedding or assembling SQL strings.
@@ -1419,3 +1295,7 @@
 * DONE Define the main document in my-analysis-structure
   - Added the first-class report target and make report dependencies: executive-summary, next-steps, appendix. Fixed document order and heading exceptions; detailed analysis begins at subsection level beneath Appendix.
   - Updated YAML document/parent relationships, README/HOWTO ordering, and propagation of REFRESH/REPRO. Skill validation passed; existing report implementation unchanged. User approved committing this skill update.
+
+* DONE Fix SQLFluff errors blocking the staged commit
+  - Reproduced make sql-lint-staged failure: undefined requested_keys produced an empty, unparsable CTE. Added a lint-only zero-row typed context, then fixed the lookup template's layout, identifier casing, explicit aliases and join operand order without changing join semantics or disabling rules.
+  - Scoped SQLFluff lint passes. The legacy runtime identifier-fragment workflow is unchanged; the lint context checks static template SQL only. No warehouse refresh or broad SQL refactor.

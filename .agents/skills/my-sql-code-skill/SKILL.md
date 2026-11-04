@@ -24,6 +24,12 @@ Keep as much analytical computation as practical in SQL. Deliver self-contained 
 - Use the target database's dialect and identify required database/schema context. Cross-database portability is not required; execution must not depend on host-language rewriting of analytical logic.
 - If reproducing a frozen result requires unavailable historical database data, explain that limitation rather than injecting saved identifiers or silently changing the cohort.
 
+## Formatting and linting
+
+- Use SQLFluff with the Snowflake dialect and otherwise default settings. This repository provides `make sql-lint` and `make sql-format`; use `SQL_PATH=path/to/query.sql` to scope either command.
+- The repository pre-commit hook checks staged SQL and SQL templates. Run `make sql-lint-staged` to check the index manually; fix and stage lint, parse, or template errors before committing. `make setup` installs the hook for each checkout.
+- Lint the SQL being delivered. For scalar-templated queries, provide concrete parameter values or lint the rendered SQL. Do not suppress parsing or templating errors to obtain a clean result. Review formatter changes; linting does not establish analytical correctness.
+
 ## Human review and verification
 
 - Use descriptive CTEs and explicit joins so a reviewer can follow source selection, grain changes, eligibility, and final aggregation. Comment non-obvious matching rules, time boundaries, NULL handling, and deduplication choices.

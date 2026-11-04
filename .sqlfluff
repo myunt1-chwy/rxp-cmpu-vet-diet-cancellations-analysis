@@ -1,0 +1,7 @@
+[sqlfluff]
+dialect = snowflake
+
+# Lint-only context for the legacy requested_keys SQL fragment. No identifiers
+# or external rows are supplied. The runtime generator supplies this fragment.
+[sqlfluff:templater:jinja:context]
+requested_keys = SELECT CAST(NULL AS NUMBER) AS order_id, CAST(NULL AS NUMBER) AS order_line_id WHERE FALSE

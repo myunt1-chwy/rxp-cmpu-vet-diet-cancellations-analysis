@@ -22,7 +22,7 @@ RUNTIME_DEPENDENCIES = [
     "sqlparse>=0.6.0",
     "statsmodels>=0.15.0",
 ]
-DEVELOPMENT_DEPENDENCIES = ["pytest>=9.1.1", "tomlkit>=0.13.3"]
+DEVELOPMENT_DEPENDENCIES = ["pytest>=9.1.1", "sqlfluff>=4.5.0", "tomlkit>=0.13.3"]
 
 
 def project_configuration(name: str, description: str) -> str:
@@ -88,7 +88,7 @@ def main(argv=None) -> int:
     except subprocess.CalledProcessError as error:
         print("Dependency synchronization failed; version constraints were preserved. Resolve the error above and rerun make setup.", file=sys.stderr)
         return error.returncode
-    return 0
+    return subprocess.run([sys.executable, "scripts/install_git_hooks.py"]).returncode
 
 
 if __name__ == "__main__":

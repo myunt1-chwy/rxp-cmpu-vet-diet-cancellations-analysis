@@ -41,7 +41,7 @@ def follow_up_inputs(appendix):
     chewy_files = [COMBINED_ALL_CHEWY] if (appendix/(COMBINED_ALL_CHEWY+'.tex')).exists() else [CHEWY,UPLOAD_CHEWY,VET_CHEWY]
     for name in chewy_files:
         if (appendix/(name+'.tex')).exists():names.append(name)
-    if (appendix/(SQL_LISTINGS+'.tex')).exists():names.append(SQL_LISTINGS)
+    # Keep SQL files available for inspection, outside the published report.
     if (appendix/(REPRODUCTION+'.tex')).exists():names.append(REPRODUCTION)
     return '\n'.join('\\input{appendix/'+name+'}' for name in names)
 

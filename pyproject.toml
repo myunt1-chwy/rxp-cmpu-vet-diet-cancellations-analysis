@@ -20,4 +20,8 @@ dependencies = [
     "vl-convert-python>=1.9.0.post1",
 ]
 [dependency-groups]
-dev = ["pytest>=9.1.1", "tomlkit>=0.13.3"]
+dev = [
+    "pytest>=9.1.1",
+    "sqlfluff>=4.5.0",
+    "tomlkit>=0.13.3",
+]
