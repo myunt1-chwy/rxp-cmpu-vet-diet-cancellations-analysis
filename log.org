@@ -376,3 +376,10 @@
   - Fifteen focused tests, Ruff lint/format, hierarchy/ownership validation,
     diff checks and commit hooks passed. No warehouse refresh, report rebuild,
     merge or push was performed for these tooling and documentation changes.
+
+* 2026-11-04 Place scaffold instructions before Executive summary
+  - User approved the placement change; committed as a5a1b44.
+  - Moved scaffold usage to the end of the report README and regenerated HOWTO
+    so the instructions immediately precede the Executive summary target.
+  - Verified generated order, 80-column width and git diff --check. Commit
+    hooks passed; no warehouse queries or report rebuild were needed.
