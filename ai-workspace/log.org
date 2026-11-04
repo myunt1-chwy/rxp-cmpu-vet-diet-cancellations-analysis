@@ -406,3 +406,21 @@
     feat/analysis-target-structure.
   - Moved todo.org and log.org, updated AGENTS.md references and adjusted
     relative Org file links. Diff checks and commit hooks passed.
+
+* 2026-11-04 Consolidate shared Python sources
+  - User approved the reorganization; committed as d0a6ffc on
+    feat/analysis-target-structure. All 27 shared Python files now reside
+    under shared/python, including build/scaffold tooling under analysis/.
+  - Updated imports, repository-root discovery, package search paths, Make
+    commands, target dependencies, AGENTS.md and generated HOWTO instructions.
+  - Preserved upload-state cached replay through an explicitly recorded
+    pre-import-move implementation identity. SQL, parameters, populations and
+    Parquet checks remain enforced; extraction metadata stays unchanged.
+  - Full tests passed 681 cases before correcting one import-order fixture;
+    all 23 related hook/scaffold/HOWTO tests and all 18 upload-state tests then
+    passed. Ruff, hierarchy/ownership checks and commit hooks passed.
+  - Resumed cached report validation after the cache lookup fix, reusing
+    successful pipelines. Final PDF and all 23 Org tables are byte-identical
+    to the pre-move copies. No warehouse refresh or push.
+  - Used a path-limited commit to preserve unrelated staged generated outputs
+    and the user's unstaged .gitignore edit.
