@@ -301,3 +301,8 @@
   - Local copies of all seven files remain. Verified no matching files are tracked, direct/nested auto metadata are ignored, and .el files outside auto remain eligible for tracking. git diff --check clean; no tests or data operations needed.
   - Used an isolated index to commit only the cleanup and task record, preserving the user's staged main.tex and report PDF contents exactly. No report changes included, no history rewrite, merge or remote push requested; commit hooks disabled.
 
+* 2026-11-03 Install repository SQL coding skill
+  - User approved the skill and task entry; committed as d3713a1 on feat/financial-line-status.
+  - Added my-sql-code-skill for database-side analytical computation, self-contained CLI-ready SQL, database-derived cohorts without uploaded row/identifier payloads, scalar templates, and human-reviewable query logic.
+  - Skill validation and staged diff checks passed. Included only the skill and its task entry; pending report and auto-reorder analysis changes remain uncommitted. No warehouse queries, test suite, merge or push.
+
