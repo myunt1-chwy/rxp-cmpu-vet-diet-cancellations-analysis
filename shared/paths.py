@@ -137,3 +137,17 @@ def output_path(path):
     destination = artifact_path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     return destination
+
+
+def latex_fragment_path(filename, *, root=None):
+    """Resolve a report fragment by filename before reading or writing it.
+
+    Generators can share fragments without sharing a physical directory.
+    The optional root supports isolated builds and tests with the same owners.
+    """
+    filename = str(filename)
+    if Path(filename).name != filename:
+        raise ValueError(f"Expected a LaTeX fragment filename: {filename}")
+    key = "src/latex/appendix/" + filename
+    destination = artifact_ownership()["path_prefixes"][key]
+    return (repository_root() if root is None else Path(root)) / destination

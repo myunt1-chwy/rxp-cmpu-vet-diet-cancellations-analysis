@@ -10,7 +10,7 @@ from datetime import UTC, date, datetime, timedelta
 import click
 import pandas as pd
 
-from shared.paths import artifact_path
+from shared.paths import artifact_path, latex_fragment_path
 from shared.python import create_opportunity_order_cancellation_summary as base
 from shared.python.contact_analysis import (
     DAY_NS,
@@ -183,11 +183,11 @@ the full cohort; positive-day rows sum to the distinct contacting customers.
 
 
 def publish_latex(text):
-    appendix = artifact_path(
-        ROOT / "targets/report/src/latex/retained/appendix"
-    )
-    appendix.mkdir(parents=True, exist_ok=True)
-    if (appendix / "customer_contacts_by_cancellation_reason.tex").exists():
+    if (
+        latex_fragment_path(
+            "customer_contacts_by_cancellation_reason.tex", root=ROOT
+        )
+    ).exists():
         anchor = r"\label{subsec:contact-analysis}"
         text = text.replace(
             anchor,
@@ -203,10 +203,10 @@ def publish_latex(text):
         "contact_window_reorders",
         "reproduction_contacts",
     ]:
-        if (appendix / (name + ".tex")).exists():
+        if (latex_fragment_path(name + ".tex", root=ROOT)).exists():
             text = text.rstrip() + "\n\n" + r"\input{appendix/" + name + "}\n"
-    write_text(appendix / "contact_analysis.tex", text)
-    main = artifact_path(ROOT / "targets/report/src/latex/retained/main.tex")
+    write_text(latex_fragment_path("contact_analysis.tex", root=ROOT), text)
+    main = ROOT / "targets/report/src/latex" / "assembly-source.tex"
     include = r"\input{appendix/contact_analysis}"
     if main.exists():
         body = main.read_text()

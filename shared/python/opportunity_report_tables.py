@@ -1,5 +1,6 @@
 """Keep published financial follow-up tables grouped by study."""
 
+from shared.paths import latex_fragment_path
 from shared.python.markdown_tables import write_text
 
 STUDIES = ["same-part-pet", "same-pet-different-part", "any-vet-diet"]
@@ -54,20 +55,23 @@ KNOWN_FILES = (
 )
 
 
-def follow_up_inputs(appendix):
+def follow_up_inputs(root):
     """
     Use per-study fragments; allow older aggregate-only outputs as
     fallback.
     """
     names = []
     whole_fragments = any(
-        (appendix / (name + ".tex")).exists() for name in WHOLE_FILES.values()
+        (latex_fragment_path(name + ".tex", root=root)).exists()
+        for name in WHOLE_FILES.values()
     )
     upload_fragments = any(
-        (appendix / (name + ".tex")).exists() for name in UPLOAD_FILES.values()
+        (latex_fragment_path(name + ".tex", root=root)).exists()
+        for name in UPLOAD_FILES.values()
     )
     vet_fragments = any(
-        (appendix / (name + ".tex")).exists() for name in VET_FILES.values()
+        (latex_fragment_path(name + ".tex", root=root)).exists()
+        for name in VET_FILES.values()
     )
     for index, study in enumerate(STUDIES):
         combined = {
@@ -75,7 +79,10 @@ def follow_up_inputs(appendix):
             "same-pet-different-part": COMBINED_DIFFERENT_PART,
             "any-vet-diet": COMBINED_ANY_VET_DIET,
         }.get(study)
-        if combined and (appendix / (combined + ".tex")).exists():
+        if (
+            combined
+            and (latex_fragment_path(combined + ".tex", root=root)).exists()
+        ):
             names.append(combined)
             continue
         for available, fragments, legacy in [
@@ -88,30 +95,36 @@ def follow_up_inputs(appendix):
                 if fragments
                 else (legacy if index == 0 else None)
             )
-            if name and (appendix / (name + ".tex")).exists():
+            if (
+                name
+                and (latex_fragment_path(name + ".tex", root=root)).exists()
+            ):
                 names.append(name)
     # Frequency remains a computed/exported analysis, outside the published
     # report.
     chewy_files = (
         [COMBINED_ALL_CHEWY]
-        if (appendix / (COMBINED_ALL_CHEWY + ".tex")).exists()
+        if (
+            latex_fragment_path(COMBINED_ALL_CHEWY + ".tex", root=root)
+        ).exists()
         else [CHEWY, UPLOAD_CHEWY, VET_CHEWY]
     )
     for name in chewy_files:
-        if (appendix / (name + ".tex")).exists():
+        if (latex_fragment_path(name + ".tex", root=root)).exists():
             names.append(name)
     # Keep SQL files available for inspection, outside the published report.
-    if (appendix / (REPRODUCTION + ".tex")).exists():
+    if (latex_fragment_path(REPRODUCTION + ".tex", root=root)).exists():
         names.append(REPRODUCTION)
     return "\n".join("\\input{appendix/" + name + "}" for name in names)
 
 
-def update_follow_up_inputs(parent):
+def update_follow_up_inputs(root):
+    parent = latex_fragment_path("financial_opportunity.tex", root=root)
     if not parent.exists():
         return
     text = parent.read_text()
     for name in KNOWN_FILES:
         text = text.replace("\\input{appendix/" + name + "}", "")
-    block = follow_up_inputs(parent.parent)
+    block = follow_up_inputs(root)
     text = text.rstrip() + "\n\n" + block + "\n"
     write_text(parent, text)

@@ -32,7 +32,8 @@ def test_retained_latex_and_published_pdf_paths():
     root = repository_root()
     assert artifact_path(root / "src/latex/appendix/contact_analysis.tex") == (
         root
-        / "targets/report/src/latex/retained/appendix/contact_analysis.tex"
+        / "targets/contact-days-relative-to-cancellation/src/latex"
+        / "contact_analysis.tex"
     )
     pdf = root / "outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf"
     assert artifact_path(pdf) == pdf
@@ -46,3 +47,19 @@ def test_prefixed_dataset_name_is_not_stripped_before_matching():
         "targets/opportunity-reorder-customer-counts/data/"
         "opportunity-reorder-customer-counts/source.parquet"
     )
+
+
+def test_latex_fragments_resolve_individually_across_owners(tmp_path):
+    from shared.paths import latex_fragment_path
+
+    paths = [
+        latex_fragment_path(name, root=tmp_path)
+        for name in (
+            "financial_opportunity.tex",
+            "financial_opportunity_follow_up_same_part_pet.tex",
+            "financial_opportunity_new_upload_follow_up_same_part_pet.tex",
+        )
+    ]
+    assert len({path.parent for path in paths}) == 3
+    assert all(path.is_relative_to(tmp_path / "targets") for path in paths)
+    assert not list(tmp_path.iterdir())  # Resolution does not create files.

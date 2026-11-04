@@ -13,7 +13,7 @@ shared_dependencies:
 - paths.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/main.tex
+  source: targets/report/src/latex/assembly-source.tex
   build: active
 artifact: null
 data_dependencies: []

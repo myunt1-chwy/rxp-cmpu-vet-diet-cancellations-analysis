@@ -17,12 +17,13 @@ shared_dependencies:
 - sankey.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/study_population_analysis.tex
+  source: targets/study-population-counts/src/latex/study_population_analysis.tex
   content: split
   code: relocated
   build: active
 artifact: Diagram (one visual).
 sources:
+- targets/first-order-upload-status-flow/src/sql/cmpu_first_order_comparison.sql
 - targets/first-order-upload-status-flow/src/python/create_cmpu_first_order_line_status.py
 - targets/first-order-upload-status-flow/src/sql/cmpu_first_order_line_status.sql
 - targets/first-order-upload-status-flow/src/python/create_cmpu_prescription_first_order_status.py

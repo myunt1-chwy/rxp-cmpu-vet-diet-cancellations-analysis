@@ -6,6 +6,7 @@ This existing command is retained outside the report hierarchy. Moving its sourc
 Run =make aged-order-reorder-wismo CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
 
 * Owned source
+- =targets/aged-order-reorder-wismo/src/python/create_aged_order_reorder_wismo.py=
 - =targets/aged-order-reorder-wismo/src/sql/aged_order_reorder_wismo.sql=
 - =targets/aged-order-reorder-wismo/src/sql/aged_order_reorder_all_contacts.sql=
 - =targets/aged-order-reorder-wismo/src/sql/aged_order_reorder_all_order_contacts.sql=

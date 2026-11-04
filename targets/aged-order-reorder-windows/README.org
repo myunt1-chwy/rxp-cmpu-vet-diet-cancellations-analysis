@@ -6,6 +6,8 @@ This existing command is retained outside the report hierarchy. Moving its sourc
 Run =make aged-order-reorder-windows CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
 
 * Owned source
+- =targets/aged-order-reorder-windows/src/python/create_aged_order_reorder_windows.py=
+- =targets/aged-order-reorder-windows/src/python/create_aged_order_reorder_daily_customers.py=
 - =targets/aged-order-reorder-windows/src/sql/aged_order_reorder_windows.sql=
 - =targets/aged-order-reorder-windows/src/sql/aged_order_reorder_windows_same_pet.sql=
 - =targets/aged-order-reorder-windows/src/sql/aged_order_reorder_windows_same_pet_21_days.sql=

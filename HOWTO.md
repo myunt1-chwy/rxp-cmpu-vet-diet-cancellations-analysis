@@ -147,11 +147,21 @@ live in `targets/report/data/`; existing source/cache fingerprints are
 preserved. The former `src/ignore/` playground is now `playground/` and is
 excluded from maintained-code checks.
 
-The report's retained LaTeX assembly fragments live in
-`targets/report/src/latex/retained/`. Paragraph adapters still read these
-fragments to reproduce the authoritative Org tables. Current authored target
-prose remains in each target's `src/latex/`. `make legacy-report` delegates to
-`make report`.
+LaTeX table and assembly fragments live under their owning targets' `src/latex/`
+directories. Paragraph adapters read their declared `migration.source` paths to
+reproduce authoritative Org tables. The historical filename mappings in
+`shared/artifact-ownership.yaml` resolve cross-target fragment references;
+`latex_fragment_path` resolves a filename before reading or writing it. There is
+no shared appendix directory to resolve before appending a filename.
+
+The legacy generators' assembly source is
+`targets/report/src/latex/assembly-source.tex`; the current report still builds
+from target bodies and ordered children. `make legacy-report` delegates to `make
+report`. All analysis entry points now live in their owning targets;
+`shared/python/` holds reusable helpers and import compatibility. SQL and Jinja
+templates live in their owning targets' `src/sql/` directories. Shared helpers
+resolve their queries through `shared/source-ownership.yaml`; the former
+`shared/sql/` directory has been removed.
 
 `make validate-analysis-sources validate-analysis-structure` checks ownership
 and the target graph. `make preview-target-report` renders retained presentation
@@ -1401,6 +1411,15 @@ resolved by the registry; root filesystem aliases have been removed.
 - `opportunity_aged_customer_contacts.sql` (in
   `targets/contact-days-relative-to-cancellation/src/sql/`)
 
+### Target-owned SQL
+
+- `src/sql/create_opportunity_aged_customer_contacts-query-1.sql.j2`
+- `src/sql/create_opportunity_aged_customer_contacts-query-2.sql.j2`
+
+These files are resolved through `shared/source-ownership.yaml`. Shared Python
+helpers use the registry to load target-owned templates. SQL contents and
+cached-query fingerprints are unchanged by this source relocation.
+
 What was the frequency of contacting Chewy for CMPU aged order customers?
 (`contact-frequency`)
 ---
@@ -2228,6 +2247,16 @@ the prescription-level generator or runs that generator's grouping logic just to
 validate input. The historical Python module name remains available through the
 source registry. The existing target Make command still builds the line-status
 analysis used in the report.
+
+### Target-owned SQL
+
+- `src/sql/cmpu_first_order_comparison.sql`
+
+These files are resolved through `shared/source-ownership.yaml`. Shared Python
+helpers use the registry to load target-owned templates. SQL contents and
+cached-query fingerprints are unchanged by this source relocation. The
+first-order comparison is a standalone audit query; relocation does not add it
+to the status extraction pipeline.
 
 What is the percentage of prescription upload? (`prescription-upload-coverage`)
 ---

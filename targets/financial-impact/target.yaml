@@ -15,7 +15,7 @@ shared_dependencies:
 - paths.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/financial_opportunity.tex
+  source: targets/cancellation-sales-baseline/src/latex/financial_opportunity.tex
   content: split
   build: active
 artifact: null

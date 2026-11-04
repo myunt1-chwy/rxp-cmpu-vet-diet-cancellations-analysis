@@ -7,8 +7,9 @@ import pytest
 from click.testing import CliRunner
 from test_opportunity_aged_reorders import frozen_from_raw, sql_sources
 
-from shared.paths import canonical_sql_path
+from shared.paths import canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_aged_reorders as a
+from shared.python.markdown_tables import write_text
 
 
 def ecom_source():
@@ -242,15 +243,20 @@ def test_ecom_fresh_cached_latex_and_preserved_include_order(
     (tmp_path / "src/sql/opportunity_chewy_follow_up.sql").write_text(
         canonical_sql_path("opportunity_chewy_follow_up.sql").read_text()
     )
-    appendix = tmp_path / "targets/report/src/latex/retained/appendix"
-    appendix.mkdir(parents=True)
-    (appendix / "financial_opportunity_reorders.tex").write_text(
-        "Existing three studies\n"
+    write_text(
+        latex_fragment_path(
+            "financial_opportunity_reorders.tex", root=tmp_path
+        ),
+        "Existing three studies\n",
     )
-    (appendix / "financial_opportunity_new_upload_follow_up.tex").write_text(
-        "New customer follow-up\n"
+    write_text(
+        latex_fragment_path(
+            "financial_opportunity_new_upload_follow_up.tex", root=tmp_path
+        ),
+        "New customer follow-up\n",
     )
-    parent = appendix / "financial_opportunity.tex"
+    parent = latex_fragment_path("financial_opportunity.tex", root=tmp_path)
+    parent.parent.mkdir(parents=True, exist_ok=True)
     parent.write_text("Financial opportunity\n")
     monkeypatch.setattr(a, "ROOT", tmp_path)
     calls = []
@@ -286,7 +292,9 @@ def test_ecom_fresh_cached_latex_and_preserved_include_order(
         and "SQL for Table" not in text
     )
     latex = (
-        appendix / "financial_opportunity_chewy_follow_up.tex"
+        latex_fragment_path(
+            "financial_opportunity_chewy_follow_up.tex", root=tmp_path
+        )
     ).read_text()
     assert r"\label{tab:financial-opportunity-reorder-all-chewy}" in latex
     assert (

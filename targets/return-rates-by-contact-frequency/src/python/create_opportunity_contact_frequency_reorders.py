@@ -8,7 +8,7 @@ import click
 import duckdb
 import pandas as pd
 
-from shared.paths import artifact_path
+from shared.paths import artifact_path, latex_fragment_path
 from shared.python import contact_analysis as contacts
 from shared.python import create_opportunity_order_cancellation_summary as base
 from shared.python import reorder_analysis as reorders
@@ -239,12 +239,10 @@ Observation cutoff: """
 
 
 def publish_latex(text):
-    appendix = artifact_path(
-        ROOT / "targets/report/src/latex/retained/appendix"
+    write_text(
+        latex_fragment_path("contact_frequency_reorders.tex", root=ROOT), text
     )
-    appendix.mkdir(parents=True, exist_ok=True)
-    write_text(appendix / "contact_frequency_reorders.tex", text)
-    parent = appendix / "contact_analysis.tex"
+    parent = latex_fragment_path("contact_analysis.tex", root=ROOT)
     include = r"\input{appendix/contact_frequency_reorders}"
     body = (
         parent.read_text()

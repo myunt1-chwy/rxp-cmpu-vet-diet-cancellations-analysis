@@ -8,8 +8,9 @@ from test_opportunity_aged_first_vet_diet_customers import history
 from test_opportunity_new_upload_customer_follow_up import cohort_fixture
 from test_opportunity_new_upload_follow_up_studies import broad_raw, chewy_raw
 
-from shared.paths import canonical_sql_path
+from shared.paths import canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_new_upload_customer_follow_up as a
+from shared.python.markdown_tables import write_text
 
 KIND = "first-vet-diet"
 
@@ -78,16 +79,18 @@ def test_first_vet_diet_cohort_fingerprints_modes_and_report_triplets(
             canonical_sql_path(name).read_text()
         )
     cohort_fixture(tmp_path, scope="vet-diet")
-    appendix = tmp_path / "targets/report/src/latex/retained/appendix"
-    appendix.mkdir(parents=True)
     r = a.report_tables
     for name in (
         list(r.WHOLE_FILES.values())
         + list(r.UPLOAD_FILES.values())
         + [r.CHEWY, r.UPLOAD_CHEWY, r.FREQUENCY]
     ):
-        (appendix / (name + ".tex")).write_text("Existing table\n")
-    parent = appendix / "financial_opportunity.tex"
+        write_text(
+            latex_fragment_path(name + ".tex", root=tmp_path),
+            "Existing table\n",
+        )
+    parent = latex_fragment_path("financial_opportunity.tex", root=tmp_path)
+    parent.parent.mkdir(parents=True, exist_ok=True)
     parent.write_text("Financial opportunity\n")
     rxp = broad_raw()
     ecom = chewy_raw(cohort_kind=KIND)
@@ -140,15 +143,20 @@ def test_first_vet_diet_cohort_fingerprints_modes_and_report_triplets(
         and "SQL for Table" not in body
     )
     latex = (
-        appendix
-        / "financial_opportunity_new_vet_diet_follow_up_same_part_pet.tex"
+        latex_fragment_path(
+            "financial_opportunity_new_vet_diet_follow_up_same_part_pet.tex",
+            root=tmp_path,
+        )
     ).read_text()
     assert r"\label{tab:financial-opportunity-new-vet-diet-follow-up}" in latex
     assert "whose first observed vet-diet order was an aged order" in latex
     assert "across all historical approval channels" in latex
     assert "fixed denominator of 1 customers" in latex
     eco = (
-        appendix / "financial_opportunity_new_vet_diet_chewy_follow_up.tex"
+        latex_fragment_path(
+            "financial_opportunity_new_vet_diet_chewy_follow_up.tex",
+            root=tmp_path,
+        )
     ).read_text()
     assert "tab:financial-opportunity-new-vet-diet-all-chewy" in eco
     assert r"\texttt{NET\_SALES}" in eco

@@ -13,7 +13,7 @@ shared_dependencies:
 - paths.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/contact_frequency_reorders.tex
+  source: targets/return-rates-by-contact-frequency/src/latex/contact_frequency_reorders.tex
   content: split
   build: active
 artifact: null

@@ -3,7 +3,7 @@ from decimal import Decimal
 import pandas as pd
 import pytest
 
-from shared.paths import canonical_sql_path
+from shared.paths import canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_aged_reorders as a
 
 
@@ -325,14 +325,12 @@ def test_all_windows_fresh_cached_sql_only_and_latex(tmp_path, monkeypatch):
     (tmp_path / "src/sql/opportunity_aged_reorders.sql").write_text(
         canonical_sql_path("opportunity_aged_reorders.sql").read_text()
     )
-    (tmp_path / "targets/report/src/latex/retained/appendix").mkdir(
-        parents=True
-    )
     parent = (
         tmp_path
-        / "targets/report/src/latex/retained/appendix"
+        / "targets/cancellation-sales-baseline/src/latex"
         / "financial_opportunity.tex"
     )
+    parent.parent.mkdir(parents=True, exist_ok=True)
     parent.write_text("Financial opportunity\n")
     monkeypatch.setattr(a, "ROOT", tmp_path)
     calls = []
@@ -356,7 +354,9 @@ def test_all_windows_fresh_cached_sql_only_and_latex(tmp_path, monkeypatch):
         == 1
     )
     assert "SQL for Table" not in parent.read_text()
-    latex = (parent.parent / "financial_opportunity_reorders.tex").read_text()
+    latex = latex_fragment_path(
+        "financial_opportunity_reorders.tex", root=tmp_path
+    ).read_text()
     assert r"\label{tab:financial-opportunity-reorder-windows}" in latex
     assert "May 1, 2026 through July 31, 2026" in latex
     assert "56 &" in latex and "63 &" in latex and "70 &" in latex
@@ -640,14 +640,12 @@ def test_three_studies_one_extract_cached_and_latex(tmp_path, monkeypatch):
     (tmp_path / "src/sql/opportunity_aged_reorders.sql").write_text(
         canonical_sql_path("opportunity_aged_reorders.sql").read_text()
     )
-    (tmp_path / "targets/report/src/latex/retained/appendix").mkdir(
-        parents=True
-    )
     parent = (
         tmp_path
-        / "targets/report/src/latex/retained/appendix"
+        / "targets/cancellation-sales-baseline/src/latex"
         / "financial_opportunity.tex"
     )
+    parent.parent.mkdir(parents=True, exist_ok=True)
     parent.write_text("Financial opportunity\n")
     monkeypatch.setattr(a, "ROOT", tmp_path)
     calls = []
@@ -673,9 +671,13 @@ def test_three_studies_one_extract_cached_and_latex(tmp_path, monkeypatch):
     assert summary.customers.eq(1).all()
     assert (
         r"Cohort (\%)"
-        in (parent.parent / "financial_opportunity_reorders.tex").read_text()
+        in latex_fragment_path(
+            "financial_opportunity_reorders.tex", root=tmp_path
+        ).read_text()
     )
-    latex = (parent.parent / "financial_opportunity_reorders.tex").read_text()
+    latex = latex_fragment_path(
+        "financial_opportunity_reorders.tex", root=tmp_path
+    ).read_text()
     assert latex.count(r"\begin{table}") == 4
     assert (
         r"\label{tab:financial-opportunity-customer-order-frequency}" in latex

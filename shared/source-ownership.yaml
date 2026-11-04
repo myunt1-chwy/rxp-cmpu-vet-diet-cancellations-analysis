@@ -5,19 +5,19 @@ modules:
   analyze_upload_source_time_coverage: targets/upload-source-date-coverage/src/python/analyze_upload_source_time_coverage.py
   analyze_upload_vet_diet_approval_channels: targets/uploaded-prescription-approval-channels/src/python/analyze_upload_vet_diet_approval_channels.py
   create_aged_customer_21d_reorder_clinic_history: targets/aged-customer-21d-reorder-clinic-history/src/python/create_aged_customer_21d_reorder_clinic_history.py
-  create_aged_customer_prior_same_clinic_shipments: shared/retained/python/create_aged_customer_prior_same_clinic_shipments.py
-  create_aged_customer_prior_shipped_prescriptions: shared/retained/python/create_aged_customer_prior_shipped_prescriptions.py
-  create_aged_order_all_contact_cancellation_distribution: shared/retained/python/create_aged_order_all_contact_cancellation_distribution.py
+  create_aged_customer_prior_same_clinic_shipments: targets/aged-customer-prior-same-clinic-shipments/src/python/create_aged_customer_prior_same_clinic_shipments.py
+  create_aged_customer_prior_shipped_prescriptions: targets/aged-customer-prior-shipped-prescriptions/src/python/create_aged_customer_prior_shipped_prescriptions.py
+  create_aged_order_all_contact_cancellation_distribution: targets/aged-order-all-contact-cancellation-distribution/src/python/create_aged_order_all_contact_cancellation_distribution.py
   create_aged_order_contact_cancellation_distribution: targets/aged-order-contact-cancellation-distribution/src/python/create_aged_order_contact_cancellation_distribution.py
-  create_aged_order_reorder_approval_channels: shared/retained/python/create_aged_order_reorder_approval_channels.py
-  create_aged_order_reorder_daily_customers: shared/retained/python/create_aged_order_reorder_daily_customers.py
-  create_aged_order_reorder_prescription_sankeys: shared/retained/python/create_aged_order_reorder_prescription_sankeys.py
-  create_aged_order_reorder_prescriptions: shared/retained/python/create_aged_order_reorder_prescriptions.py
-  create_aged_order_reorder_upload_approval_evidence: shared/retained/python/create_aged_order_reorder_upload_approval_evidence.py
-  create_aged_order_reorder_uploads: shared/retained/python/create_aged_order_reorder_uploads.py
-  create_aged_order_reorder_windows: shared/retained/python/create_aged_order_reorder_windows.py
-  create_aged_order_reorder_wismo: shared/retained/python/create_aged_order_reorder_wismo.py
-  create_aged_order_same_product_reorders: shared/retained/python/create_aged_order_same_product_reorders.py
+  create_aged_order_reorder_approval_channels: targets/aged-order-reorder-approval-channels/src/python/create_aged_order_reorder_approval_channels.py
+  create_aged_order_reorder_daily_customers: targets/aged-order-reorder-windows/src/python/create_aged_order_reorder_daily_customers.py
+  create_aged_order_reorder_prescription_sankeys: targets/aged-order-reorder-prescription-sankeys/src/python/create_aged_order_reorder_prescription_sankeys.py
+  create_aged_order_reorder_prescriptions: targets/aged-order-reorder-prescriptions/src/python/create_aged_order_reorder_prescriptions.py
+  create_aged_order_reorder_upload_approval_evidence: targets/aged-order-reorder-upload-approval-evidence/src/python/create_aged_order_reorder_upload_approval_evidence.py
+  create_aged_order_reorder_uploads: targets/aged-order-reorder-uploads/src/python/create_aged_order_reorder_uploads.py
+  create_aged_order_reorder_windows: targets/aged-order-reorder-windows/src/python/create_aged_order_reorder_windows.py
+  create_aged_order_reorder_wismo: targets/aged-order-reorder-wismo/src/python/create_aged_order_reorder_wismo.py
+  create_aged_order_same_product_reorders: targets/aged-order-same-product-reorders/src/python/create_aged_order_same_product_reorders.py
   create_cmpu_customer_prior_shipped_prescriptions: targets/cmpu-customer-prior-shipped-prescriptions/src/python/create_cmpu_customer_prior_shipped_prescriptions.py
   create_cmpu_first_order_line_approval_distribution: targets/accepted-upload-approval-delay/src/python/create_cmpu_first_order_line_approval_distribution.py
   create_cmpu_first_order_line_event_times: targets/first-order-survival-curve/src/python/create_cmpu_first_order_line_event_times.py
@@ -120,6 +120,10 @@ original_sha256:
   src/python/prior_shipment_history.py: 440b2a6f34bf0f54f65742c3dbad7c81defb602c83d7d56a5dcb67a1ac9b6b5b
   src/python/recreate_upload_data_verification.py: 4b96441f508faaf5d8b526d475025123d844fbe792fdfa72a7478e78e50b89fe
 queries:
+  create_opportunity_aged_reorders-query-4.sql.j2: targets/opportunity-aged-reorders/src/sql/create_opportunity_aged_reorders-query-4.sql.j2
+  create_opportunity_aged_reorders-query-3.sql.j2: targets/opportunity-aged-reorders/src/sql/create_opportunity_aged_reorders-query-3.sql.j2
+  create_opportunity_aged_customer_contacts-query-2.sql.j2: targets/contact-days-relative-to-cancellation/src/sql/create_opportunity_aged_customer_contacts-query-2.sql.j2
+  create_opportunity_aged_customer_contacts-query-1.sql.j2: targets/contact-days-relative-to-cancellation/src/sql/create_opportunity_aged_customer_contacts-query-1.sql.j2
   aged_customer_prior_same_clinic_shipments.sql: targets/aged-customer-prior-same-clinic-shipments/src/sql/aged_customer_prior_same_clinic_shipments.sql
   aged_customer_prior_shipped_prescriptions.sql: targets/aged-customer-prior-shipped-prescriptions/src/sql/aged_customer_prior_shipped_prescriptions.sql
   aged_order_all_contact_cancellation_distribution.sql: targets/aged-order-all-contact-cancellation-distribution/src/sql/aged_order_all_contact_cancellation_distribution.sql
@@ -135,11 +139,11 @@ queries:
   aged_order_reorder_windows_same_pet_21_days.sql: targets/aged-order-reorder-windows/src/sql/aged_order_reorder_windows_same_pet_21_days.sql
   aged_order_reorder_wismo.sql: targets/aged-order-reorder-wismo/src/sql/aged_order_reorder_wismo.sql
   aged_order_same_product_reorders.sql: targets/aged-order-same-product-reorders/src/sql/aged_order_same_product_reorders.sql
-  approval_time_analysis.sql: shared/sql/approval_time_analysis.sql
+  approval_time_analysis.sql: targets/cmpu-order-to-approval-distributions/src/sql/approval_time_analysis.sql
   cmpu_approved_prescription_upload_coverage.sql: targets/customer-upload-rx-status-coverage/src/sql/cmpu_approved_prescription_upload_coverage.sql
   cmpu_approved_prescription_upload_coverage_validation.sql: targets/customer-upload-rx-status-coverage/src/sql/cmpu_approved_prescription_upload_coverage_validation.sql
   cmpu_customer_prior_shipped_prescriptions.sql: targets/cmpu-customer-prior-shipped-prescriptions/src/sql/cmpu_customer_prior_shipped_prescriptions.sql
-  cmpu_first_order_comparison.sql: shared/sql/cmpu_first_order_comparison.sql
+  cmpu_first_order_comparison.sql: targets/first-order-upload-status-flow/src/sql/cmpu_first_order_comparison.sql
   cmpu_first_order_line_approval_distribution.sql: targets/accepted-upload-approval-delay/src/sql/cmpu_first_order_line_approval_distribution.sql
   cmpu_first_order_line_event_times.sql: targets/first-order-survival-curve/src/sql/cmpu_first_order_line_event_times.sql
   cmpu_first_order_line_status.sql: targets/first-order-upload-status-flow/src/sql/cmpu_first_order_line_status.sql
@@ -157,13 +161,13 @@ queries:
   null_resource_upload_orders.sql: targets/null-resource-cancellation-reasons/src/sql/null_resource_upload_orders.sql
   null_resource_upload_validation.sql: targets/null-resource-cancellation-reasons/src/sql/null_resource_upload_validation.sql
   opportunity_aged_customer_contacts.sql: targets/contact-days-relative-to-cancellation/src/sql/opportunity_aged_customer_contacts.sql
-  opportunity_aged_first_customer_upload_vet_diet_order_customers.sql: shared/sql/opportunity_aged_first_customer_upload_vet_diet_order_customers.sql
-  opportunity_aged_first_order_customers.sql: shared/sql/opportunity_aged_first_order_customers.sql
-  opportunity_aged_first_vet_diet_order_customers.sql: shared/sql/opportunity_aged_first_vet_diet_order_customers.sql
+  opportunity_aged_first_customer_upload_vet_diet_order_customers.sql: targets/opportunity-aged-new-customers/src/sql/opportunity_aged_first_customer_upload_vet_diet_order_customers.sql
+  opportunity_aged_first_order_customers.sql: targets/opportunity-aged-new-customers/src/sql/opportunity_aged_first_order_customers.sql
+  opportunity_aged_first_vet_diet_order_customers.sql: targets/opportunity-aged-new-customers/src/sql/opportunity_aged_first_vet_diet_order_customers.sql
   opportunity_aged_new_customers.sql: targets/opportunity-aged-new-customers/src/sql/opportunity_aged_new_customers.sql
-  opportunity_aged_reorders.sql: shared/sql/opportunity_aged_reorders.sql
+  opportunity_aged_reorders.sql: targets/opportunity-aged-reorders/src/sql/opportunity_aged_reorders.sql
   opportunity_auto_reorder_flags.sql: targets/opportunity-same-pet-part-auto-reorder/src/sql/opportunity_auto_reorder_flags.sql
-  opportunity_chewy_follow_up.sql: shared/sql/opportunity_chewy_follow_up.sql
+  opportunity_chewy_follow_up.sql: targets/opportunity-aged-reorders/src/sql/opportunity_chewy_follow_up.sql
   opportunity_customer_contacts_by_cancel_reason.sql: targets/contact-cancellation-distribution/src/sql/opportunity_customer_contacts_by_cancel_reason.sql
   opportunity_new_upload_customer_chewy_follow_up.sql: targets/opportunity-new-upload-customer-follow-up/src/sql/opportunity_new_upload_customer_chewy_follow_up.sql
   opportunity_new_upload_customer_follow_up.sql: targets/opportunity-new-upload-customer-follow-up/src/sql/opportunity_new_upload_customer_follow_up.sql

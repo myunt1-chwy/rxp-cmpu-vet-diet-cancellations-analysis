@@ -6,7 +6,7 @@ from jinja2 import Environment, StrictUndefined
 
 from shared.paths import canonical_sql_path
 from shared.python import financial_values as base
-from shared.sql_templates import module_sql
+from shared.sql_templates import render_sql as render_template
 
 MIN_DAY = -13
 
@@ -177,9 +177,10 @@ def analyze(raw, start, end, handled_only=False):
         .fillna(0)
     )
     frequency.distinct_customers = frequency.distinct_customers.astype("int64")
-    verify = module_sql(
-        __file__,
-        "create_opportunity_aged_customer_contacts-query-1.sql.j2",
+    verify = render_template(
+        canonical_sql_path(
+            "create_opportunity_aged_customer_contacts-query-1.sql.j2"
+        ),
         min_day=MIN_DAY,
         end_day=MAX_DAY + 1,
         handled_only=handled_only,
@@ -197,9 +198,10 @@ def analyze(raw, start, end, handled_only=False):
         expected = c.execute(verify).df()
         c.register("aged_orders", orders)
         frequency_expected = c.execute(
-            module_sql(
-                __file__,
-                "create_opportunity_aged_customer_contacts-query-2.sql.j2",
+            render_template(
+                canonical_sql_path(
+                    "create_opportunity_aged_customer_contacts-query-2.sql.j2"
+                ),
                 end_count=MAX_DAY - MIN_DAY + 2,
                 handled_only=handled_only,
             )
@@ -289,9 +291,10 @@ def analyze(raw, start, end, handled_only=False):
 
 
 def frequency_verification_sql(handled_only):
-    return module_sql(
-        __file__,
-        "create_opportunity_aged_customer_contacts-query-2.sql.j2",
+    return render_template(
+        canonical_sql_path(
+            "create_opportunity_aged_customer_contacts-query-2.sql.j2"
+        ),
         end_count=MAX_DAY - MIN_DAY + 2,
         handled_only=handled_only,
     )

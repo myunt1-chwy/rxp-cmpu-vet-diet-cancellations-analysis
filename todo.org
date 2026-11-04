@@ -1445,3 +1445,32 @@
 * DONE Place scaffold usage immediately before Executive summary in HOWTO
   - Moved the scaffold usage section to the end of the report README and
     regenerated HOWTO so it directly precedes the Executive summary target.
+
+* DONE Move retained generators and LaTeX into owning targets
+  - Relocate remaining Python generators, update source ownership and imports.
+  - Relocate active LaTeX fragments and update generators, adapters and paths.
+  - Remove obsolete retained directories after checking references; validate
+    ownership, tests, lint and cached report reproduction without new queries.
+  - Moved 12 byte-identical Python generators and 39 LaTeX fragments; removed
+    the duplicate stylesheet and both retired source directories. Explicit
+    filename routing replaces the shared appendix directory assumption.
+  - Updated ownership, adapters' source metadata, readers/writers, tests and
+    reproduction instructions. Validation rejects recreated retired sources.
+  - All 682 tests and 16 subtests, Ruff, SQLFluff, ownership/hierarchy checks
+    and cached make report passed. Published and target PDFs are byte-identical
+    to the saved pre-move report. No SQL sources or warehouse inputs changed.
+  - Twenty-two of 23 Org exports match pre-move hashes. Verified every cell of
+    the remaining upload-resource export against its cached LaTeX source and
+    corrected pre-existing percentage labels to prescription-ID count labels.
+
+* DONE Move shared SQL into related targets
+  - Move the remaining queries and audit templates into their analysis owners.
+  - Resolve templates used by reusable helpers through the source registry;
+    preserve SQL bytes and cache fingerprints, then test and lint resolution.
+  - Moved seven queries and four audit templates to the first-order status,
+    approval-duration, new-customer, reorder and contact targets. Removed
+    shared/sql; shared helpers now resolve templates through source ownership.
+  - All 11 files are byte-identical, preserving SQL/cache fingerprints.
+    Updated target READMEs, generated HOWTO and ownership validation.
+  - All 682 tests and 16 subtests, Ruff, SQLFluff, hierarchy/ownership and diff
+    checks pass. No warehouse refresh or further PDF rebuild was needed.

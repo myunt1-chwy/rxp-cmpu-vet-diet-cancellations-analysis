@@ -18,7 +18,7 @@ shared_dependencies:
 - sankey.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/survival_analysis.tex
+  source: targets/first-order-survival-curve/src/latex/survival_analysis.tex
   content: split
   code: relocated
   build: active

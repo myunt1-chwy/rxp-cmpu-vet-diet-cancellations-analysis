@@ -10,3 +10,12 @@ Run =make cmpu-order-to-approval-distributions CACHED=1= to reuse retained input
 - =targets/cmpu-order-to-approval-distributions/src/sql/cmpu_order_to_approval_distributions.sql=
 
 Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.
+
+* Target-owned SQL
+- =src/sql/approval_time_analysis.sql=
+
+These files are resolved through =shared/source-ownership.yaml=. Shared
+Python helpers use the registry to load target-owned templates. SQL contents
+and cached-query fingerprints are unchanged by this source relocation.
+The approval-time file contains standalone reference analyses, not a new
+warehouse extraction step in the Make recipe.

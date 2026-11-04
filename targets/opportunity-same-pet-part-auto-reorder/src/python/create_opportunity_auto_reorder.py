@@ -11,9 +11,9 @@ import duckdb
 import pandas as pd
 
 from shared.cohort_queries import cached_expectations, render_cohort_query
-from shared.paths import artifact_path, canonical_sql_path
+from shared.paths import artifact_path, canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_order_cancellation_summary as base
-from shared.python.follow_up_tables import APPENDIX, SOURCES, read_table
+from shared.python.follow_up_tables import SOURCES, read_table
 from shared.python.markdown_tables import markdown_table, write_text
 from shared.sql_templates import module_sql
 
@@ -54,12 +54,11 @@ def load_inputs():
             fingerprints[str(path.relative_to(ROOT))] = digest
             return pd.read_parquet(path)
 
-        published, denominator, _, cutoff = read_table(APPENDIX / filename)
+        fragment = latex_fragment_path(filename, root=ROOT)
+        published, denominator, _, cutoff = read_table(fragment)
         if cutoff != "2026-10-28 00:00 UTC":
             raise ValueError("Published observation cutoff changed")
-        fingerprints[str((APPENDIX / filename).relative_to(ROOT))] = (
-            base.digest(APPENDIX / filename)
-        )
+        fingerprints[str(fragment.relative_to(ROOT))] = base.digest(fragment)
         summary = read("summary.parquet")
         if "study" in summary:
             summary = summary.loc[summary.study.eq("same-part-pet")]

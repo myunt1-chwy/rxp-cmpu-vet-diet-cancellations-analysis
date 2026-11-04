@@ -6,6 +6,7 @@ This existing command is retained outside the report hierarchy. Moving its sourc
 Run =make aged-order-reorder-prescriptions CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
 
 * Owned source
+- =targets/aged-order-reorder-prescriptions/src/python/create_aged_order_reorder_prescriptions.py=
 - =targets/aged-order-reorder-prescriptions/src/sql/aged_order_reorder_prescriptions.sql=
 
 Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.

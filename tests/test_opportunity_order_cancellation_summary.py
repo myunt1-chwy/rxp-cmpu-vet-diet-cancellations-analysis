@@ -8,7 +8,9 @@ import pyarrow.parquet as pq
 import pytest
 from click.testing import CliRunner
 
+from shared.paths import latex_fragment_path
 from shared.python import create_opportunity_order_cancellation_summary as a
+from shared.python.markdown_tables import write_text
 
 DATES = ("2026-06-01", "2026-09-01")
 
@@ -617,7 +619,7 @@ def test_event_fresh_cached_sql_only_and_separate_cache(tmp_path, monkeypatch):
         "orders shipped or cancelled"
         in (
             tmp_path
-            / "targets/report/src/latex/retained/appendix"
+            / "targets/cancellation-sales-baseline/src/latex"
             / "financial_opportunity.tex"
         ).read_text()
     )
@@ -767,10 +769,11 @@ def test_may_july_event_window_boundaries(field):
 def test_baseline_preserves_new_customer_followup_without_sql(
     tmp_path, monkeypatch
 ):
-    appendix = tmp_path / "targets/report/src/latex/retained/appendix"
-    appendix.mkdir(parents=True)
-    (appendix / "financial_opportunity_new_upload_follow_up.tex").write_text(
-        "Follow-up table\n"
+    write_text(
+        latex_fragment_path(
+            "financial_opportunity_new_upload_follow_up.tex", root=tmp_path
+        ),
+        "Follow-up table\n",
     )
     monkeypatch.setattr(a, "ROOT", tmp_path)
     prescriptions, lines = sources()

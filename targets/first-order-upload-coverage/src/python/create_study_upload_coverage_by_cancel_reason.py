@@ -535,11 +535,9 @@ def main():
         + "\n",
     )
     write_text(
-        artifact_path(
-            ROOT
-            / "targets/report/src/latex/retained/appendix"
-            / "study_upload_coverage_by_cancel_reason.tex"
-        ),
+        ROOT
+        / "targets/first-order-upload-coverage/src/latex"
+        / "study_upload_coverage_by_cancel_reason.tex",
         latex_table(frames["summary"]),
     )
     print(frames["summary"].to_string(index=False))

@@ -14,7 +14,7 @@ shared_dependencies:
 - python/markdown_tables.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/data_source_connections.tex
+  source: targets/data-source-diagrams/src/latex/data_source_connections.tex
   content: split
   code: relocated
   build: active

@@ -17,7 +17,7 @@ shared_dependencies:
 - python/sql_listing_format.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/data_verification.tex
+  source: targets/data-verification/src/latex/data_verification.tex
   content: split
   code: relocated
   build: active
@@ -40,9 +40,9 @@ pipeline: verification
 table_columns:
 - Resource type
 - HCDM rows
-- HCDM share (%)
+- HCDM with Rx ID
 - Notification rows
-- Notification share (%)
+- Notification with Rx ID
 data_dependencies:
 - upload-resource-types
 - upload-source-date-coverage

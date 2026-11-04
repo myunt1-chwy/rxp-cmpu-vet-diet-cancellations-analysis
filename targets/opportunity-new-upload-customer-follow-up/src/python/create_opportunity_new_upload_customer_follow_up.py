@@ -13,7 +13,7 @@ import click
 import pandas as pd
 from jinja2 import Environment, StrictUndefined
 
-from shared.paths import artifact_path, canonical_sql_path
+from shared.paths import artifact_path, canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_order_cancellation_summary as base
 from shared.python import first_order_cohorts as first
 from shared.python import opportunity_report_tables as report_tables
@@ -430,10 +430,6 @@ numeric customer ID, exact \texttt{PRODUCT\_PART\_NUMBER} and non-null
 def publish_latex(
     text, all_chewy=False, tables=None, cohort_kind="first-upload"
 ):
-    appendix = artifact_path(
-        ROOT / "targets/report/src/latex/retained/appendix"
-    )
-    appendix.mkdir(parents=True, exist_ok=True)
     filename = (
         "financial_opportunity_new_upload_chewy_follow_up.tex"
         if all_chewy
@@ -441,7 +437,7 @@ def publish_latex(
     )
     if cohort_kind == "first-vet-diet":
         filename = filename.replace("new_upload", "new_vet_diet")
-    write_text(appendix / filename, text)
+    write_text(latex_fragment_path(filename, root=ROOT), text)
     if not all_chewy:
         fragments = (
             report_tables.VET_FILES
@@ -449,10 +445,11 @@ def publish_latex(
             else report_tables.UPLOAD_FILES
         )
         for study, fragment in (tables or {}).items():
-            write_text(appendix / (fragments[study] + ".tex"), fragment)
-    report_tables.update_follow_up_inputs(
-        appendix / "financial_opportunity.tex"
-    )
+            write_text(
+                latex_fragment_path(fragments[study] + ".tex", root=ROOT),
+                fragment,
+            )
+    report_tables.update_follow_up_inputs(ROOT)
 
 
 @click.command()

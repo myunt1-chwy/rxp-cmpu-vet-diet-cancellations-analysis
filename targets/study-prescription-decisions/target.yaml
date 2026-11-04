@@ -17,7 +17,7 @@ shared_dependencies:
 - python/opportunity_report_tables.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/study_population_analysis.tex
+  source: targets/study-population-counts/src/latex/study_population_analysis.tex
   content: split
   code: relocated
   build: active

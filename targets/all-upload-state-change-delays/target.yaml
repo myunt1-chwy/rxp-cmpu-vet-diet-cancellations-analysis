@@ -14,7 +14,7 @@ shared_dependencies:
 - python/markdown_tables.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/entity_upload_analysis.tex
+  source: targets/upload-processing-time/src/latex/entity_upload_analysis.tex
   content: split
   build: active
 artifact: Figure (one visual).

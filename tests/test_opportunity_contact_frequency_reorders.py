@@ -7,7 +7,9 @@ from test_opportunity_aged_customer_contacts import CANCEL
 from test_opportunity_aged_customer_contacts import source as contact_source
 from test_opportunity_aged_reorders import sources
 
+from shared.paths import latex_fragment_path
 from shared.python import create_opportunity_contact_frequency_reorders as a
+from shared.python.markdown_tables import write_text
 
 
 def fixtures():
@@ -162,7 +164,7 @@ def test_fresh_cached_handled_sql_only_and_cache_hashes(tmp_path, monkeypatch):
     assert len(calls) == 2
     child = (
         tmp_path
-        / "targets/report/src/latex/retained/appendix"
+        / "targets/return-rates-by-contact-frequency/src/latex"
         / "contact_frequency_reorders.tex"
     )
     text = child.read_text()
@@ -178,11 +180,12 @@ def test_fresh_cached_handled_sql_only_and_cache_hashes(tmp_path, monkeypatch):
         and "May 1, 2026 through July 31, 2026" in text
     )
     assert r"1 & 1 & 1 & 100.00\%" in text
-    parent = child.with_name("contact_analysis.tex")
+    parent = latex_fragment_path("contact_analysis.tex", root=tmp_path)
     include = r"\input{appendix/contact_frequency_reorders}"
     assert parent.read_text().count(include) == 1
-    child.with_name("contact_window_reorders.tex").write_text(
-        "Timing comparison table\n"
+    write_text(
+        latex_fragment_path("contact_window_reorders.tex", root=tmp_path),
+        "Timing comparison table\n",
     )
     from shared.python import (
         create_opportunity_aged_customer_contacts as report,

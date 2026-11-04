@@ -81,7 +81,21 @@ was executed. Refresh explicitly when new SQL needs warehouse execution.
 * Repository layout
 The root =src/= and =data/= directories are retired. Retained datasets and generated artifacts live under their target owners. Historical migration audits live in =targets/report/data/=; existing source/cache fingerprints are preserved. The former =src/ignore/= playground is now =playground/= and is excluded from maintained-code checks.
 
-The report's retained LaTeX assembly fragments live in =targets/report/src/latex/retained/=. Paragraph adapters still read these fragments to reproduce the authoritative Org tables. Current authored target prose remains in each target's =src/latex/=. =make legacy-report= delegates to =make report=.
+LaTeX table and assembly fragments live under their owning targets' =src/latex/=
+directories. Paragraph adapters read their declared =migration.source= paths
+to reproduce authoritative Org tables. The historical filename mappings in
+=shared/artifact-ownership.yaml= resolve cross-target fragment references;
+=latex_fragment_path= resolves a filename before reading or writing it. There
+is no shared appendix directory to resolve before appending a filename.
+
+The legacy generators' assembly source is
+=targets/report/src/latex/assembly-source.tex=; the current report still builds
+from target bodies and ordered children. =make legacy-report= delegates to
+=make report=. All analysis entry points now live in their owning targets;
+=shared/python/= holds reusable helpers and import compatibility. SQL and
+Jinja templates live in their owning targets' =src/sql/= directories. Shared
+helpers resolve their queries through =shared/source-ownership.yaml=; the
+former =shared/sql/= directory has been removed.
 
 =make validate-analysis-sources validate-analysis-structure= checks ownership and the target graph. =make preview-target-report= renders retained presentation snapshots without warehouse access or replacing the published PDF. This preview does not certify the query cache or replace a successful =make report=.
 

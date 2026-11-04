@@ -13,7 +13,7 @@ shared_dependencies:
 - paths.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/study_upload_coverage_by_cancel_reason.tex
+  source: targets/first-order-upload-coverage/src/latex/study_upload_coverage_by_cancel_reason.tex
   content: split
   build: active
 artifact: null

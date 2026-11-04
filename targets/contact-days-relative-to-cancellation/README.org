@@ -37,3 +37,11 @@ Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps histo
 
 * Additional target-owned source
 - =targets/contact-days-relative-to-cancellation/src/sql/opportunity_aged_customer_contacts.sql=
+
+* Target-owned SQL
+- =src/sql/create_opportunity_aged_customer_contacts-query-1.sql.j2=
+- =src/sql/create_opportunity_aged_customer_contacts-query-2.sql.j2=
+
+These files are resolved through =shared/source-ownership.yaml=. Shared
+Python helpers use the registry to load target-owned templates. SQL contents
+and cached-query fingerprints are unchanged by this source relocation.

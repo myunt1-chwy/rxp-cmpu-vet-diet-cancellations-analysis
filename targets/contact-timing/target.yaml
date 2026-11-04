@@ -11,7 +11,7 @@ shared_dependencies:
 - paths.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/contact_analysis.tex
+  source: targets/contact-days-relative-to-cancellation/src/latex/contact_analysis.tex
   content: split
   build: active
 artifact: null

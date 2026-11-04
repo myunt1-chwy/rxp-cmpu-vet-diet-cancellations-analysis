@@ -3,3 +3,13 @@
 This existing Make command coordinates outputs for multiple report paragraphs; it does not add a document section.
 
 Run =make opportunity-aged-reorders CACHED=1= to rebuild with retained data. Source is owned under =src/python/=; queries and templates used only by this command are in =src/sql/=. Existing arguments, output paths and cache checks are preserved.
+
+* Target-owned SQL
+- =src/sql/opportunity_aged_reorders.sql=
+- =src/sql/opportunity_chewy_follow_up.sql=
+- =src/sql/create_opportunity_aged_reorders-query-3.sql.j2=
+- =src/sql/create_opportunity_aged_reorders-query-4.sql.j2=
+
+These files are resolved through =shared/source-ownership.yaml=. Shared
+Python helpers use the registry to load target-owned templates. SQL contents
+and cached-query fingerprints are unchanged by this source relocation.

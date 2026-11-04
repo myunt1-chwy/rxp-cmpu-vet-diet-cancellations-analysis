@@ -494,9 +494,9 @@ def write_exports(ships, lines, summary, metadata, write_latex):
         + "\n",
     )
     if write_latex:
-        target = artifact_path(
+        target = (
             ROOT
-            / "targets/report/src/latex/retained/appendix"
+            / "targets/study-population-counts/src/latex"
             / "study_population_analysis.tex"
         )
         text = target.read_text()

@@ -2,9 +2,8 @@
 
 import pandas as pd
 
-from shared.paths import artifact_path
+from shared.paths import artifact_path, latex_fragment_path
 from shared.python.follow_up_tables import (
-    APPENDIX,
     ROOT,
     SOURCES,
     read_table,
@@ -142,7 +141,10 @@ and a TRUE vet-diet flag on the later line. Use a different order"""
             "Amounts display two decimals; ECOM supplies four-decimal "
             "amounts, retained exactly in five-decimal exports."
         )
-    tables = [read_table(APPENDIX / filename) for _, filename in sources]
+    tables = [
+        read_table(latex_fragment_path(filename, root=ROOT))
+        for _, filename in sources
+    ]
     days = [row[0] for row in tables[0][0]]
     if any(
         [row[0] for row in table[0]] != days or table[2:] != tables[0][2:]
@@ -321,4 +323,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-__all__ = ["APPENDIX", "ROOT", "SOURCES", "read_table"]
+__all__ = ["ROOT", "SOURCES", "read_table"]

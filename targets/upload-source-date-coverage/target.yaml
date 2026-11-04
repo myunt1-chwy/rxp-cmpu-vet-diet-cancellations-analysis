@@ -17,7 +17,7 @@ shared_dependencies:
 - python/sql_listing_format.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/data_verification.tex
+  source: targets/data-verification/src/latex/data_verification.tex
   content: split
   code: relocated
   build: active

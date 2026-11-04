@@ -14,7 +14,7 @@ from test_opportunity_aged_reorders import (
 from test_opportunity_chewy_follow_up import ecom_source
 from test_opportunity_new_upload_customer_follow_up import cohort_fixture
 
-from shared.paths import canonical_sql_path
+from shared.paths import canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_new_upload_customer_follow_up as a
 
 
@@ -160,9 +160,8 @@ def test_all_scopes_fresh_cached_sql_and_report_inclusions(
             canonical_sql_path(name).read_text()
         )
     cohort_fixture(tmp_path)
-    appendix = tmp_path / "targets/report/src/latex/retained/appendix"
-    appendix.mkdir(parents=True)
-    parent = appendix / "financial_opportunity.tex"
+    parent = latex_fragment_path("financial_opportunity.tex", root=tmp_path)
+    parent.parent.mkdir(parents=True, exist_ok=True)
     parent.write_text("Financial opportunity\n")
     rxp = broad_raw()
     ecom = chewy_raw()
@@ -205,7 +204,9 @@ def test_all_scopes_fresh_cached_sql_and_report_inclusions(
         and "SQL for Table" not in body
     )
     rxlatex = (
-        appendix / "financial_opportunity_new_upload_follow_up.tex"
+        latex_fragment_path(
+            "financial_opportunity_new_upload_follow_up.tex", root=tmp_path
+        )
     ).read_text()
     assert rxlatex.count(r"\begin{table}") == 3
     for study in a.reorders.STUDIES:

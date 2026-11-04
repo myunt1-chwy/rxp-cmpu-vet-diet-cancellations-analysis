@@ -22,7 +22,7 @@ shared_dependencies:
 - python/financial_values.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/study_upload_coverage_by_cancel_reason.tex
+  source: targets/first-order-upload-coverage/src/latex/study_upload_coverage_by_cancel_reason.tex
   content: split
   code: relocated
   build: active

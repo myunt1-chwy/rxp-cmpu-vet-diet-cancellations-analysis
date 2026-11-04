@@ -7,8 +7,9 @@ import pytest
 from click.testing import CliRunner
 from test_opportunity_aged_reorders import sources, sql_sources
 
-from shared.paths import canonical_sql_path
+from shared.paths import canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_new_upload_customer_follow_up as a
+from shared.python.markdown_tables import write_text
 
 
 def cohort_fixture(root, scope=a.SCOPE):
@@ -212,14 +213,16 @@ def test_new_followup_fresh_cached_sql_only_and_provenance(
         return {"engine": "fixture"}
 
     monkeypatch.setattr(a.base, "extract", extract)
-    appendix = tmp_path / "targets/report/src/latex/retained/appendix"
-    appendix.mkdir(parents=True)
     for name in [
         "financial_opportunity_reorders",
         "financial_opportunity_chewy_follow_up",
     ]:
-        (appendix / (name + ".tex")).write_text("Existing table\n")
-    parent = appendix / "financial_opportunity.tex"
+        write_text(
+            latex_fragment_path(name + ".tex", root=tmp_path),
+            "Existing table\n",
+        )
+    parent = latex_fragment_path("financial_opportunity.tex", root=tmp_path)
+    parent.parent.mkdir(parents=True, exist_ok=True)
     parent.write_text("Financial opportunity\n")
     runner = CliRunner()
     printed = runner.invoke(a.main, ["--print-sql"])
@@ -252,7 +255,9 @@ def test_new_followup_fresh_cached_sql_only_and_provenance(
         and "PRODUCT_PART_NUMBER" in report
     )
     latex = (
-        appendix / "financial_opportunity_new_upload_follow_up.tex"
+        latex_fragment_path(
+            "financial_opportunity_new_upload_follow_up.tex", root=tmp_path
+        )
     ).read_text()
     assert (
         r"\label{tab:financial-opportunity-new-upload-follow-up}" in latex

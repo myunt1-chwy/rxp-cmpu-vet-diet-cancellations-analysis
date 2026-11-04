@@ -17,7 +17,7 @@ shared_dependencies:
 - sankey.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/approval_analysis.tex
+  source: targets/accepted-upload-approval-delay/src/latex/approval_analysis.tex
   content: split
   code: relocated
   build: active

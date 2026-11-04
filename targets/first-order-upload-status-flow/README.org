@@ -51,3 +51,12 @@ The prescription-level generator and its query belong to this target:
 - =src/sql/cmpu_prescription_first_order_status.sql=
 
 The line-status generator calls =shared/prescription_uploads.py= for source validation and normalization, =shared/runtime.py= for paths and file fingerprints, and =shared/sankey.py= for diagram rendering. It no longer imports the prescription-level generator or runs that generator's grouping logic just to validate input. The historical Python module name remains available through the source registry. The existing target Make command still builds the line-status analysis used in the report.
+
+* Target-owned SQL
+- =src/sql/cmpu_first_order_comparison.sql=
+
+These files are resolved through =shared/source-ownership.yaml=. Shared
+Python helpers use the registry to load target-owned templates. SQL contents
+and cached-query fingerprints are unchanged by this source relocation.
+The first-order comparison is a standalone audit query; relocation does
+not add it to the status extraction pipeline.

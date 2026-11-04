@@ -11,7 +11,7 @@ import click
 import duckdb
 import pandas as pd
 
-from shared.paths import artifact_path
+from shared.paths import artifact_path, latex_fragment_path
 from shared.python import create_opportunity_order_cancellation_summary as base
 from shared.python import opportunity_report_tables as report_tables
 from shared.python.markdown_tables import markdown_table, write_text
@@ -869,29 +869,28 @@ def main(
     )
     write_text(manifest, json.dumps(meta, indent=2) + "\n")
     if write_latex:
-        appendix = artifact_path(
-            ROOT / "targets/report/src/latex/retained/appendix"
-        )
-        appendix.mkdir(parents=True, exist_ok=True)
         filename = (
             "financial_opportunity_chewy_follow_up.tex"
             if all_chewy
             else "financial_opportunity_reorders.tex"
         )
-        write_text(appendix / filename, latex)
+        write_text(latex_fragment_path(filename, root=ROOT), latex)
         if not all_chewy:
             for study, text in study_tables.items():
                 write_text(
-                    appendix / (report_tables.WHOLE_FILES[study] + ".tex"),
+                    latex_fragment_path(
+                        report_tables.WHOLE_FILES[study] + ".tex", root=ROOT
+                    ),
                     text,
                 )
         if frequency_latex:
             write_text(
-                appendix / (report_tables.FREQUENCY + ".tex"), frequency_latex
+                latex_fragment_path(
+                    report_tables.FREQUENCY + ".tex", root=ROOT
+                ),
+                frequency_latex,
             )
-        report_tables.update_follow_up_inputs(
-            appendix / "financial_opportunity.tex"
-        )
+        report_tables.update_follow_up_inputs(ROOT)
     click.echo(summary.to_string(index=False))
     click.echo(f"Outputs: {directory}")
 

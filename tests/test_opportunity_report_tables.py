@@ -1,4 +1,6 @@
+from shared.paths import latex_fragment_path
 from shared.python import opportunity_report_tables as a
+from shared.python.markdown_tables import write_text
 
 
 def test_interleaved_cohorts_exclude_frequency_and_rerun_idempotently(
@@ -16,13 +18,16 @@ def test_interleaved_cohorts_exclude_frequency_and_rerun_idempotently(
         a.LEGACY_UPLOAD,
         a.LEGACY_VET,
     ]:
-        (tmp_path / (name + ".tex")).write_text("Table\n")
-    parent = tmp_path / "financial_opportunity.tex"
+        write_text(
+            latex_fragment_path(name + ".tex", root=tmp_path), "Table\n"
+        )
+    parent = latex_fragment_path("financial_opportunity.tex", root=tmp_path)
+    parent.parent.mkdir(parents=True, exist_ok=True)
     old = "\n".join("\\input{appendix/" + name + "}" for name in a.KNOWN_FILES)
     parent.write_text("Baseline table\n" + old + "\n")
-    a.update_follow_up_inputs(parent)
+    a.update_follow_up_inputs(tmp_path)
     first = parent.read_text()
-    a.update_follow_up_inputs(parent)
+    a.update_follow_up_inputs(tmp_path)
     assert parent.read_text() == first
     inputs = ["\\input{appendix/" + name + "}" for name in order]
     assert all(first.count(include) == 1 for include in inputs)

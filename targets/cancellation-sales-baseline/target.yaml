@@ -18,7 +18,7 @@ shared_dependencies:
 - python/financial_values.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/financial_opportunity.tex
+  source: targets/cancellation-sales-baseline/src/latex/financial_opportunity.tex
   content: split
   code: relocated
   build: active

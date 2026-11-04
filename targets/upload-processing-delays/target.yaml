@@ -15,7 +15,7 @@ shared_dependencies:
 - paths.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/study_population_analysis.tex
+  source: targets/study-population-counts/src/latex/study_population_analysis.tex
   content: split
   build: active
 artifact: null

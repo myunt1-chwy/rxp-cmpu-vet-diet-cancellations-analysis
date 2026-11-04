@@ -9,7 +9,7 @@ from jinja2 import Environment, StrictUndefined
 
 from shared.paths import canonical_sql_path
 from shared.python import financial_values as base
-from shared.sql_templates import module_sql
+from shared.sql_templates import render_sql as render_template
 
 KEYS = ["original_order_id", "original_line_id"]
 
@@ -233,16 +233,18 @@ def analyze(
         )
         c.register("matches", table)
         counts = c.execute(
-            module_sql(
-                __file__,
-                "create_opportunity_aged_reorders-query-3.sql.j2",
+            render_template(
+                canonical_sql_path(
+                    "create_opportunity_aged_reorders-query-3.sql.j2"
+                ),
                 study=study,
             )
         ).fetchone()
         amount = c.execute(
-            module_sql(
-                __file__,
-                "create_opportunity_aged_reorders-query-4.sql.j2",
+            render_template(
+                canonical_sql_path(
+                    "create_opportunity_aged_reorders-query-4.sql.j2"
+                ),
                 study=study,
             )
         ).fetchone()[0]

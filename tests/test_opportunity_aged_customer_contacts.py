@@ -248,8 +248,8 @@ def test_fresh_cached_handled_only_sql_mode_and_source_hash(
     (tmp_path / "src/sql" / name).write_text(
         canonical_sql_path(name).read_text()
     )
-    (tmp_path / "targets/report/src/latex/retained").mkdir(parents=True)
-    main = tmp_path / "targets/report/src/latex/retained/main.tex"
+    (tmp_path / "targets/report/src/latex").mkdir(parents=True)
+    main = tmp_path / "targets/report/src/latex" / "assembly-source.tex"
     main.write_text(
         "\\input{appendix/financial_opportunity}\n\\input{append"
         "ix/study_population_analysis}\n"
@@ -279,7 +279,7 @@ def test_fresh_cached_handled_only_sql_mode_and_source_hash(
     assert len(calls) == 1
     latex = (
         tmp_path
-        / "targets/report/src/latex/retained/appendix"
+        / "targets/contact-days-relative-to-cancellation/src/latex"
         / "contact_analysis.tex"
     ).read_text()
     assert r"\label{tab:aged-customer-contact-day-frequency}" in latex

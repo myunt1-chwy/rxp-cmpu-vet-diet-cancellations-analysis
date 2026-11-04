@@ -6,6 +6,7 @@ This existing command is retained outside the report hierarchy. Moving its sourc
 Run =make aged-customer-prior-shipped-prescriptions CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
 
 * Owned source
+- =targets/aged-customer-prior-shipped-prescriptions/src/python/create_aged_customer_prior_shipped_prescriptions.py=
 - =targets/aged-customer-prior-shipped-prescriptions/src/sql/aged_customer_prior_shipped_prescriptions.sql=
 
 Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.

@@ -804,9 +804,7 @@ def financial_opportunity_latex(summary, params):
                 "count once."
             ),
         )
-    includes = report_tables.follow_up_inputs(
-        artifact_path(ROOT / "targets/report/src/latex/retained/appendix")
-    )
+    includes = report_tables.follow_up_inputs(ROOT)
     if includes:
         text += includes + "\n"
     return text
@@ -982,17 +980,10 @@ def main(start_date, end_date, cached, print_sql, date_basis, write_latex):
         report_sql = financial_opportunity_report_sql(verification)
         write_text(directory / "summary-report.sql", report_sql)
         if write_latex:
-            (
-                artifact_path(
-                    ROOT / "targets/report/src/latex/retained/appendix"
-                )
-            ).mkdir(parents=True, exist_ok=True)
             write_text(
-                artifact_path(
-                    ROOT
-                    / "targets/report/src/latex/retained/appendix"
-                    / "financial_opportunity.tex"
-                ),
+                ROOT
+                / "targets/cancellation-sales-baseline/src/latex"
+                / "financial_opportunity.tex",
                 financial_opportunity_latex(results["status_summary"], params),
             )
         click.echo(

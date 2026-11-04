@@ -21,10 +21,16 @@ from shared.paths import (
 
 
 def main():
-    for retired in ("src", "data"):
+    for retired in (
+        "src",
+        "data",
+        "shared/retained",
+        "shared/sql",
+        "targets/report/src/latex/retained",
+    ):
         if (ROOT / retired).exists():
             raise ValueError(
-                f"Retired root directory was recreated: {retired}"
+                f"Retired source/data directory was recreated: {retired}"
             )
     registry = source_ownership()
     for shared_source in (ROOT / "shared/python").glob("*.py"):
@@ -43,6 +49,10 @@ def main():
     templates = set()
     for name, relative in registry["modules"].items():
         path = ROOT / relative
+        if not relative.startswith(("targets/", "shared/python/")):
+            raise ValueError(
+                f"Module needs a target or shared helper owner: {relative}"
+            )
         if path.stem != name:
             raise ValueError(f"Module name differs from source: {relative}")
         tree = ast.parse(path.read_text(), filename=relative)
@@ -65,8 +75,13 @@ def main():
                     raise ValueError(f"Missing query: {node.args[0].value}")
     for name, relative in registry["queries"].items():
         canonical = ROOT / relative
+        if not relative.startswith("targets/"):
+            raise ValueError(f"SQL needs a target owner: {relative}")
         if not canonical.is_file():
             raise ValueError(f"Missing canonical SQL source: {name}")
+        if canonical.name.endswith(".sql.j2"):
+            Environment(undefined=StrictUndefined).parse(canonical.read_text())
+            templates.add(canonical)
         if re.search(
             r"PARSE_JSON\s*\(\s*[\'\"]?\s*(?:\{\{|__RX_IDS_JSON__)",
             canonical.read_text(),
@@ -98,6 +113,12 @@ def main():
                     f"Missing declared source for {target['id']}: {source}"
                 )
     ownership = artifact_ownership()
+    for old_path, destination in ownership.get("path_prefixes", {}).items():
+        if old_path.startswith("src/latex/") and (
+            not destination.startswith("targets/")
+            or not (ROOT / destination).is_file()
+        ):
+            raise ValueError(f"Missing target-owned LaTeX: {destination}")
     for dataset, owner in ownership["datasets"].items():
         if not (ROOT / "targets" / owner / "Makefile").is_file():
             raise ValueError(f"Unknown data owner: {owner}")

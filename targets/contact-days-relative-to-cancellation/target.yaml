@@ -15,7 +15,7 @@ shared_dependencies:
 - sql_templates.py
 migration:
   status: active
-  source: targets/report/src/latex/retained/appendix/contact_analysis.tex
+  source: targets/contact-days-relative-to-cancellation/src/latex/contact_analysis.tex
   content: split
   build: active
 artifact: Table (one visual).
@@ -28,6 +28,8 @@ data_dependencies:
 - cancellation-sales-baseline
 - contact-days-relative-to-cancellation
 sources:
+- targets/contact-days-relative-to-cancellation/src/sql/create_opportunity_aged_customer_contacts-query-2.sql.j2
+- targets/contact-days-relative-to-cancellation/src/sql/create_opportunity_aged_customer_contacts-query-1.sql.j2
 - targets/contact-days-relative-to-cancellation/src/sql/opportunity_aged_customer_contacts.sql
 - targets/contact-days-relative-to-cancellation/src/python/create_opportunity_aged_customer_contacts.py
 code_dependencies:

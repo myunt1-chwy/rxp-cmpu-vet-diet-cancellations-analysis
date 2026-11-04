@@ -11,3 +11,12 @@ Run =make opportunity-aged-new-customers METHOD=same-day CACHED=1= to reuse reta
 - =targets/opportunity-aged-new-customers/src/sql/opportunity_aged_new_customers.sql=
 
 Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.
+
+* Target-owned SQL
+- =src/sql/opportunity_aged_first_order_customers.sql=
+- =src/sql/opportunity_aged_first_customer_upload_vet_diet_order_customers.sql=
+- =src/sql/opportunity_aged_first_vet_diet_order_customers.sql=
+
+These files are resolved through =shared/source-ownership.yaml=. Shared
+Python helpers use the registry to load target-owned templates. SQL contents
+and cached-query fingerprints are unchanged by this source relocation.

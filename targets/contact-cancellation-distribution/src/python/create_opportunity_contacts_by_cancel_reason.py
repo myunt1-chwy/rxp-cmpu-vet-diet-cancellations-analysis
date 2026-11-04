@@ -412,18 +412,16 @@ Executable SQL and complete order/contact records are under
 
 def publish_latex(text):
     write_text(
-        artifact_path(
-            ROOT
-            / "targets/report/src/latex/retained/appendix"
-            / "customer_contacts_by_cancellation_reason.tex"
-        ),
+        ROOT
+        / "targets/contact-cancellation-distribution/src/latex"
+        / "customer_contacts_by_cancellation_reason.tex",
         text,
     )
-    main = artifact_path(ROOT / "targets/report/src/latex/retained/main.tex")
+    main = ROOT / "targets/report/src/latex" / "assembly-source.tex"
     include = r"\input{appendix/customer_contacts_by_cancellation_reason}"
-    parent = artifact_path(
+    parent = (
         ROOT
-        / "targets/report/src/latex/retained/appendix"
+        / "targets/contact-days-relative-to-cancellation/src/latex"
         / "contact_analysis.tex"
     )
     body = parent.read_text()
