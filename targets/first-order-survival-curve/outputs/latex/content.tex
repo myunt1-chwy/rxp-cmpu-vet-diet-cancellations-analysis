@@ -1,0 +1,25 @@
+\paragraph{What proportion of first-order lines remain without an accepted upload or cancellation over time?}
+Kaplan--Meier survival curve for 94,869 eligible distinct
+first-order lines linked to CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} prescriptions
+created August 15--October 14, 2026, inclusive, UTC. Time zero is order placement;
+the event is the earlier of the actual or estimated accepted-entity state-change
+time and order cancellation. The upload-entity discovery window is August
+1--October 25, 2026, inclusive. Missing events and events after October 26, 2026
+at 00:00 UTC are right-censored at that cutoff; events exactly at the cutoff
+are observed. Survival means neither accepted-state change nor
+cancellation has occurred.
+
+\begin{center}
+\includegraphics[width=\linewidth,height=0.62\textheight,keepaspectratio]{targets/first-order-survival-curve/outputs/figures/visual.png}
+\captionof{figure}{Kaplan--Meier survival curve for 94,869 eligible distinct
+first-order lines linked to CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} prescriptions
+created August 15--October 14, 2026, inclusive, UTC. Time zero is order placement;
+the event is the earlier of the actual or estimated accepted-entity state-change
+time and order cancellation. The upload-entity discovery window is August
+1--October 25, 2026, inclusive. Missing events and events after October 26, 2026
+at 00:00 UTC are right-censored at that cutoff; events exactly at the cutoff
+are observed. Survival means neither accepted-state change nor
+cancellation has occurred.}
+\label{fig:first-order-line-survival}
+\end{center}
+

@@ -1,0 +1,104 @@
+\section{Executive summary}
+\label{abstract}
+
+For CMPU (Customer Must Pickup and Upload) vet diet orders; the
+customer is required to pick up the their prescriptions and upload
+them to Chewy. This order group suffers from high cancellation rates;
+the top cancellation reason begin ``aged order''; an automatic
+cancellation that happens if the order has not been shipped or
+otherwise been canceled by the customer after ten days from order
+creation. Aged order cancellation is followed by explicit
+cancellations by the customer (``customer initiated cancellation'' and
+``customer request''). Unfortunately, cancellation reasons
+do not provide actionable root causes and require further
+investigation.
+
+This report focuses on aged order cancellations. Among CMPU vet diet
+orders shipped or canceled between May 1, 2026 and July 31, 2026,
+38,314 orders were canceled due to aging, with recorded line net sales
+of \$3,470,380.19 as an opportunity baseline. These amounts are 9.88\%
+of the 387,707 orders and 9.69\% of the \$35,819,402.26 in line net sales
+in the no-recorded-cancellation-reason group, respectively (Table
+\ref{tab:financial-opportunity-cancellations}). That comparison group
+is not a verified shipped-only population, and the aged-order amount
+is not an estimate of recoverable revenue. Customer initiated and
+customer requested cancellations have a combined recorded line-sales
+baseline of \$3,988,013.32.
+
+Within seven days after an aged cancellation, 2,316 of 30,382 customers
+(7.62\%) place a qualifying non-cancelled reorder for the same pet and
+part number (Table \ref{tab:financial-opportunity-reorder-windows}).
+Those reorders have \$221,122.35 in recorded net sales, equivalent to
+6.37\% of the \$3,470,380.19 aged-order sales baseline. At 28 days,
+recorded follow-up net sales are \$685,508.89, or 19.75\% of that same
+baseline. These are observed follow-up sales, not measured incremental
+recovery. By 70 days, 7,944 of 30,382 customers (26.15\%) reorder the
+same product for the same pet.
+Among the 11,550 customers whose first observed customer-upload vet-diet
+order aged, 833 (7.21\%) reorder within seven days and 2,509 (21.72\%)
+within 70 days. Among the 5,097 customers whose first observed vet-diet
+order aged, 800 (15.70\%) reorder within 70 days, using the same pet/product
+endpoint (Table \ref{tab:financial-opportunity-new-vet-diet-follow-up}).
+For any qualifying Chewy reorder within 70 days, the corresponding
+counts are 18,564/30,382 (61.10\%), 6,712/11,550 (58.11\%) and
+2,591/5,097 (50.83\%), respectively
+(Table \ref{tab:financial-opportunity-reorder-all-chewy}).
+The reorder percentage is lowest in the new to vet diet subgroup.
+
+
+All of the customers seem to have contacted Chewy, most of them at the
+creation of the order (Table
+\ref{tab:aged-customer-contacts-by-cancellation-day}). Some of them
+have contacted Chewy on multiple days (Table
+\ref{tab:aged-customer-contact-day-frequency}). People who
+contacted closer to the aged order cancellation date have a higher
+reorder rate (Table \ref{tab:contact-window-same-pet-part-reorders}).
+
+In the August--October prescription study, 777 of 26,443 aged
+first-order lines have a matched upload (2.94\%); 25,666 (97.06\%)
+have none in the retained source window (Table
+\ref{tab:study-upload-coverage-by-cancellation-reason}).  This
+measures matched evidence, not proof that a customer never uploaded.
+Compared to the overall upload coverage of 31.18\% , this low coverage
+suggests that there is a root cause for aged orders leading to lower
+than average upload rates.  Of the 782 distinct matched upload
+entities, 52 are currently ACCEPTED (6.65\%); entity acceptance is
+distinct from prescription approval.  These snapshot counts allow
+uploads and state changes after cancellation.  Of those prescriptions
+with uploads, the time between order creation and upload does not
+significantly differ from the rest of the study group (Figure
+\ref{fig:entity-upload-vs-order-creation}). The accepted aged-order
+entities are mostly accepted late; after 10 days (Figure
+\ref{fig:entity-upload-state-time-aged}). Approval after acceptance is
+not a significant contributor to the age of the order most of the
+time; it takes less than a minute after acceptance (95\% of the
+time). (Figure
+\ref{fig:accepted-upload-to-approval-cumulative}). Finally, Chewy can
+expect that if the customer does not upload a prescription in 3 days
+after order creation; there is more about 50\% chance that the order
+will be canceled as an aged order (Figure
+\ref{fig:first-order-line-survival}).
+
+So what can be done to reduce aged orders?  One suggestion to increase
+the upload rate (communication with Courtney Gleede) is to send
+reminder emails to customer. At this point, Chewy does not contact the
+at risk orders' customers. There is no Chewy relevant out-bound
+contact data for a comparative/causal analysis. The only contact
+happens when the customer is notified that their order has been
+canceled.  Assuming that people who receive an email before
+cancellation react similarly to the cohort that reorders within 7 days
+after cancellation, we expect that out of 30K people considered in the
+opportunity study with aged cancellations, 2.3K would react before
+order cancellation corresponding to 221K sales. The best effort guess
+is that Chewy prevents people from skipping one reorder for this
+cohort for an additional gain of 221K net sales.  The upper bound on
+the best effort estimate is 390K corresponding to the 14 day reorder
+window cohort. For scale, that cohort's \$386,124.68 in observed
+follow-up net sales is 1.08\% of the \$35,819,402.26 no-recorded-cancellation-reason
+sales baseline in Table \ref{tab:financial-opportunity-cancellations};
+this ratio is not a measured incremental sales increase from reminders.
+
+The effect of reminder emails on long term retention is an open
+question. Picking up and uploading a prescription is
+still an onus with or without a getting a reminder.
+

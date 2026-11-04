@@ -1,0 +1,73 @@
+\begin{table}[htbp]
+\centering
+\caption{Prescription and order statuses for first-order lines with no currently recorded cancellation reason, by retained upload coverage.}
+\label{tab:study-no-cancellation-upload-details}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{llllrrrr}
+\toprule
+RX\_STATUS & Order status & Order cancellation reason & Line-item status & Prescriptions & Line items & With upload & Without upload \\
+\midrule
+
+APPROVED & C & [No recorded cancellation reason] & R & 1 & 1 & 1 & 0 \\
+
+APPROVED & C & [No recorded cancellation reason] & S & 17 & 17 & 15 & 2 \\
+
+APPROVED & D & [No recorded cancellation reason] & D & 28,498 & 28,498 & 23,928 & 4,570 \\
+
+APPROVED & D & [No recorded cancellation reason] & X & 21 & 21 & 18 & 3 \\
+
+APPROVED & R & [No recorded cancellation reason] & R & 3 & 3 & 3 & 0 \\
+
+APPROVED & S & [No recorded cancellation reason] & S & 1 & 1 & 1 & 0 \\
+
+APPROVED & X & [No recorded cancellation reason] & X & 9 & 9 & 8 & 1 \\
+
+CLOSED & C & [No recorded cancellation reason] & S & 1 & 1 & 1 & 0 \\
+
+CLOSED & D & [No recorded cancellation reason] & D & 1,442 & 1,442 & 1,058 & 384 \\
+
+CLOSED & D & [No recorded cancellation reason] & X & 24 & 24 & 22 & 2 \\
+
+CLOSED & X & [No recorded cancellation reason] & X & 1 & 1 & 1 & 0 \\
+
+SYSTEM\_CLOSED & C & [No recorded cancellation reason] & X & 70 & 70 & 1 & 69 \\
+
+SYSTEM\_CLOSED & D & [No recorded cancellation reason] & D & 32 & 32 & 5 & 27 \\
+
+SYSTEM\_CLOSED & D & [No recorded cancellation reason] & X & 10,553 & 10,553 & 1,220 & 9,333 \\
+
+SYSTEM\_CLOSED & R & [No recorded cancellation reason] & X & 2 & 2 & 0 & 2 \\
+
+SYSTEM\_CLOSED & S & [No recorded cancellation reason] & X & 1 & 1 & 0 & 1 \\
+
+SYSTEM\_CLOSED & X & [No recorded cancellation reason] & X & 192 & 192 & 20 & 172 \\
+
+VET\_REVIEW & D & [No recorded cancellation reason] & X & 2 & 2 & 0 & 2 \\
+\midrule
+\multicolumn{4}{l}{Total} & 40,870 & 40,870 & 26,302 & 14,568 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Start with the validated 40,870 prescriptions/first-order lines
+(38,424 orders) in the no-recorded-reason rows of
+Table~\ref{tab:study-upload-coverage-by-cancellation-reason}.
+At the status extraction (2026-11-04T13:34:44.605000+00:00),
+40,870 lines still had a null or blank reason;
+0 lines with newly populated reasons are excluded and retained in the audit.
+Prescriptions count distinct \texttt{RX\_ID}s and equal line-item counts in this
+one-prescription-per-first-order-line cohort. Each physical first-order line
+counts once. Validate both first-order keys and
+customer identity; collapse shipment rows only when their customer, statuses and
+reason agree. Status codes are shown as recorded; a missing cancellation reason
+does not establish that an order shipped successfully.
+
+With/without upload counts refer to lines with/without at least one matched
+entity, not the number of entities. Reuse the validated HCDM diet-prescription
+upload associations from the preceding table: match prescription ID, customer ID,
+order ID and line ID. The August 1--October 25, 2026 inclusive UTC discovery window,
+unknown-creation-time rule and all entity states are retained. Uploads need not
+precede cancellation. Uploads and status evidence are reconciled.
+\end{minipage}
+\end{table}

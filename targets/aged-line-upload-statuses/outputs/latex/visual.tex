@@ -1,0 +1,36 @@
+\begin{table}[!htbp]
+\centering
+\caption{Prescription and order statuses for aged-order first-order lines, by retained upload coverage.}
+\label{tab:study-aged-order-upload-coverage}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{llllrrrr}
+\toprule
+RX\_STATUS & Order status & Order cancellation reason & Line-item status & Prescriptions & Line items & With upload & Without upload \\
+\midrule
+\rowcolor{yellow!35}
+APPROVED & X & aged order & X & 5 & 5 & 4 & 1 \\
+\rowcolor{yellow!35}
+CLOSED & X & aged order & X & 1 & 1 & 1 & 0 \\
+\rowcolor{yellow!35}
+SYSTEM\_CLOSED & X & aged order & X & 26,436 & 26,436 & 772 & 25,664 \\
+\rowcolor{yellow!35}
+VET\_REVIEW & X & aged order & X & 1 & 1 & 0 & 1 \\
+\midrule
+\multicolumn{4}{l}{Total} & 26,443 & 26,443 & 777 & 25,666 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Same columns and counting rules as Table~\ref{tab:study-no-cancellation-upload-details},
+for the frozen aged-order subset of Table~\ref{tab:study-upload-coverage-by-cancellation-reason}:
+26,443 prescriptions/first-order lines across 24,408 orders. Include cancellations
+at or before October 27, 2026, 00:00 UTC; later or undated aged cancellations are excluded.
+Statuses are from the retained extraction at 2026-11-04T13:34:44.605000+00:00.
+Prescriptions count distinct \texttt{RX\_ID}s; each physical line counts once.
+With/without upload counts lines with/without at least one entity, not entities.
+Validate prescription/customer/both first-order keys and shipment-row consistency.
+Reuse all entity states and the August 1--October 25 inclusive UTC discovery window,
+including the retained unknown-creation-time rule. Uploads need not precede cancellation.
+\end{minipage}
+\end{table}

@@ -1,0 +1,32 @@
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "18px", "primaryTextColor": "#172b4d", "lineColor": "#456078", "edgeLabelBackground": "#f2f5f9"}, "flowchart": {"htmlLabels": true, "useMaxWidth": false, "nodeSpacing": 25, "rankSpacing": 35}}}%%
+flowchart LR
+classDef physical fill:#e3f2fd,stroke:#235789,stroke-width:2px;
+classDef derived fill:#fff2d5,stroke:#9b6916,stroke-dasharray:5 3;
+subgraph cohort["1. Aged-order cohort - SQL"]
+direction TB
+P["EDLDB.BT_HCA_HCDM.<br/>RXP_PRESCRIPTIONS p"]:::physical
+L["EDLDB.BT_HCA_HCDM.<br/>ORDER_LINE_COST_MEASURES_RXP l"]:::physical
+A["Eligible lines<br/>Both vet-diet flags TRUE;<br/>p.PRESCRIPTION_SOURCE = CMPU;<br/>p.APPROVAL_CHANNEL = CUSTOMER_UPLOAD;<br/>LOWER TRIM l.ORDER_CANCEL_REASON = aged order;<br/>ORDER_CANCEL_DTTM in [start_date,end_date)"]:::derived
+O["aged_orders a: one row per ORDER_ID<br/>MIN CUSTOMER_ID and ORDER_CANCEL_DTTM;<br/>validate customer / cancellation consistency"]:::derived
+P -->|"p.RX_ID = NULLIF TRIM l.RX_ID<br/>AND p.CUSTOMER_ID = l.CUSTOMER_ID"| A
+L -->|"INNER JOIN; fetch all shipment rows<br/>for qualifying ORDER_ID + ORDER_LINE_ID"| A
+A -->|"GROUP BY ORDER_ID"| O
+end
+subgraph matching["2. Contact matching - SQL"]
+direction TB
+C["EDLDB.BT_CUSTOMER_CARE.<br/>FCT_CONTACTS_BRD c<br/>Contact legs / sessions"]:::physical
+J["aged_orders a LEFT JOIN contacts c<br/>ON a.ORDER_ID = c.ORDER_ID<br/>AND (SESSION_START_DTTM in<br/>cancellation [-13,+4) days<br/>OR SESSION_START_DTTM IS NULL)"]:::derived
+V["Preserve all aged orders;<br/>retain unmatched orders and<br/>NULL-time contacts for auditing.<br/>Customer equality is checked in Python."]:::derived
+C -->|"ORDER_ID and time conditions"| J
+J --> V
+end
+subgraph counting["3. Validation and counting - Python"]
+direction TB
+F["Normalize numeric IDs; validate order equality.<br/>Check known SESSION_ID / LEG_ID conflicts;<br/>collapse exact duplicate rows.<br/>Include only nonmissing matching CUSTOMER_ID,<br/>LOWER TRIM SESSION_INITIAL_DIRECTION = inbound,<br/>and populated SESSION_START_DTTM.<br/>All handled states included by default."]:::derived
+D["Daily counts: relative_day = FLOOR elapsed UTC days;<br/>distinct CUSTOMER_ID and ORDER_ID per day -13 to +3.<br/>No leg/session counting."]:::derived
+G["Frequency: distinct relative_day per CUSTOMER_ID,<br/>pooled across that customer's aged orders.<br/>LEFT JOIN all aged customers; absent days = 0.<br/>Excluded contacts remain audited."]:::derived
+F --> D
+F --> G
+end
+cohort -->|"aged_orders a"| matching
+matching -->|"extracted order/contact rows"| counting

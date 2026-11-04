@@ -1,0 +1,21 @@
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.36\linewidth}>{\raggedright\arraybackslash}p{0.59\linewidth}@{}}
+\toprule
+Source (within \texttt{EDLDB}) & Grain used by this report \\
+\midrule
+\endhead
+
+\texttt{HCDM.RXP\_UPLOAD\_ENTITY} & Physical upload row; entity analyses validate \texttt{UPLOAD\_ID} and count it once, despite multiple expanded prescription IDs. \\
+
+\texttt{RXP\_NOTIFICATION\_SERVICE.}\allowbreak\texttt{UPLOAD\_ENTITY} & Physical upload row; prescription IDs may be a list. Context order and item IDs are separate fields. \\
+
+\texttt{HCDM.RXP\_PRESCRIPTIONS} & Prescription \texttt{RX\_ID}; analyses check uniqueness or consistency of repeated registry values. \\
+
+\texttt{HCDM.ORDER\_LINE\_COST\_}\allowbreak\texttt{MEASURES\_RXP} & Shipment $\times$ physical line: \texttt{ORDER\_ID}, \texttt{ORDER\_LINE\_ID}, \texttt{SHIPMENT\_KEY}. A line can have multiple shipments. \\
+
+\texttt{ECOM.ORDERS} & Order header \texttt{ORDER\_ID}; linked-order verification checks uniqueness, chronology analyses check consistent repeated values. \\
+
+\texttt{ECOM.ORDER\_LINE} & Physical line \texttt{ORDER\_ID}, \texttt{ORDER\_LINE\_ID}; \texttt{NET\_SALES} is already the full line amount. \\
+
+\texttt{BT\_CUSTOMER\_CARE.}\allowbreak\texttt{FCT\_CONTACTS\_BRD} & Contact leg/session evidence, identified by order, \texttt{SESSION\_ID} and \texttt{LEG\_ID} for conflict checks; published counts use distinct customers, orders or relative days. \\
+\bottomrule
+\end{longtable}

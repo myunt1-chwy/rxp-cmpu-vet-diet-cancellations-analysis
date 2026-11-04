@@ -1,0 +1,71 @@
+\begin{table}[!htbp]
+\centering
+\caption{Distinct customers contacting by current order cancellation reason, through the latest observed shipment or cancellation event.}
+\label{tab:customer-contacts-by-cancellation-reason}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Cancellation reason & Cohort customers & Customers contacting & Contacted (\%) \\
+\midrule
+
+{[SQL NULL]} & 172,878 & 51,983 & 30.07\% \\
+\rowcolor{yellow!35}
+{Aged order} & 30,382 & 30,304 & 99.74\% \\
+
+{Customer initiated cancellation} & 29,455 & 10,567 & 35.88\% \\
+
+{Customer request} & 11,382 & 9,377 & 82.38\% \\
+
+{Duplicate order} & 161 & 111 & 68.94\% \\
+
+{Fraud} & 36 & 13 & 36.11\% \\
+
+{Inventory issue} & 5 & 2 & 40.00\% \\
+
+{No response} & 1,035 & 898 & 86.76\% \\
+
+{Other} & 784 & 661 & 84.31\% \\
+
+{Payment declined} & 4,242 & 2,393 & 56.41\% \\
+
+{Payment issue} & 46 & 32 & 69.57\% \\
+
+{Pharmacy rejection} & 278 & 264 & 94.96\% \\
+
+{Prescription issue} & 5,051 & 5,012 & 99.23\% \\
+
+{Restricted availability} & 1 & 1 & 100.00\% \\
+\midrule
+{TOTAL} & 225,434 & 101,227 & 44.90\% \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} No lower or upper day limit relative to order creation applies.
+Include contacts at any available earlier timestamp, capped inclusively at the
+latest observed shipment/cancellation timestamp among
+qualifying rows for that order and reason. For split or mixed outcomes, use the
+later of the observed events. Match inbound contacts on the original order ID
+and numeric customer ID, across all categories. Include handled, unhandled and unknown-handled inbound attempts.
+Count each customer once per reason across all their qualifying orders and
+contact days. Percentages divide contacting customers by all eligible customers
+in that reason, including those without a qualifying contact. Customers can
+appear in multiple reason rows; TOTAL independently counts each customer once
+overall and is not the sum of the reason rows. Reasons reflect the current
+snapshot, grouped case-insensitively after trimming. SQL NULL is explicit;
+blank strings, if present, form a separate row. NULL does not imply no cancellation.
+This cohort includes 434
+NULL-reason order/reason records with observed cancellation but no qualifying
+shipment. This summary has no creation-relative day bounds.
+Observation ends at each order's observed
+event, so exposure varies; these are descriptive contact shares, not causal effects.
+Exact duplicate contacts collapse; missing or mismatching contact customers,
+missing contact times and non-inbound directions are excluded and audited.
+Inbound direction is a source proxy, not proof of human initiation.
+No prescription-creation or first-order restriction applies.
+Extraction time (UTC): 2026-11-04T13:31:51.835431+00:00.
+Executable SQL and complete order/contact records are under
+\path{data/opportunity/customer-contacts-by-cancel-reason/}.
+\end{minipage}
+\end{table}

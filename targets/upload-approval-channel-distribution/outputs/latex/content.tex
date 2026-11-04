@@ -1,0 +1,12 @@
+\subsubsection{What's the distribution of all the vet diet prescriptions in the prescription upload tables by \texttt{APPROVAL\_CHANNEL} ?}
+\label{subsec:upload-vet-diet-approval-channels}
+% Generate from retained extracts with python -m shared.python.analyze_upload_vet_diet_approval_channels.
+Table~\ref{tab:upload-vet-diet-approval-channels} joins all distinct prescription IDs in each upload source to \texttt{EDLDB.BT\_HCA\_HCDM.RXP\_PRESCRIPTIONS} on \texttt{rx\_id}, then retains matched prescriptions with \texttt{IS\_VET\_DIET\_FLAG = TRUE}. Approval channels are taken from the prescription table. Each prescription counts once per source, even when it appears in multiple uploads. No date, CMPU, approval-channel, status or upload-resource-type filters are applied.
+\input{targets/uploaded-prescription-approval-channels/outputs/latex/content.tex}
+
+\noindent\textit{Notes:} Prescription IDs are expanded from HCDM \texttt{RX\_ID} and notification-service \texttt{ASSOCIATED\_RESOURCE\_IDS}; missing, blank and zero tokens are excluded before joining. Vet-diet classification comes from the prescription registry, not the upload resource type. Percentages use the matched vet-diet total in each source. The difference is the notification-service count minus the HCDM count. The sources contain 232,111 and 233,285 distinct populated prescription IDs, respectively. Excluded non-vet-diet matches: 49,865 and 50,261; unmatched IDs: 0 and 677; matched IDs with unknown vet-diet flag: 0 and 0. Unmatched IDs cannot be assigned a vet-diet category or approval channel from this registry. NULL approval channels remain in the distribution when present. Both channel counts and join-coverage counts reconcile to independent Snowflake aggregates. Percentages may not sum to 100\% because of rounding. Extraction: 2026-11-02 16:23:12 UTC.
+
+
+
+\clearpage
+

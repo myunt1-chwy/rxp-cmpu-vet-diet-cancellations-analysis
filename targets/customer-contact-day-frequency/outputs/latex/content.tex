@@ -1,0 +1,65 @@
+\paragraph{How many distinct days did aged-order customers contact Chewy?}
+Frequency of customer contact days around aged-order cancellation: number of distinct relative days contacted versus number of customers. Of 30,382 cohort customers, 30,299 contacted on at least one day.
+
+\begin{table}[!htbp]
+\centering
+\caption{Frequency of customer contact days around aged-order cancellation: number of distinct relative days contacted versus number of customers. Of 30,382 cohort customers, 30,299 contacted on at least one day.}
+\label{tab:aged-customer-contact-day-frequency}
+\begin{tabular}{@{}rr@{}}
+\toprule
+Number of days contacted & Number of customers \\
+\midrule
+
+0 & 83 \\
+
+1 & 27,265 \\
+
+2 & 2,808 \\
+
+3 & 201 \\
+
+4 & 24 \\
+
+5 & 1 \\
+
+6 & 0 \\
+
+7 & 0 \\
+
+8 & 0 \\
+
+9 & 0 \\
+
+10 & 0 \\
+
+11 & 0 \\
+
+12 & 0 \\
+
+13 & 0 \\
+
+14 & 0 \\
+
+15 & 0 \\
+
+16 & 0 \\
+
+17 & 0 \\
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Same CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} aged cohort,
+cancellation dates, observation cutoff and inbound contact rules as
+Table~\ref{tab:aged-customer-contacts-by-cancellation-day}.
+Count each distinct relative 24-hour day bin from $-13$ through $+3$ once
+per customer across all qualifying aged orders. Multiple contacts, sessions,
+legs or orders on the same relative day do not increase the day count.
+These are relative cancellation-day bins, rather than distinct calendar dates.
+Each customer appears in exactly one frequency row; zero includes cohort
+customers with no qualifying contact in this window. All frequencies from
+0 through 17 are retained, including zero-count rows. Customer counts sum to
+the full cohort; positive-day rows sum to the distinct contacting customers.
+\end{minipage}
+\end{table}

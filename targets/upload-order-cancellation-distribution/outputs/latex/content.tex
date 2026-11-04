@@ -1,0 +1,13 @@
+\subsubsection{What is the distribution of order cancellation reasons in the prescription upload tables?}
+\label{subsec:source-order-cancellation-reasons}
+% Generate from retained extracts with python -m shared.python.analyze_diet_upload_source_orders.
+This comparison includes entries with \texttt{associated\_resource\_type = DIET\_PRESCRIPTION} and a non-null associated order ID in each source. HCDM uses \texttt{ORDER\_ID}; the notification-service source uses \texttt{context:orderId}. Cancellation reasons are joined from \texttt{EDLDB.ECOM.ORDERS}. No date, CMPU, study-cohort, order-item, upload-type, or replication filters are applied.
+In HCDM, 137,431 of 176,401 diet-upload entries have an order ID, representing 115,929 distinct orders. In the notification-service source, 140,104 of 179,177 entries have an order ID, representing 116,223 distinct orders. Table~\ref{tab:diet-upload-source-cancel-reasons} compares the cancellation reasons side by side. Each order counts once within each source regardless of the number of uploads.
+\input{targets/uploaded-order-cancellation-reasons/outputs/latex/content.tex}
+
+\noindent\textit{Notes:} Percentages use each source\textquotesingle s distinct-order total, and the difference is the notification-service order count minus the HCDM order count. Totals include unmatched IDs; the two source populations are not restricted to their intersection. 115,929 order IDs occur in both sources, 0 occur only in HCDM and 294 occur only in the notification-service source. Unmatched order IDs: 0 in HCDM and 143 in the notification-service source. A NULL reason does not imply that an order was not canceled. Of 13,266 HCDM-linked orders and 13,277 notification-linked orders with status \texttt{Canceled}, 134 and 134, respectively, have a NULL reason. Percentages may not sum to 100\% because of rounding. Upload extraction: 2026-11-02 15:45:52.376 Z; order extraction: 2026-11-02 15:45:54.406 Z (UTC).
+
+
+
+\Needspace{22\baselineskip}
+
