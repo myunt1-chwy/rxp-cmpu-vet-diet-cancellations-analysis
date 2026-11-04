@@ -693,7 +693,11 @@ def write_outputs(
     if variant:
         prefix += variant.strip("_") + "_"
     dated = tables.name
-    diagrams = artifact_path(ROOT / "outputs/diagrams" / dated)
+    diagrams = (
+        ROOT
+        / "targets/aged-order-reorder-prescription-sankeys/outputs/diagrams"
+        / dated
+    )
     sources = artifact_path(ROOT / "src/diagrams" / dated)
     directory = artifact_path(ROOT / "data" / NAME / (period + variant))
     for path in [tables, diagrams, sources, directory]:

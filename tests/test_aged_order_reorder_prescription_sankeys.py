@@ -248,9 +248,12 @@ def test_fresh_cached_sql_only_fingerprint_and_exports(tmp_path):
         assert (
             len(
                 list(
-                    (tmp_path / "outputs/diagrams/2026-08-15_2026-10-14").glob(
-                        "*.png"
-                    )
+                    (
+                        tmp_path
+                        / "targets/aged-order-reorder-prescription-sankeys"
+                        / "outputs/diagrams"
+                        / "2026-08-15_2026-10-14"
+                    ).glob("*.png")
                 )
             )
             == 3

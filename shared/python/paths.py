@@ -118,6 +118,12 @@ def artifact_path(path):
                     / kind
                     / Path(*suffix)
                 )
+    if kind == "outputs/diagrams":
+        raise ValueError(
+            f"No target owner for diagram path {path}; use a target-owned "
+            "outputs/diagrams path or register its owner in "
+            "shared/artifact-ownership.yaml"
+        )
     # Preserve otherwise unclassified historical artifacts under the report.
     # New analytical datasets should declare an owner above before use.
     return (

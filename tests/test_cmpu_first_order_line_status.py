@@ -522,7 +522,9 @@ def test_cli_fresh_and_cached_paths_and_upload_sql(tmp_path):
         assert run.call_count == 1
         assert (
             write.call_args.args[2]
-            == tmp_path / "outputs/diagrams/2026-08-15_2026-10-14"
+            == tmp_path
+            / "targets/first-order-upload-status-flow/outputs/diagrams"
+            / "2026-08-15_2026-10-14"
         )
         assert (
             write.call_args.kwargs["source_dir"]

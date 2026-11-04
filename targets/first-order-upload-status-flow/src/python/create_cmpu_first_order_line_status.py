@@ -708,7 +708,11 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
             f"{start_date}_{date.fromisoformat(end_date) - timedelta(days=1)}"
         )
         source_dir = artifact_path(ROOT / "src/diagrams" / date_range)
-        diagram_dir = artifact_path(ROOT / "outputs/diagrams" / date_range)
+        diagram_dir = (
+            ROOT
+            / "targets/first-order-upload-status-flow/outputs/diagrams"
+            / date_range
+        )
         table_dir, table_prefix = table_layout(ROOT, NAME, scope)
         audit = write_outputs(
             frame,

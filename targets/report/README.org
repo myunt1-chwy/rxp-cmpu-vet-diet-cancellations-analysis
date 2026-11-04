@@ -102,6 +102,18 @@ former =shared/sql/= directory has been removed.
 
 =make validate-analysis-sources validate-analysis-structure= checks ownership and the target graph. =make preview-target-report= renders retained presentation snapshots without warehouse access or replacing the published PDF. This preview does not certify the query cache or replace a successful =make report=.
 
+* Diagram output ownership
+Sankey exports belong in their producing targets' =outputs/diagrams/=
+directories. The first-order status report reads from
+=targets/first-order-upload-status-flow/outputs/diagrams/=.
+The old report-level retained Sankey exports have been removed.
+
+Unowned diagram paths now fail with an ownership error instead of falling back
+to the report directory. Supply a target-owned path or register the filename
+or dataset in =shared/artifact-ownership.yaml=. Batch writers must choose their
+own output directory before rendering; Sankey rendering resolves final paths
+before creating or replacing files.
+
 * SQL execution history
 The SQL runner records executed queries under ignored =.cache/sql-history/=.
 Legacy target-local history arguments are redirected there; execution logs are

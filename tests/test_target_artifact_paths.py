@@ -63,3 +63,38 @@ def test_latex_fragments_resolve_individually_across_owners(tmp_path):
     assert len({path.parent for path in paths}) == 3
     assert all(path.is_relative_to(tmp_path / "targets") for path in paths)
     assert not list(tmp_path.iterdir())  # Resolution does not create files.
+
+
+def test_known_diagram_routes_out_of_legacy_staging():
+    root = repository_root()
+    name = "cmpu-first-order-lines_customer-upload_sankey.png"
+    legacy = root / "targets/report/outputs/diagrams/retained/2026-08-15"
+    expected = (
+        root
+        / (
+            "targets/first-order-upload-status-flow/outputs/diagrams/2026-08-15"
+        )
+        / name
+    )
+    assert artifact_path(legacy / name) == expected
+    assert artifact_path(expected) == expected
+
+
+def test_unowned_diagrams_fail_without_creating_directories(
+    tmp_path, monkeypatch
+):
+    import pytest
+
+    from shared.python import paths
+
+    registry = paths.artifact_ownership()
+    monkeypatch.setattr(paths, "repository_root", lambda: tmp_path)
+    monkeypatch.setattr(paths, "artifact_ownership", lambda: registry)
+    for relative in (
+        "outputs/diagrams/2026-08-15",
+        "outputs/diagrams/unknown.svg",
+        "targets/report/outputs/diagrams/retained/unknown.png",
+    ):
+        with pytest.raises(ValueError, match="No target owner for diagram"):
+            paths.output_path(tmp_path / relative)
+    assert not list(tmp_path.iterdir())

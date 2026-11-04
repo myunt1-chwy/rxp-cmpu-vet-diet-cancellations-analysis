@@ -1497,3 +1497,20 @@
   - Cached report validation resumed after the cache-lookup repair, reusing
     successful pipeline results. Final PDF and all 23 authoritative Org tables
     are byte-identical to the pre-move copies.
+
+* DONE Remove obsolete report diagrams and enforce diagram ownership
+  - Remove and unstage the six obsolete retained Sankey exports.
+  - Give Sankey writers explicit target-owned destinations and reject
+    unowned diagram paths instead of falling back to report outputs.
+  - Verify routing, cached diagram generation and preservation of unrelated
+    staged artifacts and gitignore edits.
+  - Removed the six obsolete staged report-level Sankey exports. Both Sankey
+    writers now use target-owned directories, and the renderer resolves final
+    paths before replacing files. Unknown diagram destinations fail clearly.
+  - Real cached rendering exposed stale target-owned figures: fresh renders
+    had been landing in the fallback directory. Regenerated the correct files
+    from cached data and rebuilt the PDF assembly; page 18 now shows 95,106
+    CUSTOMER_UPLOAD lines instead of 95,073. Visually inspected that page.
+  - All 685 tests and 16 subtests, Ruff, hierarchy/ownership checks and diff
+    checks pass. Cached rendering did not recreate the retired directory.
+    No warehouse refresh. Other staged artifacts and gitignore edits preserved.

@@ -13,6 +13,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from shared.python.markdown_tables import write_text
+from shared.python.paths import artifact_path, output_path
 from shared.python.runtime import ROOT
 
 RENDERER = ROOT / ".agents/skills/mermaid-diagrams/scripts/render.py"
@@ -293,12 +294,15 @@ def add_title(svg, title, columns=None, bottom_padding=0):
 
 
 def render_sankey(flows, source, png, title):
+    source = artifact_path(source)
+    png = artifact_path(png)
     svg = png.with_suffix(".svg")
     if flows.empty:
         source.unlink(missing_ok=True)
         png.unlink(missing_ok=True)
         svg.unlink(missing_ok=True)
         return "Empty prescription cohort; no Sankey generated."
+    output_path(png)
     write_text(source, mermaid_source(flows, title))
     # Stage both formats so rendering/conversion errors preserve the prior PNG.
     with TemporaryDirectory(prefix=".title-", dir=source.parent) as directory:
