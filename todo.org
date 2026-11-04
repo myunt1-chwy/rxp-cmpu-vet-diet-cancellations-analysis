@@ -1410,3 +1410,8 @@
 * DONE Require separate SQL templates rendered with Jinja
   - Updated my-sql-code-skill: SQL statements and fragments, including validation and DuckDB SQL, belong in separate files; Python loads and renders templates with Jinja2 and StrictUndefined rather than embedding or assembling SQL strings.
   - Skill validation passed. Existing analysis code was not refactored; user approved committing this skill update.
+
+* DONE Define my-analysis-structure skill
+  - Captured the agreed question-led paragraph/subsubsection/subsection/section model, flat first-class targets with stable IDs, target.yaml relationships, analysis.yaml ordering, target-owned Makefiles, and declared shared dependencies.
+  - Specified self-contained target src/data/outputs folders, generated SQL location, authoritative Org table data with derived LaTeX additions, parent LaTeX narrative between children, explicit REFRESH=1 with missing/stale-cache instructions, per-target README.org assembled into HOWTO.md, and optional REPRO=1 document inclusion (default 0).
+  - Installed and validated .agents/skills/my-analysis-structure/SKILL.md. No existing analysis migration or build implementation; user approved committing the skill and task entry.
