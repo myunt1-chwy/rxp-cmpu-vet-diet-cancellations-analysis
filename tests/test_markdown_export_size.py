@@ -6,7 +6,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.python import markdown_tables as output
+from shared.paths import source_ownership
+from shared.python import markdown_tables as output
 
 
 def test_small_table_and_small_export_are_unchanged(tmp_path):
@@ -115,7 +116,8 @@ def test_non_markdown_text_is_not_truncated(tmp_path, extension):
 def test_active_generators_use_the_shared_writer_and_table_formatter():
     root = Path(__file__).resolve().parents[1]
     bypasses = []
-    for path in (root / "src/python").glob("*.py"):
+    for relative in source_ownership()["modules"].values():
+        path = root / relative
         if path.name == "markdown_tables.py":
             continue
         tree = ast.parse(path.read_text())

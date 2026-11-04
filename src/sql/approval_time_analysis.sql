@@ -1,1 +1,0 @@
-../../shared/sql/approval_time_analysis.sql

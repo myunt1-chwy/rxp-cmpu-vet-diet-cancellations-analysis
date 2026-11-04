@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from src.python import create_aged_order_reorder_daily_customers as analysis
+from shared.python import create_aged_order_reorder_daily_customers as analysis
 
 
 def fixtures():

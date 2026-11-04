@@ -80,7 +80,9 @@ def main():
         + "\n",
     )
     target = artifact_path(
-        ROOT / "src/latex/appendix/study_population_analysis.tex"
+        ROOT
+        / "targets/report/src/latex/retained/appendix"
+        / "study_population_analysis.tex"
     )
     text = target.read_text()
     for label, frame in [

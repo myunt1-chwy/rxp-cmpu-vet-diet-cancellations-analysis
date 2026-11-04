@@ -8,11 +8,11 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from src.python import (
+from shared.python import (
     create_cmpu_first_order_line_approval_distribution as timing,
 )
-from src.python import create_cmpu_first_order_line_event_times as events
-from src.python import create_cmpu_first_order_line_survival as survival
+from shared.python import create_cmpu_first_order_line_event_times as events
+from shared.python import create_cmpu_first_order_line_survival as survival
 from tests.test_cmpu_first_order_line_event_times import (
     BASE,
     DATES,
@@ -132,7 +132,7 @@ def test_d_status_extract_uses_accepted_state_change_outside_window():
 def test_status_presence_is_separate_from_state_time_exports_full_data(
     tmp_path,
 ):
-    from src.python import create_cmpu_first_order_line_status as status
+    from shared.python import create_cmpu_first_order_line_status as status
     from tests.test_cmpu_first_order_line_status import fixture
 
     f = fixture()

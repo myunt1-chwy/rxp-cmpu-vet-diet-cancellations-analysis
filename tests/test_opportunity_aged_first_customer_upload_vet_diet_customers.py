@@ -7,7 +7,8 @@ from test_opportunity_aged_first_order_customers import execute
 from test_opportunity_aged_first_vet_diet_customers import history
 from test_opportunity_aged_reorders import sql_sources
 
-from src.python import create_opportunity_aged_first_order_customers as a
+from shared.paths import canonical_sql_path
+from shared.python import create_opportunity_aged_first_order_customers as a
 
 SCOPE = "vet-diet-customer-upload"
 
@@ -89,7 +90,7 @@ def test_channel_scope_fresh_cached_sql_only_and_separate_output(
     (tmp_path / "src/sql").mkdir(parents=True)
     filename = a.SCOPE_TEMPLATES[SCOPE]
     (tmp_path / "src/sql" / filename).write_text(
-        (a.ROOT / "src/sql" / filename).read_text()
+        canonical_sql_path(filename).read_text()
     )
     monkeypatch.setattr(a, "ROOT", tmp_path)
     calls = []

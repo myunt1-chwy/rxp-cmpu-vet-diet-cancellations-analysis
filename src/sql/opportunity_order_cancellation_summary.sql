@@ -1,1 +1,0 @@
-../../targets/cancellation-sales-baseline/src/sql/opportunity_order_cancellation_summary.sql

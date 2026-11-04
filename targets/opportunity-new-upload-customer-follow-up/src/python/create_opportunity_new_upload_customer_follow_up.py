@@ -430,7 +430,9 @@ numeric customer ID, exact \texttt{PRODUCT\_PART\_NUMBER} and non-null
 def publish_latex(
     text, all_chewy=False, tables=None, cohort_kind="first-upload"
 ):
-    appendix = artifact_path(ROOT / "src/latex/appendix")
+    appendix = artifact_path(
+        ROOT / "targets/report/src/latex/retained/appendix"
+    )
     appendix.mkdir(parents=True, exist_ok=True)
     filename = (
         "financial_opportunity_new_upload_chewy_follow_up.tex"

@@ -11,7 +11,7 @@ import pytest
 from click.testing import CliRunner
 from sql_fixtures import sql_contains
 
-from src.python import (
+from shared.python import (
     create_aged_order_reorder_prescription_sankeys as analysis,
 )
 from tests.test_aged_order_reorder_daily_customers import (

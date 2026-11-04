@@ -1,1 +1,0 @@
-../../targets/upload-source-date-coverage/src/sql/upload_source_time_coverage.sql

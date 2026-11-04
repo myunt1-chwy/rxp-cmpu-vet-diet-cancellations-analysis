@@ -1,1 +1,0 @@
-../../targets/opportunity-new-upload-customer-follow-up/src/sql/opportunity_new_upload_customer_follow_up.sql

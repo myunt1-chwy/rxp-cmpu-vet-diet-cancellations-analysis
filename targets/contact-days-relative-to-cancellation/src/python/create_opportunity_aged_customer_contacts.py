@@ -183,7 +183,9 @@ the full cohort; positive-day rows sum to the distinct contacting customers.
 
 
 def publish_latex(text):
-    appendix = artifact_path(ROOT / "src/latex/appendix")
+    appendix = artifact_path(
+        ROOT / "targets/report/src/latex/retained/appendix"
+    )
     appendix.mkdir(parents=True, exist_ok=True)
     if (appendix / "customer_contacts_by_cancellation_reason.tex").exists():
         anchor = r"\label{subsec:contact-analysis}"
@@ -204,7 +206,7 @@ def publish_latex(text):
         if (appendix / (name + ".tex")).exists():
             text = text.rstrip() + "\n\n" + r"\input{appendix/" + name + "}\n"
     write_text(appendix / "contact_analysis.tex", text)
-    main = artifact_path(ROOT / "src/latex/main.tex")
+    main = artifact_path(ROOT / "targets/report/src/latex/retained/main.tex")
     include = r"\input{appendix/contact_analysis}"
     if main.exists():
         body = main.read_text()

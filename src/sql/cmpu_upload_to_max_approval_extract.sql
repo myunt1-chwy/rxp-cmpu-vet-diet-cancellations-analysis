@@ -1,1 +1,0 @@
-../../targets/accepted-upload-approval-delay/src/sql/cmpu_upload_to_max_approval_extract.sql

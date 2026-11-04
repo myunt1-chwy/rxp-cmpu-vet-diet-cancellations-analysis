@@ -14,7 +14,8 @@ from test_opportunity_aged_reorders import (
 from test_opportunity_chewy_follow_up import ecom_source
 from test_opportunity_new_upload_customer_follow_up import cohort_fixture
 
-from src.python import create_opportunity_new_upload_customer_follow_up as a
+from shared.paths import canonical_sql_path
+from shared.python import create_opportunity_new_upload_customer_follow_up as a
 
 
 def broad_raw():
@@ -156,10 +157,10 @@ def test_all_scopes_fresh_cached_sql_and_report_inclusions(
         "opportunity_new_upload_customer_chewy_follow_up.sql",
     ]:
         (tmp_path / "src/sql" / name).write_text(
-            (a.ROOT / "src/sql" / name).read_text()
+            canonical_sql_path(name).read_text()
         )
     cohort_fixture(tmp_path)
-    appendix = tmp_path / "src/latex/appendix"
+    appendix = tmp_path / "targets/report/src/latex/retained/appendix"
     appendix.mkdir(parents=True)
     parent = appendix / "financial_opportunity.tex"
     parent.write_text("Financial opportunity\n")

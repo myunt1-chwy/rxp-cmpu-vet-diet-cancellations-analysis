@@ -10,8 +10,13 @@ import hashlib
 import json
 import re
 import shutil
+import sys
+from pathlib import Path
 
 from preview import ROOT, write
+
+sys.path.insert(0, str(ROOT))
+from shared.paths import artifact_path
 
 
 def flatten(path, visited=None):
@@ -21,9 +26,14 @@ def flatten(path, visited=None):
         raise ValueError(f"Cyclic LaTeX input: {path}")
 
     def include(match):
-        child = ROOT / "src/latex" / match[1]
-        if not child.suffix:
-            child = child.with_suffix(".tex")
+        name = match[1]
+        if not Path(name).suffix:
+            name += ".tex"
+        if name.startswith("targets/"):
+            child = ROOT / name
+        else:
+            # Retained fragments use the old assembly-relative convention.
+            child = artifact_path((ROOT / "src/latex" / name).resolve())
         return flatten(child, visited | {path})
 
     return re.sub(r"\\input\{([^}]+)\}", include, path.read_text())

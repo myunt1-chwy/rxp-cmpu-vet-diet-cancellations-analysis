@@ -11,7 +11,9 @@ import pandas as pd
 from click.testing import CliRunner
 
 from shared import prescription_uploads, sankey
-from src.python import create_cmpu_prescription_first_order_status as analysis
+from shared.python import (
+    create_cmpu_prescription_first_order_status as analysis,
+)
 
 LEGACY_ARGS = [
     "--start-date",

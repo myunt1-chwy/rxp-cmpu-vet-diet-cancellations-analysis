@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import create_cmpu_first_order_line_survival as survival
+from shared.python import create_cmpu_first_order_line_survival as survival
 
 ORIGIN = pd.Timestamp("2026-08-15", tz="UTC")
 CUTOFF = pd.Timestamp("2026-10-26", tz="UTC")

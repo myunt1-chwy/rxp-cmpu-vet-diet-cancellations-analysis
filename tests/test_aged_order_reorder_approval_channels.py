@@ -10,7 +10,9 @@ import pytest
 from click.testing import CliRunner
 from sql_fixtures import sql_contains
 
-from src.python import create_aged_order_reorder_approval_channels as analysis
+from shared.python import (
+    create_aged_order_reorder_approval_channels as analysis,
+)
 
 
 def fixtures():

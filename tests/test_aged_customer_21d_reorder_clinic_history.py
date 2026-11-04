@@ -10,7 +10,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import (
+from shared.python import (
     create_aged_customer_21d_reorder_clinic_history as analysis,
 )
 from tests.test_aged_order_reorder_daily_customers import (

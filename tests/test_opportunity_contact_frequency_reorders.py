@@ -7,7 +7,7 @@ from test_opportunity_aged_customer_contacts import CANCEL
 from test_opportunity_aged_customer_contacts import source as contact_source
 from test_opportunity_aged_reorders import sources
 
-from src.python import create_opportunity_contact_frequency_reorders as a
+from shared.python import create_opportunity_contact_frequency_reorders as a
 
 
 def fixtures():
@@ -160,7 +160,11 @@ def test_fresh_cached_handled_sql_only_and_cache_hashes(tmp_path, monkeypatch):
         result = runner.invoke(a.main, args)
         assert result.exit_code == 0, str(result.exception) + result.output
     assert len(calls) == 2
-    child = tmp_path / "src/latex/appendix/contact_frequency_reorders.tex"
+    child = (
+        tmp_path
+        / "targets/report/src/latex/retained/appendix"
+        / "contact_frequency_reorders.tex"
+    )
     text = child.read_text()
     assert (
         "\\subsubsection{Does more frequent contact imply "

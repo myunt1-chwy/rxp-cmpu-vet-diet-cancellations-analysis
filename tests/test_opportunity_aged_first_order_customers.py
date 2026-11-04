@@ -6,7 +6,8 @@ import pytest
 from click.testing import CliRunner
 from test_opportunity_aged_reorders import sql_sources
 
-from src.python import create_opportunity_aged_first_order_customers as a
+from shared.paths import canonical_sql_path
+from shared.python import create_opportunity_aged_first_order_customers as a
 
 
 def orders_source():
@@ -169,8 +170,8 @@ def test_fresh_cached_sql_only_and_comparison(tmp_path, monkeypatch):
     (
         tmp_path / "src/sql/opportunity_aged_first_order_customers.sql"
     ).write_text(
-        (
-            a.ROOT / "src/sql/opportunity_aged_first_order_customers.sql"
+        canonical_sql_path(
+            "opportunity_aged_first_order_customers.sql"
         ).read_text()
     )
     previous = (

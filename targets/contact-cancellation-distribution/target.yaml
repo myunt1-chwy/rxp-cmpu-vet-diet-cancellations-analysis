@@ -16,7 +16,7 @@ shared_dependencies:
 - python/financial_values.py
 migration:
   status: active
-  source: src/latex/appendix/customer_contacts_by_cancellation_reason.tex
+  source: targets/report/src/latex/retained/appendix/customer_contacts_by_cancellation_reason.tex
   content: split
   code: relocated
   build: active

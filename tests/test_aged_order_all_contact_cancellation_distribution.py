@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import (
+from shared.python import (
     create_aged_order_all_contact_cancellation_distribution as analysis,
 )
 

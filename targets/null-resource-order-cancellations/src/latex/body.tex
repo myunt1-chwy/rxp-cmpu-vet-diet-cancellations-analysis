@@ -1,5 +1,5 @@
 \label{subsec:null-resource-upload-order-cancellation-reasons}
-% Generate from the retained extracts with python -m src.python.analyze_null_resource_uploads.
+% Generate from the retained extracts with python -m shared.python.analyze_null_resource_uploads.
 \Needspace{18\baselineskip}
 \noindent Of the 40,451 notification-service upload entries with \texttt{associated\_resource\_type IS NULL}, 1,998 (4.94\%) have both a non-null \texttt{context:orderId} and \texttt{context:orderItemId}; 38,453 have neither. These entries reference 1,726 distinct orders, of which 1,724 match \texttt{EDLDB.ECOM.ORDERS} and 2 are unmatched. Table~\ref{tab:null-resource-upload-order-cancel-reasons} shows the cancellation-reason distribution across these distinct order IDs.
 \AnalysisChild{null-resource-cancellation-reasons}

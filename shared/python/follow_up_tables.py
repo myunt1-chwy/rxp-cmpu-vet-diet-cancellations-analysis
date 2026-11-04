@@ -7,7 +7,7 @@ from shared.paths import artifact_path, repository_root
 ROOT = repository_root()
 
 
-APPENDIX = artifact_path(ROOT / "src/latex/appendix")
+APPENDIX = artifact_path(ROOT / "targets/report/src/latex/retained/appendix")
 
 
 SOURCES = [

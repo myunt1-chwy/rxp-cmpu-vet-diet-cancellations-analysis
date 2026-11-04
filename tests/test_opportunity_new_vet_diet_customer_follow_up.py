@@ -8,7 +8,8 @@ from test_opportunity_aged_first_vet_diet_customers import history
 from test_opportunity_new_upload_customer_follow_up import cohort_fixture
 from test_opportunity_new_upload_follow_up_studies import broad_raw, chewy_raw
 
-from src.python import create_opportunity_new_upload_customer_follow_up as a
+from shared.paths import canonical_sql_path
+from shared.python import create_opportunity_new_upload_customer_follow_up as a
 
 KIND = "first-vet-diet"
 
@@ -74,10 +75,10 @@ def test_first_vet_diet_cohort_fingerprints_modes_and_report_triplets(
         "opportunity_new_vet_diet_customer_chewy_follow_up.sql",
     ]:
         (tmp_path / "src/sql" / name).write_text(
-            (a.ROOT / "src/sql" / name).read_text()
+            canonical_sql_path(name).read_text()
         )
     cohort_fixture(tmp_path, scope="vet-diet")
-    appendix = tmp_path / "src/latex/appendix"
+    appendix = tmp_path / "targets/report/src/latex/retained/appendix"
     appendix.mkdir(parents=True)
     r = a.report_tables
     for name in (

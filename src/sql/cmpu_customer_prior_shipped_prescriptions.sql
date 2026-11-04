@@ -1,1 +1,0 @@
-../../targets/cmpu-customer-prior-shipped-prescriptions/src/sql/cmpu_customer_prior_shipped_prescriptions.sql

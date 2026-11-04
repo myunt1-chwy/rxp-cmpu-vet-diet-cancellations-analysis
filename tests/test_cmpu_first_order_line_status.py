@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import create_cmpu_first_order_line_status as analysis
+from shared.python import create_cmpu_first_order_line_status as analysis
 
 
 def fixture():

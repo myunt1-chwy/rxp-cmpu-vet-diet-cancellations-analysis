@@ -11,7 +11,7 @@ shared_dependencies:
 - paths.py
 migration:
   status: active
-  source: src/latex/appendix/approval_analysis.tex
+  source: targets/report/src/latex/retained/appendix/approval_analysis.tex
   content: split
   build: active
 artifact: null

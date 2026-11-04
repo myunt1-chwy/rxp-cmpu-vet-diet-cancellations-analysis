@@ -1,1 +1,0 @@
-../../targets/upload-resource-types/src/sql/upload_data_verification.sql

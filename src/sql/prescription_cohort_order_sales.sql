@@ -1,1 +1,0 @@
-../../targets/study-order-cancellation-sales/src/sql/prescription_cohort_order_sales.sql

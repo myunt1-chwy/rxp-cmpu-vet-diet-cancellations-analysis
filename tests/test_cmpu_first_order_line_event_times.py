@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import create_cmpu_first_order_line_event_times as analysis
+from shared.python import create_cmpu_first_order_line_event_times as analysis
 
 DATES = ("2026-08-15", "2026-10-15", "2026-08-01")
 BASE = pd.Timestamp("2026-08-15 12:00:00.123456789")

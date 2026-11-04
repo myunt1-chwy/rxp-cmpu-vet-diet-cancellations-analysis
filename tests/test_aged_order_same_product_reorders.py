@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import create_aged_order_same_product_reorders as analysis
+from shared.python import create_aged_order_same_product_reorders as analysis
 
 DATES = ("2026-08-15", "2026-10-15", "2026-10-27")
 CANCEL = pd.Timestamp("2026-09-01 12:00:00.123456789", tz="UTC")

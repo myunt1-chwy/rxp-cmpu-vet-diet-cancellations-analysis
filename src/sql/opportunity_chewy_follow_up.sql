@@ -1,1 +1,0 @@
-../../shared/sql/opportunity_chewy_follow_up.sql

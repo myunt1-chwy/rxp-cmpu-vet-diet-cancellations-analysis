@@ -1,5 +1,5 @@
 \label{subsec:cmpu-approved-prescription-upload-coverage}
-% Generate from retained extracts with python -m src.python.analyze_cmpu_approved_prescription_upload_coverage.
+% Generate from retained extracts with python -m shared.python.analyze_cmpu_approved_prescription_upload_coverage.
 Table~\ref{tab:cmpu-approved-prescription-upload-coverage} starts from all vet-diet prescriptions in \texttt{EDLDB.BT\_HCA\_HCDM.RXP\_PRESCRIPTIONS} with \texttt{IS\_VET\_DIET\_FLAG = TRUE} and \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD}, created on or after July 30, 2026, 00:00 UTC, and shows upload-source coverage by \texttt{PRESCRIPTION\_SOURCE} and current \texttt{RX\_STATUS}. All statuses and prescription sources are included; there is no upper creation-date bound. Each qualifying prescription counts once.
 \AnalysisChild{customer-upload-rx-status-coverage}
 

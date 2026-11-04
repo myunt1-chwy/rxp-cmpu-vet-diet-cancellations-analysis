@@ -1,4 +1,4 @@
-from src.python import opportunity_report_tables as a
+from shared.python import opportunity_report_tables as a
 
 
 def test_interleaved_cohorts_exclude_frequency_and_rerun_idempotently(

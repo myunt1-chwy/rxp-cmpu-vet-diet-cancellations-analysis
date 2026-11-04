@@ -6,8 +6,8 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import create_cmpu_first_order_line_event_times as events
-from src.python import (
+from shared.python import create_cmpu_first_order_line_event_times as events
+from shared.python import (
     create_cmpu_upload_entity_state_change_distributions as a,
 )
 from tests.test_cmpu_first_order_line_event_times import execute

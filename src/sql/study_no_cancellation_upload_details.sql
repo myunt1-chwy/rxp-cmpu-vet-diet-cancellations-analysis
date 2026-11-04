@@ -1,1 +1,0 @@
-../../targets/no-recorded-cancellation-upload-statuses/src/sql/study_no_cancellation_upload_details.sql

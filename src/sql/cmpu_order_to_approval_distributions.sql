@@ -1,1 +1,0 @@
-../../targets/cmpu-order-to-approval-distributions/src/sql/cmpu_order_to_approval_distributions.sql

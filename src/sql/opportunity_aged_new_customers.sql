@@ -1,1 +1,0 @@
-../../targets/opportunity-aged-new-customers/src/sql/opportunity_aged_new_customers.sql

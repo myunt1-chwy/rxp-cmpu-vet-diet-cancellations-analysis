@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 from sql_fixtures import fixture_sql, isolate_cte, sql_contains
 
-from src.python import create_aged_order_reorder_uploads as analysis
+from shared.python import create_aged_order_reorder_uploads as analysis
 
 ASOF = "2026-10-27"
 

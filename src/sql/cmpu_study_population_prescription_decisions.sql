@@ -1,1 +1,0 @@
-../../targets/study-prescription-decisions/src/sql/cmpu_study_population_prescription_decisions.sql

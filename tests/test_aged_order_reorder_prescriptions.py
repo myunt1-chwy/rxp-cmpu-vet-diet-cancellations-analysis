@@ -11,7 +11,7 @@ import pytest
 from click.testing import CliRunner
 from sql_fixtures import sql_contains
 
-from src.python import create_aged_order_reorder_prescriptions as analysis
+from shared.python import create_aged_order_reorder_prescriptions as analysis
 
 
 def fixtures():

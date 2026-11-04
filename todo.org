@@ -1361,3 +1361,11 @@
   - Fixed compatibility access for importlib callers and explicit timezone validation; updated renderer/API tests, typed SQL fixtures, moved imports, valid cohort periods, and uv/hook subprocess mocks.
   - Preserved analytical counts, duplicate handling, nanosecond boundaries and cache-rejection assertions. No skip/xfail or disabled rules.
   - Full suite: 634 passed and 16 subtests passed. Explicit Ruff first-party configuration and its regression keep staged import checks consistent. Ruff lint/format, SQLFluff fixture lint, source/hierarchy validators and git diff --check pass. No warehouse refresh. User approved committing all test repairs.
+
+* DONE Retire root analysis directories
+  - Accepted: move src/ignore to playground; migrate remaining source, retained data and artifacts to target owners; keep only the published PDF under root outputs/reports/pdf.
+  - Replace active root-source imports and paths, remove compatibility filesystem links, preserve retained files with checksum verification, and validate without warehouse refresh.
+  - Moved the playground, retained datasets/materialized queries and report fragments; removed root aliases and migrated imports, metadata, lint configuration and documentation. Root outputs now contains only the published PDF.
+  - Validation: 639 tests and 16 subtests pass; Ruff lint/format, source/hierarchy validators and git diff --check pass. All 34 paragraph artifacts regenerated from retained inputs; combined follow-up generation and the retained-data PDF preview pass.
+  - Verified retained-file checksums during moves and rechecked 176 data/SQL evidence records from the local migration manifest. No warehouse refresh or provenance fingerprint relabeling. The published PDF is unchanged; make report still stops on the pre-existing financial query fingerprint mismatch.
+  - User approved committing the root-directory migration.

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from src.python.markdown_tables import table_layout
+from shared.python.markdown_tables import table_layout
 
 
 @pytest.mark.parametrize(

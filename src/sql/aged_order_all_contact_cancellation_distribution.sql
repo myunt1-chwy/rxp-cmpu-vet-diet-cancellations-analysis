@@ -1,1 +1,0 @@
-../../targets/aged-order-all-contact-cancellation-distribution/src/sql/aged_order_all_contact_cancellation_distribution.sql

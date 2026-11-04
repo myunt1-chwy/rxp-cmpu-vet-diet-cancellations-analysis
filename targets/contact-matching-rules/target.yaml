@@ -14,7 +14,7 @@ shared_dependencies:
 - python/markdown_tables.py
 migration:
   status: active
-  source: src/latex/appendix/data_source_connections.tex
+  source: targets/report/src/latex/retained/appendix/data_source_connections.tex
   content: split
   code: relocated
   build: active
@@ -27,6 +27,6 @@ code_dependencies:
 - targets/data-source-diagrams/src/python/create_data_source_diagrams.py
 pipeline: diagrams
 images:
-- source: outputs/diagrams/data-source-connections/contact-matching.png
+- source: targets/data-source-diagrams/outputs/diagrams/data-source-connections/contact-matching.png
   output: outputs/diagrams/visual.png
 data_dependencies: []

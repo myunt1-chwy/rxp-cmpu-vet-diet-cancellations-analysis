@@ -18,7 +18,7 @@ from sql_fixtures import (
     sql_contains,
 )
 
-from src.python import create_aged_order_reorder_wismo as analysis
+from shared.python import create_aged_order_reorder_wismo as analysis
 
 
 def fixtures():

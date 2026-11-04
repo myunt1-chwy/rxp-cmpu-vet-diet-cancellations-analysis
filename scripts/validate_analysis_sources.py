@@ -21,6 +21,11 @@ from shared.paths import (
 
 
 def main():
+    for retired in ("src", "data"):
+        if (ROOT / retired).exists():
+            raise ValueError(
+                f"Retired root directory was recreated: {retired}"
+            )
     registry = source_ownership()
     for shared_source in (ROOT / "shared/python").glob("*.py"):
         if shared_source.name.startswith(("create_", "recreate_")):
@@ -60,9 +65,8 @@ def main():
                     raise ValueError(f"Missing query: {node.args[0].value}")
     for name, relative in registry["queries"].items():
         canonical = ROOT / relative
-        alias = ROOT / "src/sql" / name
-        if not canonical.is_file() or alias.resolve() != canonical.resolve():
-            raise ValueError(f"Broken SQL compatibility path: {name}")
+        if not canonical.is_file():
+            raise ValueError(f"Missing canonical SQL source: {name}")
         if re.search(
             r"PARSE_JSON\s*\(\s*[\'\"]?\s*(?:\{\{|__RX_IDS_JSON__)",
             canonical.read_text(),
@@ -81,6 +85,11 @@ def main():
             )
     for metadata in (ROOT / "targets").glob("*/target.yaml"):
         target = yaml.safe_load(metadata.read_text())
+        references = [target.get("migration", {}).get("source")]
+        references += [a["source"] for a in target.get("images", [])]
+        for reference in filter(None, references):
+            if not reference.startswith("targets/"):
+                raise ValueError(f"Source needs a target owner: {reference}")
         for source in target.get("sources", []) + target.get(
             "code_dependencies", []
         ):
@@ -90,7 +99,7 @@ def main():
                 )
     ownership = artifact_ownership()
     for dataset, owner in ownership["datasets"].items():
-        if not (ROOT / "targets" / owner / "target.yaml").is_file():
+        if not (ROOT / "targets" / owner / "Makefile").is_file():
             raise ValueError(f"Unknown data owner: {owner}")
         expected = (
             ROOT / "targets" / owner / "data" / dataset / "source.parquet"

@@ -18,7 +18,7 @@ shared_dependencies:
 - python/financial_values.py
 migration:
   status: active
-  source: src/latex/appendix/contact_frequency_reorders.tex
+  source: targets/report/src/latex/retained/appendix/contact_frequency_reorders.tex
   content: split
   code: relocated
   build: active

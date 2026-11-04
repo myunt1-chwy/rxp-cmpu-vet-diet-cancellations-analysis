@@ -43,7 +43,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/report/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 
 ### Review database-derived cohort SQL
@@ -93,6 +93,15 @@ See `docs/lint-cleanup-validation.org` for the validation record and completed
 migration-era test repairs. A report rebuild needs an explicitly reviewed snapshot
 transition or authorized refresh; refreshing historical cohorts may change results.
 
+
+### Repository layout
+
+The root `src/` and `data/` directories are retired. Retained datasets and generated artifacts live under their target owners. Historical migration audits live in `targets/report/data/`; existing source/cache fingerprints are preserved. The former `src/ignore/` playground is now `playground/` and is excluded from maintained-code checks.
+
+The report's retained LaTeX assembly fragments live in `targets/report/src/latex/retained/`. Paragraph adapters still read these fragments to reproduce the authoritative Org tables. Current authored target prose remains in each target's `src/latex/`. `make legacy-report` delegates to `make report`.
+
+`make validate-analysis-sources validate-analysis-structure` checks ownership and the target graph. `make preview-target-report` renders retained presentation snapshots without warehouse access or replacing the published PDF. This preview does not certify the query cache or replace a successful `make report`.
+
 ## executive-summary: Executive summary
 
 
@@ -127,7 +136,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/executive-summary/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## next-steps: What are the next steps?
 
@@ -163,7 +172,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/next-steps/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## appendix: Appendix
 
@@ -200,7 +209,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/appendix/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## financial-impact: What is the financial impact of CMPU aged orders?
 
@@ -237,7 +246,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/financial-impact/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## estimated-sales-loss: What is the estimated net sales lost from CMPU aged orders?
 
@@ -274,7 +283,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/estimated-sales-loss/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## cancellation-sales-baseline: How do customer counts, order counts, and estimated net sales vary by cancellation reason and line-item status?
 
@@ -331,7 +340,7 @@ Shared dependencies:
 
 Generated content: `targets/cancellation-sales-baseline/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## same-pet-product-returns: What percentage of customers come back and place a successful vet diet order for the same pet and part number after an aged order in the next 70 days?
 
@@ -368,7 +377,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/same-pet-product-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## same-pet-product-return-comparison: How do same-pet, same-product return rates and net sales compare across the three customer cohorts over 70 days?
 
@@ -418,7 +427,7 @@ Shared dependencies:
 
 Generated content: `targets/same-pet-product-return-comparison/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## same-pet-other-product-returns: What percentage of customers come back and place a successful order for the same pet but different product after an aged order in the next 70 days?
 
@@ -455,7 +464,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/same-pet-other-product-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## same-pet-other-product-return-comparison: How do same-pet, different-product return rates and net sales compare across the three customer cohorts over 70 days?
 
@@ -505,7 +514,7 @@ Shared dependencies:
 
 Generated content: `targets/same-pet-other-product-return-comparison/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## any-vet-diet-returns: What percentage of customers place a successful vet diet order after an aged order in the next 70 days?
 
@@ -542,7 +551,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/any-vet-diet-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## any-vet-diet-return-comparison: How do successful vet-diet return rates and net sales compare across the three customer cohorts over 70 days?
 
@@ -592,7 +601,7 @@ Shared dependencies:
 
 Generated content: `targets/any-vet-diet-return-comparison/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## any-chewy-returns: What percentage of customers place a Chewy order successfully in the following 70 days after their aged order?
 
@@ -629,7 +638,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/any-chewy-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## any-chewy-return-comparison: How do successful Chewy return rates and net sales compare across the three customer cohorts over 70 days?
 
@@ -679,7 +688,7 @@ Shared dependencies:
 
 Generated content: `targets/any-chewy-return-comparison/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## customer-contact-patterns: What is the contact pattern of CMPU aged order customers?
 
@@ -716,7 +725,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/customer-contact-patterns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## contacts-by-cancellation-reason: What is the distribution of CMPU customers with APPROVAL CHANNEL = CUSTOMER\_UPLOAD that contacted Chewy by cancellation reason?
 
@@ -753,7 +762,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/contacts-by-cancellation-reason/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## contact-cancellation-distribution: What proportion of customers contacted Chewy for each order cancellation reason?
 
@@ -811,7 +820,7 @@ Shared dependencies:
 
 Generated content: `targets/contact-cancellation-distribution/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## contact-timing: When did the CMPU aged order customers contact Chewy relative to the cancellation date?
 
@@ -848,7 +857,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/contact-timing/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## contact-days-relative-to-cancellation: How many customers contacted Chewy on each day relative to aged-order cancellation?
 
@@ -894,7 +903,7 @@ Shared dependencies:
 
 Generated content: `targets/contact-days-relative-to-cancellation/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 
 ### Additional target-owned source
@@ -936,7 +945,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/contact-frequency/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## customer-contact-day-frequency: How many distinct days did aged-order customers contact Chewy?
 
@@ -982,7 +991,7 @@ Shared dependencies:
 
 Generated content: `targets/customer-contact-day-frequency/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## contact-frequency-and-returns: Does more frequent contact imply higher propensity to re-order successfully for the same pet and part number in 14 days?
 
@@ -1019,7 +1028,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/contact-frequency-and-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## return-rates-by-contact-frequency: How do 14-day same-pet, same-product return rates vary with contact-day frequency?
 
@@ -1081,7 +1090,7 @@ Shared dependencies:
 
 Generated content: `targets/return-rates-by-contact-frequency/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## contact-proximity-and-returns: Does contact closer to cancellation imply higher propensity to re-order successfully in 14 days for the same pet and part number?
 
@@ -1118,7 +1127,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/contact-proximity-and-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## return-rates-by-contact-window: How do 14-day same-pet, same-product return rates compare for customers contacting on days -7 through +3 and other customers?
 
@@ -1183,7 +1192,7 @@ Shared dependencies:
 
 Generated content: `targets/return-rates-by-contact-window/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## upload-processing-delays: What are the delays in processing uploaded prescriptions?
 
@@ -1220,7 +1229,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/upload-processing-delays/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## study-population-context: Which prescriptions, orders, customers, and uploads are included in the study?
 
@@ -1257,7 +1266,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/study-population-context/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## study-population-counts: How many prescriptions, orders, lines, customers, and uploaded documents are in each study population?
 
@@ -1319,7 +1328,7 @@ Shared dependencies:
 
 Generated content: `targets/study-population-counts/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## study-prescription-decisions: How are prescription approval decisions distributed across the study populations?
 
@@ -1381,7 +1390,7 @@ Shared dependencies:
 
 Generated content: `targets/study-prescription-decisions/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## study-order-cancellation-sales: How do cancellation reasons, order counts, and net sales compare between first orders and all linked orders?
 
@@ -1444,7 +1453,7 @@ Shared dependencies:
 
 Generated content: `targets/study-order-cancellation-sales/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## first-order-upload-status-flow: How do first-order line statuses relate to accepted prescription uploads?
 
@@ -1500,7 +1509,7 @@ Shared dependencies:
 
 Generated content: `targets/first-order-upload-status-flow/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 
 ### Prescription-status source ownership
@@ -1546,7 +1555,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/prescription-upload-coverage/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## first-order-upload-coverage: What proportion of first-order lines have prescription uploads by cancellation reason and line-item status?
 
@@ -1613,7 +1622,7 @@ Shared dependencies:
 
 Generated content: `targets/first-order-upload-coverage/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## no-recorded-cancellation-upload-statuses: How do prescription, order, and line-item statuses vary by upload coverage when no cancellation reason is recorded?
 
@@ -1682,7 +1691,7 @@ Shared dependencies:
 
 Generated content: `targets/no-recorded-cancellation-upload-statuses/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## aged-line-upload-statuses: How do prescription, order, and line-item statuses vary by upload coverage for aged orders?
 
@@ -1750,7 +1759,7 @@ Shared dependencies:
 
 Generated content: `targets/aged-line-upload-statuses/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## customer-upload-delay: How long do customers wait to upload a prescription?
 
@@ -1787,7 +1796,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/customer-upload-delay/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## upload-delay-from-order-creation: How does time from order creation to upload compare between all study uploads and aged-order uploads?
 
@@ -1843,7 +1852,7 @@ Shared dependencies:
 
 Generated content: `targets/upload-delay-from-order-creation/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## upload-processing-time: How long does it take for an uploaded prescription to be ready for approval?
 
@@ -1880,7 +1889,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/upload-processing-time/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## all-upload-state-change-delays: How long does it take study uploads to reach their recorded states?
 
@@ -1925,7 +1934,7 @@ Shared dependencies:
 
 Generated content: `targets/all-upload-state-change-delays/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 
 ### Additional target-owned source
@@ -1982,7 +1991,7 @@ Shared dependencies:
 
 Generated content: `targets/aged-upload-state-change-delays/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## accepted-upload-approval-time: How long does it take for an accepted prescription document to get approved?
 
@@ -2019,7 +2028,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/accepted-upload-approval-time/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## accepted-upload-approval-delay: How long after an accepted upload is the prescription approved?
 
@@ -2076,7 +2085,7 @@ Shared dependencies:
 
 Generated content: `targets/accepted-upload-approval-delay/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 
 ### Additional target-owned source
@@ -2118,7 +2127,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/aged-order-risk/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## first-order-event-free-survival: How long do first-order lines remain without an accepted upload or cancellation?
 
@@ -2155,7 +2164,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/first-order-event-free-survival/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## first-order-survival-curve: What proportion of first-order lines remain without an accepted upload or cancellation over time?
 
@@ -2212,7 +2221,7 @@ Shared dependencies:
 
 Generated content: `targets/first-order-survival-curve/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 
 ### Additional target-owned source
@@ -2254,7 +2263,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/data-verification/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## upload-source-origins: Where is the prescription upload data coming from?
 
@@ -2291,7 +2300,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/upload-source-origins/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## upload-resource-types: How many upload-source entries have prescription IDs for each associated resource type?
 
@@ -2354,7 +2363,7 @@ Shared dependencies:
 
 Generated content: `targets/upload-resource-types/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## upload-source-date-coverage: What creation-date ranges do the upload sources cover?
 
@@ -2417,7 +2426,7 @@ Shared dependencies:
 
 Generated content: `targets/upload-source-date-coverage/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## upload-approval-channel-distribution: What's the distribution of all the vet diet prescriptions in the prescription upload tables by \texttt{APPROVAL\_CHANNEL} ?
 
@@ -2454,7 +2463,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/upload-approval-channel-distribution/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## uploaded-prescription-approval-channels: How are approval channels distributed among distinct uploaded vet-diet prescriptions?
 
@@ -2518,7 +2527,7 @@ Shared dependencies:
 
 Generated content: `targets/uploaded-prescription-approval-channels/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## upload-coverage-by-rx-status: What is the coverage of vet diet prescriptions with \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD}, by \texttt{RX\_STATUS}?
 
@@ -2555,7 +2564,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/upload-coverage-by-rx-status/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## customer-upload-rx-status-coverage: How does upload-source coverage vary by prescription source and status for customer-upload vet-diet prescriptions?
 
@@ -2619,7 +2628,7 @@ Shared dependencies:
 
 Generated content: `targets/customer-upload-rx-status-coverage/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## upload-order-cancellation-distribution: What is the distribution of order cancellation reasons in the prescription upload tables?
 
@@ -2656,7 +2665,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/upload-order-cancellation-distribution/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## uploaded-order-cancellation-reasons: How are cancellation reasons distributed among orders associated with vet-diet uploads?
 
@@ -2722,7 +2731,7 @@ Shared dependencies:
 
 Generated content: `targets/uploaded-order-cancellation-reasons/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## null-resource-order-cancellations: What are the order cancellation reasons for null associated resource type entries in the rxp\_notification\_service.\texorpdfstring{\allowbreak}{}upload\_entity table?
 
@@ -2759,7 +2768,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/null-resource-order-cancellations/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## null-resource-cancellation-reasons: How are cancellation reasons distributed among orders referenced by uploads with no associated resource type?
 
@@ -2824,7 +2833,7 @@ Shared dependencies:
 
 Generated content: `targets/null-resource-cancellation-reasons/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## data-source-connections: How are data sources connected?
 
@@ -2861,7 +2870,7 @@ Shared dependencies:
 ### Outputs
 
 Generated content: `targets/data-source-connections/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## report-source-overview: How do the report’s source tables and analyses connect?
 
@@ -2909,7 +2918,7 @@ Shared dependencies:
 
 Generated content: `targets/report-source-overview/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## source-grains-and-counting: What is the grain and counting unit of each source?
 
@@ -2953,7 +2962,7 @@ Shared dependencies:
 
 Generated content: `targets/source-grains-and-counting/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## upload-verification-joins: How are upload IDs expanded and matched to prescriptions and orders?
 
@@ -3001,7 +3010,7 @@ Shared dependencies:
 
 Generated content: `targets/upload-verification-joins/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## prescription-first-order-joins: How are prescriptions matched to first-order lines and upload evidence?
 
@@ -3049,7 +3058,7 @@ Shared dependencies:
 
 Generated content: `targets/prescription-first-order-joins/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## financial-reorder-contact-joins: How are financial lines, later orders, and customer contacts connected?
 
@@ -3097,7 +3106,7 @@ Shared dependencies:
 
 Generated content: `targets/financial-reorder-contact-joins/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 ## contact-matching-rules: How are customer contacts matched to aged orders and observation windows?
 
@@ -3145,4 +3154,4 @@ Shared dependencies:
 
 Generated content: `targets/contact-matching-rules/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.

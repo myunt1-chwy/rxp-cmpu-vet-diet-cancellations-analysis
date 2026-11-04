@@ -1,1 +1,0 @@
-../../shared/sql/cmpu_first_order_comparison.sql

@@ -7,7 +7,8 @@ import pytest
 from click.testing import CliRunner
 from test_opportunity_aged_reorders import sources, sql_sources
 
-from src.python import create_opportunity_new_upload_customer_follow_up as a
+from shared.paths import canonical_sql_path
+from shared.python import create_opportunity_new_upload_customer_follow_up as a
 
 
 def cohort_fixture(root, scope=a.SCOPE):
@@ -197,7 +198,7 @@ def test_new_followup_fresh_cached_sql_only_and_provenance(
     (tmp_path / "src/sql").mkdir(parents=True)
     filename = "opportunity_new_upload_customer_follow_up.sql"
     (tmp_path / "src/sql" / filename).write_text(
-        (a.ROOT / "src/sql" / filename).read_text()
+        canonical_sql_path(filename).read_text()
     )
     cohort_fixture(tmp_path)
     monkeypatch.setattr(a, "ROOT", tmp_path)
@@ -211,7 +212,7 @@ def test_new_followup_fresh_cached_sql_only_and_provenance(
         return {"engine": "fixture"}
 
     monkeypatch.setattr(a.base, "extract", extract)
-    appendix = tmp_path / "src/latex/appendix"
+    appendix = tmp_path / "targets/report/src/latex/retained/appendix"
     appendix.mkdir(parents=True)
     for name in [
         "financial_opportunity_reorders",

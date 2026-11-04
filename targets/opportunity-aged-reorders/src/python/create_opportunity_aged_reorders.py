@@ -869,7 +869,9 @@ def main(
     )
     write_text(manifest, json.dumps(meta, indent=2) + "\n")
     if write_latex:
-        appendix = artifact_path(ROOT / "src/latex/appendix")
+        appendix = artifact_path(
+            ROOT / "targets/report/src/latex/retained/appendix"
+        )
         appendix.mkdir(parents=True, exist_ok=True)
         filename = (
             "financial_opportunity_chewy_follow_up.tex"

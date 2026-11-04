@@ -5,7 +5,9 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import create_cmpu_order_to_approval_distributions as analysis
+from shared.python import (
+    create_cmpu_order_to_approval_distributions as analysis,
+)
 
 DATES = ("2026-08-15", "2026-10-15", "2026-08-01")
 

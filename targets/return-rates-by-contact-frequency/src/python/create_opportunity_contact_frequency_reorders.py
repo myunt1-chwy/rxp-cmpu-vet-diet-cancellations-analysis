@@ -239,7 +239,9 @@ Observation cutoff: """
 
 
 def publish_latex(text):
-    appendix = artifact_path(ROOT / "src/latex/appendix")
+    appendix = artifact_path(
+        ROOT / "targets/report/src/latex/retained/appendix"
+    )
     appendix.mkdir(parents=True, exist_ok=True)
     write_text(appendix / "contact_frequency_reorders.tex", text)
     parent = appendix / "contact_analysis.tex"

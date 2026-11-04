@@ -368,7 +368,9 @@ def write_exports(ships, lines, summary, metadata, write_latex):
     )
     if write_latex:
         target = artifact_path(
-            ROOT / "src/latex/appendix/study_population_analysis.tex"
+            ROOT
+            / "targets/report/src/latex/retained/appendix"
+            / "study_population_analysis.tex"
         )
         text = target.read_text()
         start = "% BEGIN FIRST-ALL-ORDER-CANCELLATION-COMPARISON"

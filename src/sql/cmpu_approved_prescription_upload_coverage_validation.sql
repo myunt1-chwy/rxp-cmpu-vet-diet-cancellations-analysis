@@ -1,1 +1,0 @@
-../../targets/customer-upload-rx-status-coverage/src/sql/cmpu_approved_prescription_upload_coverage_validation.sql

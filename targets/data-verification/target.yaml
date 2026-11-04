@@ -16,7 +16,7 @@ shared_dependencies:
 - paths.py
 migration:
   status: active
-  source: src/latex/appendix/data_verification.tex
+  source: targets/report/src/latex/retained/appendix/data_verification.tex
   content: split
   build: active
 artifact: null

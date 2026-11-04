@@ -10,10 +10,10 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import (
+from shared.python import (
     create_aged_order_contact_cancellation_distribution as analysis,
 )
-from src.python import create_aged_order_reorder_wismo as contacts_analysis
+from shared.python import create_aged_order_reorder_wismo as contacts_analysis
 from tests.test_aged_order_reorder_wismo import (
     execute_sql,
 )

@@ -6,7 +6,8 @@ import pytest
 from click.testing import CliRunner
 from test_opportunity_aged_reorders import sql_sources
 
-from src.python import create_opportunity_aged_new_customers as a
+from shared.paths import canonical_sql_path
+from shared.python import create_opportunity_aged_new_customers as a
 
 
 def source():
@@ -170,7 +171,7 @@ def test_sql_cohort_boundaries_and_customer_duplicate_first_values():
 def test_fresh_cached_sql_only_and_source_hash(tmp_path, monkeypatch):
     (tmp_path / "src/sql").mkdir(parents=True)
     (tmp_path / "src/sql/opportunity_aged_new_customers.sql").write_text(
-        (a.ROOT / "src/sql/opportunity_aged_new_customers.sql").read_text()
+        canonical_sql_path("opportunity_aged_new_customers.sql").read_text()
     )
     monkeypatch.setattr(a, "ROOT", tmp_path)
     calls = []

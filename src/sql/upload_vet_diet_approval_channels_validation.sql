@@ -1,1 +1,0 @@
-../../targets/uploaded-prescription-approval-channels/src/sql/upload_vet_diet_approval_channels_validation.sql

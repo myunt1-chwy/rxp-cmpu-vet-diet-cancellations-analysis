@@ -1,1 +1,0 @@
-../../targets/study-population-counts/src/sql/cmpu_study_population_uploaded_documents.sql

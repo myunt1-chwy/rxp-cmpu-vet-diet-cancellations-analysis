@@ -414,13 +414,18 @@ def publish_latex(text):
     write_text(
         artifact_path(
             ROOT
-            / "src/latex/appendix/customer_contacts_by_cancellation_reason.tex"
+            / "targets/report/src/latex/retained/appendix"
+            / "customer_contacts_by_cancellation_reason.tex"
         ),
         text,
     )
-    main = artifact_path(ROOT / "src/latex/main.tex")
+    main = artifact_path(ROOT / "targets/report/src/latex/retained/main.tex")
     include = r"\input{appendix/customer_contacts_by_cancellation_reason}"
-    parent = artifact_path(ROOT / "src/latex/appendix/contact_analysis.tex")
+    parent = artifact_path(
+        ROOT
+        / "targets/report/src/latex/retained/appendix"
+        / "contact_analysis.tex"
+    )
     body = parent.read_text()
     if include not in body:
         anchor = r"\label{subsec:contact-analysis}"

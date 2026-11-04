@@ -1,1 +1,0 @@
-../../targets/contact-days-relative-to-cancellation/src/sql/opportunity_aged_customer_contacts.sql

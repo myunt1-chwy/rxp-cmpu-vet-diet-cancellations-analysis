@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import (
+from shared.python import (
     create_aged_customer_prior_same_clinic_shipments as analysis,
 )
 from tests.test_aged_customer_prior_shipped_prescriptions import (

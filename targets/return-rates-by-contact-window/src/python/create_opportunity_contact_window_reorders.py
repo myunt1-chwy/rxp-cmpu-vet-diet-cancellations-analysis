@@ -131,7 +131,9 @@ def main():
         for label, r in zip(labels, summary.itertuples())
     ]
     target = artifact_path(
-        ROOT / "src/latex/appendix/contact_window_reorders.tex"
+        ROOT
+        / "targets/report/src/latex/retained/appendix"
+        / "contact_window_reorders.tex"
     )
     text = replace_rows(
         target.read_text(),

@@ -24,4 +24,4 @@ Shared dependencies:
 
 * Outputs
 Generated content: =targets/first-order-event-free-survival/outputs/latex/content.tex=.
-Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.

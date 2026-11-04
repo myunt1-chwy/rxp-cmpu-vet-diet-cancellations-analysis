@@ -7,7 +7,8 @@ import pytest
 from click.testing import CliRunner
 from test_opportunity_aged_reorders import frozen_from_raw, sql_sources
 
-from src.python import create_opportunity_aged_reorders as a
+from shared.paths import canonical_sql_path
+from shared.python import create_opportunity_aged_reorders as a
 
 
 def ecom_source():
@@ -239,9 +240,9 @@ def test_ecom_fresh_cached_latex_and_preserved_include_order(
     )
     (tmp_path / "src/sql").mkdir(parents=True)
     (tmp_path / "src/sql/opportunity_chewy_follow_up.sql").write_text(
-        (a.ROOT / "src/sql/opportunity_chewy_follow_up.sql").read_text()
+        canonical_sql_path("opportunity_chewy_follow_up.sql").read_text()
     )
-    appendix = tmp_path / "src/latex/appendix"
+    appendix = tmp_path / "targets/report/src/latex/retained/appendix"
     appendix.mkdir(parents=True)
     (appendix / "financial_opportunity_reorders.tex").write_text(
         "Existing three studies\n"

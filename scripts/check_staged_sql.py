@@ -66,7 +66,13 @@ def main():
         .decode()
         .split("\0")
     )
-    paths = [p for p in changed if p and is_sql(p)]
+    # AGENTS.md excludes the playground from maintained analysis code.
+    # Keep ignores disabled for every other staged SQL/template file.
+    paths = [
+        p
+        for p in changed
+        if p and is_sql(p) and not p.startswith("playground/")
+    ]
     if not paths:
         return 0
     root = Path(git("rev-parse", "--show-toplevel").decode().strip())

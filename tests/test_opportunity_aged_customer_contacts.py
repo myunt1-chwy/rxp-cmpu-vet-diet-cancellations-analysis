@@ -7,7 +7,8 @@ import pytest
 from click.testing import CliRunner
 from test_opportunity_aged_reorders import sql_sources
 
-from src.python import create_opportunity_aged_customer_contacts as a
+from shared.paths import canonical_sql_path
+from shared.python import create_opportunity_aged_customer_contacts as a
 
 CANCEL = pd.Timestamp("2026-06-12 12:00:00", tz="UTC")
 
@@ -245,10 +246,10 @@ def test_fresh_cached_handled_only_sql_mode_and_source_hash(
     (tmp_path / "src/sql").mkdir(parents=True)
     name = "opportunity_aged_customer_contacts.sql"
     (tmp_path / "src/sql" / name).write_text(
-        (a.ROOT / "src/sql" / name).read_text()
+        canonical_sql_path(name).read_text()
     )
-    (tmp_path / "src/latex").mkdir()
-    main = tmp_path / "src/latex/main.tex"
+    (tmp_path / "targets/report/src/latex/retained").mkdir(parents=True)
+    main = tmp_path / "targets/report/src/latex/retained/main.tex"
     main.write_text(
         "\\input{appendix/financial_opportunity}\n\\input{append"
         "ix/study_population_analysis}\n"
@@ -276,7 +277,11 @@ def test_fresh_cached_handled_only_sql_mode_and_source_hash(
         result = runner.invoke(a.main, args)
         assert result.exit_code == 0, result.output
     assert len(calls) == 1
-    latex = (tmp_path / "src/latex/appendix/contact_analysis.tex").read_text()
+    latex = (
+        tmp_path
+        / "targets/report/src/latex/retained/appendix"
+        / "contact_analysis.tex"
+    ).read_text()
     assert r"\label{tab:aged-customer-contact-day-frequency}" in latex
     assert "Number of days contacted & Number of customers" in latex
     assert "9 & 1" in latex

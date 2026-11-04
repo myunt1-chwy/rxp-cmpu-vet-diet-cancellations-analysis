@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import create_cmpu_upload_time_ratio_distribution as ratio
+from shared.python import create_cmpu_upload_time_ratio_distribution as ratio
 
 DATES = ("2026-08-15", "2026-10-15", "2026-08-01")
 

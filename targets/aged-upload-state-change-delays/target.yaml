@@ -10,7 +10,7 @@ shared_dependencies:
 - paths.py
 migration:
   status: active
-  source: src/latex/appendix/entity_upload_analysis.tex
+  source: targets/report/src/latex/retained/appendix/entity_upload_analysis.tex
   content: split
   build: active
 artifact: Figure (one visual).

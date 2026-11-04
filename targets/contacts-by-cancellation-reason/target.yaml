@@ -13,7 +13,7 @@ shared_dependencies:
 - paths.py
 migration:
   status: active
-  source: src/latex/appendix/customer_contacts_by_cancellation_reason.tex
+  source: targets/report/src/latex/retained/appendix/customer_contacts_by_cancellation_reason.tex
   content: split
   build: active
 artifact: null

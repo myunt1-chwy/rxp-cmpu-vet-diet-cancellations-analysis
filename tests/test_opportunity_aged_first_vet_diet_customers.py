@@ -3,7 +3,8 @@ from click.testing import CliRunner
 from test_opportunity_aged_first_order_customers import execute, orders_source
 from test_opportunity_aged_reorders import sql_sources
 
-from src.python import create_opportunity_aged_first_order_customers as a
+from shared.paths import canonical_sql_path
+from shared.python import create_opportunity_aged_first_order_customers as a
 
 
 def history(vet=True):
@@ -86,7 +87,7 @@ def test_vet_diet_scope_fresh_cached_sql_only_separate_outputs(
     (tmp_path / "src/sql").mkdir(parents=True)
     filename = "opportunity_aged_first_vet_diet_order_customers.sql"
     (tmp_path / "src/sql" / filename).write_text(
-        (a.ROOT / "src/sql" / filename).read_text()
+        canonical_sql_path(filename).read_text()
     )
     monkeypatch.setattr(a, "ROOT", tmp_path)
     calls = []

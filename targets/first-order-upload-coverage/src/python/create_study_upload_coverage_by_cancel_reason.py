@@ -534,7 +534,8 @@ def main():
     write_text(
         artifact_path(
             ROOT
-            / "src/latex/appendix/study_upload_coverage_by_cancel_reason.tex"
+            / "targets/report/src/latex/retained/appendix"
+            / "study_upload_coverage_by_cancel_reason.tex"
         ),
         latex_table(frames["summary"]),
     )

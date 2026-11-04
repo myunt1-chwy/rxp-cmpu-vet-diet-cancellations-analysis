@@ -1,1 +1,0 @@
-../../targets/aged-customer-prior-shipped-prescriptions/src/sql/aged_customer_prior_shipped_prescriptions.sql

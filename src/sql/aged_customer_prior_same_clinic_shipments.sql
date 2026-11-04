@@ -1,1 +1,0 @@
-../../targets/aged-customer-prior-same-clinic-shipments/src/sql/aged_customer_prior_same_clinic_shipments.sql

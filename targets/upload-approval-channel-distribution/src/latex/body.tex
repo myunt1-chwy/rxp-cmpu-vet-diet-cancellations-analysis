@@ -1,5 +1,5 @@
 \label{subsec:upload-vet-diet-approval-channels}
-% Generate from retained extracts with python -m src.python.analyze_upload_vet_diet_approval_channels.
+% Generate from retained extracts with python -m shared.python.analyze_upload_vet_diet_approval_channels.
 Table~\ref{tab:upload-vet-diet-approval-channels} joins all distinct prescription IDs in each upload source to \texttt{EDLDB.BT\_HCA\_HCDM.RXP\_PRESCRIPTIONS} on \texttt{rx\_id}, then retains matched prescriptions with \texttt{IS\_VET\_DIET\_FLAG = TRUE}. Approval channels are taken from the prescription table. Each prescription counts once per source, even when it appears in multiple uploads. No date, CMPU, approval-channel, status or upload-resource-type filters are applied.
 \AnalysisChild{uploaded-prescription-approval-channels}
 

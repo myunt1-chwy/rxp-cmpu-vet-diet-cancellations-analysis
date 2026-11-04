@@ -26,7 +26,7 @@ Shared dependencies:
 
 * Outputs
 Generated content: =targets/report/outputs/latex/content.tex=.
-Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
 * Review database-derived cohort SQL
 =make cohort-sql-review= renders eleven self-contained cohort queries without
@@ -65,3 +65,10 @@ warehouse data has been refreshed and retained manifests have not been relabeled
 See =docs/lint-cleanup-validation.org= for the validation record and completed
 migration-era test repairs. A report rebuild needs an explicitly reviewed snapshot
 transition or authorized refresh; refreshing historical cohorts may change results.
+
+* Repository layout
+The root =src/= and =data/= directories are retired. Retained datasets and generated artifacts live under their target owners. Historical migration audits live in =targets/report/data/=; existing source/cache fingerprints are preserved. The former =src/ignore/= playground is now =playground/= and is excluded from maintained-code checks.
+
+The report's retained LaTeX assembly fragments live in =targets/report/src/latex/retained/=. Paragraph adapters still read these fragments to reproduce the authoritative Org tables. Current authored target prose remains in each target's =src/latex/=. =make legacy-report= delegates to =make report=.
+
+=make validate-analysis-sources validate-analysis-structure= checks ownership and the target graph. =make preview-target-report= renders retained presentation snapshots without warehouse access or replacing the published PDF. This preview does not certify the query cache or replace a successful =make report=.

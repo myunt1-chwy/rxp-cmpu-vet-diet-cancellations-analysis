@@ -77,7 +77,7 @@ def test_staged_79_column_configuration_is_authoritative(repo):
 
 
 def test_playground_is_excluded(repo):
-    stage(repo, "this is not valid Python!\n", "src/ignore/scratch.py")
+    stage(repo, "this is not valid Python!\n", "playground/scratch.py")
     assert check(repo).returncode == 0
 
 
@@ -100,7 +100,7 @@ def test_project_imports_do_not_depend_on_other_staged_files(repo):
         repo,
         "import pandas as pd\n\n"
         "from shared.paths import artifact_path\n"
-        "from src.python import analysis\n"
+        "from shared.python import analysis\n"
         "from tests import fixtures\n\n"
         "print(pd, artifact_path, analysis, fixtures)\n",
     )

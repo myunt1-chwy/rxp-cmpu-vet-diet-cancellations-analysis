@@ -3,7 +3,8 @@ from decimal import Decimal
 import pandas as pd
 import pytest
 
-from src.python import create_opportunity_aged_reorders as a
+from shared.paths import canonical_sql_path
+from shared.python import create_opportunity_aged_reorders as a
 
 
 def sources():
@@ -319,14 +320,19 @@ def test_all_windows_fresh_cached_sql_only_and_latex(tmp_path, monkeypatch):
     from click.testing import CliRunner
 
     raw = execute_sql(*sql_sources())
-    real_root = a.ROOT
     # The template is real; all other files are isolated.
     (tmp_path / "src/sql").mkdir(parents=True)
     (tmp_path / "src/sql/opportunity_aged_reorders.sql").write_text(
-        (real_root / "src/sql/opportunity_aged_reorders.sql").read_text()
+        canonical_sql_path("opportunity_aged_reorders.sql").read_text()
     )
-    (tmp_path / "src/latex/appendix").mkdir(parents=True)
-    parent = tmp_path / "src/latex/appendix/financial_opportunity.tex"
+    (tmp_path / "targets/report/src/latex/retained/appendix").mkdir(
+        parents=True
+    )
+    parent = (
+        tmp_path
+        / "targets/report/src/latex/retained/appendix"
+        / "financial_opportunity.tex"
+    )
     parent.write_text("Financial opportunity\n")
     monkeypatch.setattr(a, "ROOT", tmp_path)
     calls = []
@@ -632,10 +638,16 @@ def test_three_studies_one_extract_cached_and_latex(tmp_path, monkeypatch):
     )
     (tmp_path / "src/sql").mkdir(parents=True)
     (tmp_path / "src/sql/opportunity_aged_reorders.sql").write_text(
-        (a.ROOT / "src/sql/opportunity_aged_reorders.sql").read_text()
+        canonical_sql_path("opportunity_aged_reorders.sql").read_text()
     )
-    (tmp_path / "src/latex/appendix").mkdir(parents=True)
-    parent = tmp_path / "src/latex/appendix/financial_opportunity.tex"
+    (tmp_path / "targets/report/src/latex/retained/appendix").mkdir(
+        parents=True
+    )
+    parent = (
+        tmp_path
+        / "targets/report/src/latex/retained/appendix"
+        / "financial_opportunity.tex"
+    )
     parent.write_text("Financial opportunity\n")
     monkeypatch.setattr(a, "ROOT", tmp_path)
     calls = []

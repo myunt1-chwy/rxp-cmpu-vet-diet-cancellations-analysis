@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from src.python import create_aged_order_reorder_windows as analysis
+from shared.python import create_aged_order_reorder_windows as analysis
 from tests.test_aged_order_same_product_reorders import sql_sources
 
 DATES = ("2026-08-15", "2026-10-15", "2026-10-27")

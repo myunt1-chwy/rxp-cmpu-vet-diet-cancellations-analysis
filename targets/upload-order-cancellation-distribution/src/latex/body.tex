@@ -1,5 +1,5 @@
 \label{subsec:source-order-cancellation-reasons}
-% Generate from retained extracts with python -m src.python.analyze_diet_upload_source_orders.
+% Generate from retained extracts with python -m shared.python.analyze_diet_upload_source_orders.
 This comparison includes entries with \texttt{associated\_resource\_type = DIET\_PRESCRIPTION} and a non-null associated order ID in each source. HCDM uses \texttt{ORDER\_ID}; the notification-service source uses \texttt{context:orderId}. Cancellation reasons are joined from \texttt{EDLDB.ECOM.ORDERS}. No date, CMPU, study-cohort, order-item, upload-type, or replication filters are applied.
 In HCDM, 137,431 of 176,401 diet-upload entries have an order ID, representing 115,929 distinct orders. In the notification-service source, 140,104 of 179,177 entries have an order ID, representing 116,223 distinct orders. Table~\ref{tab:diet-upload-source-cancel-reasons} compares the cancellation reasons side by side. Each order counts once within each source regardless of the number of uploads.
 \AnalysisChild{uploaded-order-cancellation-reasons}
