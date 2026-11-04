@@ -360,3 +360,6 @@
   - Updated numerical summary/study prose and extraction-date notes to match refreshed tables. Published PDF matches the target build hash; visually reviewed pages 1, 16, 20 and 21. Forty-three related population/coverage/financial tests, Ruff, ownership/hierarchy checks and diff checks passed.
   - SQL-history files are timestamped execution logs, separate from reviewed SQL sources. No history files were tracked or staged. Moved 263 files from targets into ignored .cache/sql-history, centralized future history routing there, and added legacy-history ignore rules. Four focused tests verify placement and path boundaries without warehouse access.
   - Commit hooks passed. No merge or push; untracked .DS_Store excluded. Isolated staged publication remains pending separately from the successful full refresh and cached reproduction.
+
+* 2026-11-04 Commit remaining staged change
+  - User requested committing all remaining changes. The only pending file was the already staged .DS_Store; committed as dedce15. No SQL history or cache files were added.
