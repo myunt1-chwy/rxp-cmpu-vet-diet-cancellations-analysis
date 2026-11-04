@@ -1441,3 +1441,7 @@
   - Confirmed scaffolding generates targets/<id>/Makefile and wires parent
     prerequisites. Added the recipe and root invocation instructions to HOWTO
     and root invocation guidance to each generated target README.
+
+* DONE Place scaffold usage immediately before Executive summary in HOWTO
+  - Moved the scaffold usage section to the end of the report README and
+    regenerated HOWTO so it directly precedes the Executive summary target.

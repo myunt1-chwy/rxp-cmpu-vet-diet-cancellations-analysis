@@ -90,61 +90,6 @@ The SQL runner records executed queries under ignored =.cache/sql-history/=.
 Legacy target-local history arguments are redirected there; execution logs are
 not committed. Reviewed SQL sources remain under their owning target.
 
-* How do I scaffold a paragraph, subsubsection or subsection?
-Run the scaffold command from the repository root with the unit level, a unique
-ID, the existing parent ID and the agreed question. Sections are not supported.
-The question is required, must occupy one line and must end with a question
-mark. IDs use lowercase words separated by hyphens.
-
-For example, these commands create a complete empty analysis subtree:
-#+begin_src sh
-.venv/bin/python shared/analysis/scaffold.py subsection \
-  --id example-topic --parent appendix \
-  --question 'What explains the outcome?'
-.venv/bin/python shared/analysis/scaffold.py subsubsection \
-  --id example-detail --parent example-topic \
-  --question 'How does the outcome vary?'
-.venv/bin/python shared/analysis/scaffold.py paragraph \
-  --id example-result --parent example-detail \
-  --question 'How does the outcome vary by group?'
-#+end_src
-
-Use your own IDs and questions. A subsection requires =appendix= as parent;
-a subsubsection requires a subsection, and a paragraph requires a
-subsubsection. The command refuses existing paths and Make target names.
-
-It creates =target.yaml=, =Makefile=, =README.org= and =src/latex/body.tex=.
-Paragraphs also receive an empty =src/latex/visual.tex=. It appends the child to
-its parent's YAML children, Make prerequisites and LaTeX body, preserving the
-existing child order. Parent files are restored if creation fails.
-
-The generated Makefile lives at =targets/<id>/Makefile=. The root Makefile
-includes it automatically, so run =make <id>= from the repository root.
-For =example-result=, the generated recipe is:
-#+begin_src makefile
-# Included by the root Makefile.
-.PHONY: example-result
-example-result:
-	$(PYTHON) shared/analysis/build_target.py example-result \
-		--refresh $(REFRESH) --repro $(REPRO) --final $(FINAL)
-#+end_src
-
-When a child is scaffolded, the command also adds a prerequisite rule to the
-parent's Makefile, such as =example-detail: example-result=. Make combines this
-with the parent's existing recipe, so children build before their parent.
-The generated Makefiles use root-defined variables and paths; invoke them
-through the root Makefile rather than running Make inside the target folder.
-
-The scaffold builds placeholder prose and has no data extraction or visual.
-Replace the prose and add analysis code and dependencies as described below.
-No warehouse queries or report publication run during scaffolding. To check the
-example subtree and regenerate the instructions:
-#+begin_src sh
-make example-topic
-make validate-analysis-structure validate-analysis-sources
-make analysis-howto
-#+end_src
-
 * How do I add a new analysis unit?
 Use the hierarchy =report -> section -> subsection -> subsubsection -> paragraph=.
 Detailed analyses belong beneath =appendix=. Agree on the question first, then
@@ -294,3 +239,58 @@ are needed, run =make report REFRESH=1 FINAL=0= for a coordinated refresh, then
 repeat cached replay. A default build must not silently query the warehouse.
 Run relevant Python tests, Ruff and SQLFluff when adding code or SQL, and check
 that missing or outdated caches produce an actionable refresh error.
+
+* How do I scaffold a paragraph, subsubsection or subsection?
+Run the scaffold command from the repository root with the unit level, a unique
+ID, the existing parent ID and the agreed question. Sections are not supported.
+The question is required, must occupy one line and must end with a question
+mark. IDs use lowercase words separated by hyphens.
+
+For example, these commands create a complete empty analysis subtree:
+#+begin_src sh
+.venv/bin/python shared/analysis/scaffold.py subsection \
+  --id example-topic --parent appendix \
+  --question 'What explains the outcome?'
+.venv/bin/python shared/analysis/scaffold.py subsubsection \
+  --id example-detail --parent example-topic \
+  --question 'How does the outcome vary?'
+.venv/bin/python shared/analysis/scaffold.py paragraph \
+  --id example-result --parent example-detail \
+  --question 'How does the outcome vary by group?'
+#+end_src
+
+Use your own IDs and questions. A subsection requires =appendix= as parent;
+a subsubsection requires a subsection, and a paragraph requires a
+subsubsection. The command refuses existing paths and Make target names.
+
+It creates =target.yaml=, =Makefile=, =README.org= and =src/latex/body.tex=.
+Paragraphs also receive an empty =src/latex/visual.tex=. It appends the child to
+its parent's YAML children, Make prerequisites and LaTeX body, preserving the
+existing child order. Parent files are restored if creation fails.
+
+The generated Makefile lives at =targets/<id>/Makefile=. The root Makefile
+includes it automatically, so run =make <id>= from the repository root.
+For =example-result=, the generated recipe is:
+#+begin_src makefile
+# Included by the root Makefile.
+.PHONY: example-result
+example-result:
+	$(PYTHON) shared/analysis/build_target.py example-result \
+		--refresh $(REFRESH) --repro $(REPRO) --final $(FINAL)
+#+end_src
+
+When a child is scaffolded, the command also adds a prerequisite rule to the
+parent's Makefile, such as =example-detail: example-result=. Make combines this
+with the parent's existing recipe, so children build before their parent.
+The generated Makefiles use root-defined variables and paths; invoke them
+through the root Makefile rather than running Make inside the target folder.
+
+The scaffold builds placeholder prose and has no data extraction or visual.
+Replace the prose and add analysis code and dependencies as described below.
+No warehouse queries or report publication run during scaffolding. To check the
+example subtree and regenerate the instructions:
+#+begin_src sh
+make example-topic
+make validate-analysis-structure validate-analysis-sources
+make analysis-howto
+#+end_src
