@@ -1,0 +1,19 @@
+id: upload-processing-time
+level: subsubsection
+parent: upload-processing-delays
+children:
+- all-upload-state-change-delays
+- aged-upload-state-change-delays
+question: How long does it take for an uploaded prescription to be ready for approval?
+title: How long does it take for an uploaded prescription to be ready for approval?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/entity_upload_analysis.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

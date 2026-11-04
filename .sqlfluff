@@ -1,7 +1,29 @@
 [sqlfluff]
 dialect = snowflake
+max_line_length = 80
+large_file_skip_byte_limit = 0
 
-# Lint-only context for the legacy requested_keys SQL fragment. No identifiers
-# or external rows are supplied. The runtime generator supplies this fragment.
+# Scalar examples for template linting only; runtime parameters are supplied
+# explicitly by render_cohort_query. No query fragments or identifiers.
 [sqlfluff:templater:jinja:context]
-requested_keys = SELECT CAST(NULL AS NUMBER) AS order_id, CAST(NULL AS NUMBER) AS order_line_id WHERE FALSE
+start_date = 2026-08-15
+end_date = 2026-10-15
+as_of_date = 2026-10-28
+contact_timezone = UTC
+
+# Scalar examples for contact summaries and local reorder audit templates.
+study = same-part-pet
+min_day = -13
+end_day = 4
+min_day_offset = 14
+day_count = 17
+handled_only = False
+
+upload_start_date = 2026-08-01
+upload_end_date = 2026-10-26
+followup_days = 70
+date_basis = placed
+approval_channel = CUSTOMER_UPLOAD
+end_count = 18
+by_status = True
+first_order_label = First order in observed ECOM history

@@ -1,0 +1,49 @@
+id: study-prescription-decisions
+level: paragraph
+parent: study-population-context
+children: []
+question: How are prescription approval decisions distributed across the study populations?
+title: How are prescription approval decisions distributed across the study populations?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- source-ownership.yaml
+- sql_templates.py
+- runtime.py
+- python/financial_values.py
+- python/opportunity_report_tables.py
+migration:
+  status: active
+  source: src/latex/appendix/study_population_analysis.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Table (one visual).
+sources:
+- targets/study-prescription-decisions/src/python/summarize_study_population_prescription_decisions.py
+- targets/study-prescription-decisions/src/sql/cmpu_study_population_prescription_decisions.sql
+- targets/study-prescription-decisions/src/sql/summarize_study_population_prescription_decisions-query-1.sql.j2
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/runtime.py
+- shared/paths.py
+- shared/python/financial_values.py
+- shared/python/opportunity_report_tables.py
+- shared/sql_templates.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- targets/study-population-counts/src/python/create_study_population_report_tables.py
+pipeline: study-population
+table_columns:
+- Population
+- Prescriptions
+- Approved
+- Unknown
+- Rejected
+data_dependencies:
+- first-order-upload-status-flow
+- study-population-counts
+- study-prescription-decisions
+- study-order-cancellation-sales

@@ -1,0 +1,27 @@
+#+TITLE: How are data sources connected?
+
+* Ownership
+Target: =data-source-connections=. Level: =subsubsection=.
+Parent: =data-verification=.
+Ordered children: =report-source-overview=, =source-grains-and-counting=, =upload-verification-joins=, =prescription-first-order-joins=, =financial-reorder-contact-joins=, =contact-matching-rules=.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make data-source-connections
+make data-source-connections REPRO=1
+make data-source-connections REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+* Inputs and dependencies
+The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+
+* Outputs
+Generated content: =targets/data-source-connections/outputs/latex/content.tex=.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.

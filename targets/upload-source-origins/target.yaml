@@ -1,0 +1,19 @@
+id: upload-source-origins
+level: subsubsection
+parent: data-verification
+children:
+- upload-resource-types
+- upload-source-date-coverage
+question: Where is the prescription upload data coming from?
+title: Where is the prescription upload data coming from?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/data_verification.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

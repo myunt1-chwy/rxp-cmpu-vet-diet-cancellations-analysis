@@ -1,0 +1,41 @@
+id: first-order-upload-status-flow
+level: paragraph
+parent: study-population-context
+children: []
+question: How do first-order line statuses relate to accepted prescription uploads?
+title: How do first-order line statuses relate to accepted prescription uploads?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- source-ownership.yaml
+- sql_templates.py
+- runtime.py
+- prescription_uploads.py
+- sankey.py
+migration:
+  status: active
+  source: src/latex/appendix/study_population_analysis.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Diagram (one visual).
+sources:
+- targets/first-order-upload-status-flow/src/python/create_cmpu_first_order_line_status.py
+- targets/first-order-upload-status-flow/src/sql/cmpu_first_order_line_status.sql
+- targets/first-order-upload-status-flow/src/python/create_cmpu_prescription_first_order_status.py
+- targets/first-order-upload-status-flow/src/sql/cmpu_prescription_first_order_status.sql
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/runtime.py
+- shared/prescription_uploads.py
+- shared/sankey.py
+- shared/paths.py
+pipeline: first-order-status
+images:
+- source: outputs/diagrams/2026-08-15_2026-10-14/cmpu-first-order-lines_customer-upload_uploads-2026-08-01_2026-10-25_accepted-state-change_order-placed_sankey.png
+  output: outputs/diagrams/visual.png
+data_dependencies:
+- first-order-upload-status-flow

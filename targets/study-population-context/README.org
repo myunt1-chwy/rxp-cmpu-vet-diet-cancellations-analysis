@@ -1,0 +1,27 @@
+#+TITLE: Which prescriptions, orders, customers, and uploads are included in the study?
+
+* Ownership
+Target: =study-population-context=. Level: =subsubsection=.
+Parent: =upload-processing-delays=.
+Ordered children: =study-population-counts=, =study-prescription-decisions=, =study-order-cancellation-sales=, =first-order-upload-status-flow=.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make study-population-context
+make study-population-context REPRO=1
+make study-population-context REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+* Inputs and dependencies
+The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+
+* Outputs
+Generated content: =targets/study-population-context/outputs/latex/content.tex=.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.

@@ -1,0 +1,22 @@
+id: appendix
+level: section
+parent: report
+children:
+- financial-impact
+- customer-contact-patterns
+- upload-processing-delays
+- aged-order-risk
+- data-verification
+question: null
+title: Appendix
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/main.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

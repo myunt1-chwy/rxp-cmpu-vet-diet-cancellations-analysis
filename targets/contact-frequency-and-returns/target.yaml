@@ -1,0 +1,20 @@
+id: contact-frequency-and-returns
+level: subsubsection
+parent: customer-contact-patterns
+children:
+- return-rates-by-contact-frequency
+question: Does more frequent contact imply higher propensity to re-order successfully for the same pet
+  and part number in 14 days?
+title: Does more frequent contact imply higher propensity to re-order successfully for the same pet and
+  part number in 14 days?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/contact_frequency_reorders.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

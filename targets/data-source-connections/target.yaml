@@ -1,0 +1,23 @@
+id: data-source-connections
+level: subsubsection
+parent: data-verification
+children:
+- report-source-overview
+- source-grains-and-counting
+- upload-verification-joins
+- prescription-first-order-joins
+- financial-reorder-contact-joins
+- contact-matching-rules
+question: How are data sources connected?
+title: How are data sources connected?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/data_source_connections.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

@@ -1,0 +1,60 @@
+-- sqlfluff:dialect:duckdb
+WITH financial AS (
+    SELECT DISTINCT
+        CAST(order_id AS DECIMAL(38, 0)) AS order_id,
+        CAST(order_line_id AS DECIMAL(38, 0)) AS order_line_id,
+        CAST(shipment_key AS DECIMAL(38, 0)) AS shipment_key,
+        CAST(order_line_net_sales AS DECIMAL(38, 5)) AS sales
+    FROM source
+),
+
+linked AS (
+    SELECT
+        s.*,
+        f.first_order_line,
+        f.report_reason
+    FROM financial AS s
+    INNER JOIN frozen AS f
+        ON
+            s.order_id = CAST(f.order_id AS DECIMAL(38, 0))
+            AND s.order_line_id = CAST(f.order_line_id AS DECIMAL(38, 0))
+),
+
+populations AS (
+    SELECT
+        'all' AS scope,
+        *
+    FROM linked
+    UNION ALL
+    SELECT
+        'first' AS scope,
+        *
+    FROM linked
+    WHERE first_order_line = 1
+)
+
+SELECT
+    scope,
+    'reason' AS record_type,
+    report_reason,
+    COUNT(DISTINCT order_id) AS order_id_count,
+    COUNT(DISTINCT ROW(order_id, order_line_id)) AS line_count,
+    CASE
+        WHEN COUNT(*) FILTER (WHERE sales IS NULL) > 0 THEN NULL ELSE
+            COALESCE(SUM(sales), 0)
+    END AS net_sales
+FROM populations
+GROUP BY scope, report_reason
+UNION ALL
+SELECT
+    scope,
+    'total' AS record_type,
+    'TOTAL' AS report_reason,
+    COUNT(DISTINCT order_id) AS order_id_count,
+    COUNT(DISTINCT ROW(order_id, order_line_id)) AS line_count,
+    CASE
+        WHEN COUNT(*) FILTER (WHERE sales IS NULL) > 0 THEN NULL ELSE
+            COALESCE(SUM(sales), 0)
+    END AS net_sales
+FROM populations
+GROUP BY scope

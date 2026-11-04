@@ -1,15 +1,16 @@
 import importlib.util
 import io
 import os
-from pathlib import Path
 import subprocess
 import tempfile
 import tomllib
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
-
-spec = importlib.util.spec_from_file_location("project_setup", Path(__file__).resolve().parents[1] / "scripts/setup.py")
+spec = importlib.util.spec_from_file_location(
+    "project_setup", Path(__file__).resolve().parents[1] / "scripts/setup.py"
+)
 setup = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(setup)
 
@@ -42,21 +43,29 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(project["version"], "0.1.0")
         self.assertEqual(project["requires-python"], ">=3.12")
         self.assertEqual(project["readme"], "README.md")
-        self.assertEqual(project["dependencies"], [
-            "altair>=6.3.0",
-            "click>=8.5.0",
-            "duckdb>=1.5.5",
-            "jinja2>=3.1.6",
-            "pandas>=3.0.5",
-            "pyarrow>=25.0.1",
-            "pyyaml",
-            "scipy>=1.18.1",
-            "snowflake-connector-python[secure-local-storage]>=4.7.5",
-            "sqlparse>=0.6.0",
-            "statsmodels>=0.15.0",
-        ])
-        self.assertEqual(self.configuration()["dependency-groups"]["dev"], setup.DEVELOPMENT_DEPENDENCIES)
-        self.sync.assert_called_once_with(["uv", "sync", "--python", "3.12", "--group", "dev"], check=True)
+        self.assertEqual(
+            project["dependencies"],
+            [
+                "altair>=6.3.0",
+                "click>=8.5.0",
+                "duckdb>=1.5.5",
+                "jinja2>=3.1.6",
+                "pandas>=3.0.5",
+                "pyarrow>=25.0.1",
+                "pyyaml",
+                "scipy>=1.18.1",
+                "snowflake-connector-python[secure-local-storage]>=4.7.5",
+                "sqlparse>=0.6.0",
+                "statsmodels>=0.15.0",
+            ],
+        )
+        self.assertEqual(
+            self.configuration()["dependency-groups"]["dev"],
+            setup.DEVELOPMENT_DEPENDENCIES,
+        )
+        self.sync.assert_called_once_with(
+            ["uv", "sync", "--python", "3.12", "--group", "dev"], check=True
+        )
 
     def test_custom_metadata_and_escaping(self):
         description = 'Quotes " and backslash \\ with café 🐾\t'
@@ -66,11 +75,21 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(project["description"], description.strip())
 
     def test_invalid_names_are_reprompted(self):
-        self.assertEqual(self.run_setup(["bad name", "-bad", "bad/thing", "bad.", "valid", ""]), 0)
+        self.assertEqual(
+            self.run_setup(
+                ["bad name", "-bad", "bad/thing", "bad.", "valid", ""]
+            ),
+            0,
+        )
         self.assertEqual(self.configuration()["project"]["name"], "valid")
 
     def test_interrupted_prompts_do_not_write(self):
-        for answers in ([EOFError], [KeyboardInterrupt], ["valid", EOFError], ["valid", KeyboardInterrupt]):
+        for answers in (
+            [EOFError],
+            [KeyboardInterrupt],
+            ["valid", EOFError],
+            ["valid", KeyboardInterrupt],
+        ):
             with self.subTest(answers=answers):
                 self.assertEqual(self.run_setup(answers), 1)
                 self.assertFalse(Path("pyproject.toml").exists())
@@ -79,7 +98,9 @@ class SetupTests(unittest.TestCase):
     def test_repeat_run_preserves_bytes_without_input(self):
         original = b'# custom metadata\n[project]\nname = "existing"\n'
         Path("pyproject.toml").write_bytes(original)
-        self.assertEqual(self.run_setup([AssertionError("Must not prompt")]), 0)
+        self.assertEqual(
+            self.run_setup([AssertionError("Must not prompt")]), 0
+        )
         self.assertEqual(Path("pyproject.toml").read_bytes(), original)
         self.sync.assert_called_once()
 
@@ -103,30 +124,51 @@ class SetupTests(unittest.TestCase):
             'requires-python = ">=3.12"\n'
             'dependencies = [\n    "click==8.5.0", # pinned\n]\n'
             '\n[dependency-groups]\ndev = ["pytest"]\n'
-            '\n[tool.custom]\nsetting = true\n'
+            "\n[tool.custom]\nsetting = true\n"
         )
         Path("pyproject.toml").write_text(original)
-        self.assertEqual(self.run_setup(["new-project", "New description"], ["--init"]), 0)
+        self.assertEqual(
+            self.run_setup(["new-project", "New description"], ["--init"]), 0
+        )
         self.assertEqual(
             Path("pyproject.toml").read_text(),
-            original.replace('"old"', '"new-project"').replace('"Old description"', '"New description"'),
+            original.replace('"old"', '"new-project"').replace(
+                '"Old description"', '"New description"'
+            ),
         )
         self.sync.assert_called_once()
 
     def test_init_defaults_and_repeated_initialization(self):
         self.run_setup(["old", "Existing description"])
         self.assertEqual(self.run_setup(["", ""], ["--init"]), 0)
-        self.assertEqual(self.configuration()["project"]["name"], Path.cwd().name)
-        self.assertEqual(self.configuration()["project"]["description"], "Existing description")
-        self.assertEqual(self.run_setup(["bad name", "new-name", 'Quotes " café \\'], ["--init"]), 0)
+        self.assertEqual(
+            self.configuration()["project"]["name"], Path.cwd().name
+        )
+        self.assertEqual(
+            self.configuration()["project"]["description"],
+            "Existing description",
+        )
+        self.assertEqual(
+            self.run_setup(
+                ["bad name", "new-name", 'Quotes " café \\'], ["--init"]
+            ),
+            0,
+        )
         self.assertEqual(self.configuration()["project"]["name"], "new-name")
-        self.assertEqual(self.configuration()["project"]["description"], 'Quotes " café \\')
+        self.assertEqual(
+            self.configuration()["project"]["description"], 'Quotes " café \\'
+        )
 
     def test_init_cancellation_preserves_existing_bytes(self):
         self.run_setup(["old", "Existing description"])
         original = Path("pyproject.toml").read_bytes()
         self.sync.reset_mock()
-        for answers in ([EOFError], [KeyboardInterrupt], ["new", EOFError], ["new", KeyboardInterrupt]):
+        for answers in (
+            [EOFError],
+            [KeyboardInterrupt],
+            ["new", EOFError],
+            ["new", KeyboardInterrupt],
+        ):
             with self.subTest(answers=answers):
                 self.assertEqual(self.run_setup(answers, ["--init"]), 1)
                 self.assertEqual(Path("pyproject.toml").read_bytes(), original)
@@ -135,7 +177,9 @@ class SetupTests(unittest.TestCase):
     def test_init_sync_failure_retains_new_metadata(self):
         self.run_setup(["old", "Existing description"])
         self.sync.side_effect = subprocess.CalledProcessError(1, "uv")
-        self.assertEqual(self.run_setup(["new-name", "New description"], ["--init"]), 1)
+        self.assertEqual(
+            self.run_setup(["new-name", "New description"], ["--init"]), 1
+        )
         self.assertEqual(self.configuration()["project"]["name"], "new-name")
 
     def test_init_without_configuration(self):

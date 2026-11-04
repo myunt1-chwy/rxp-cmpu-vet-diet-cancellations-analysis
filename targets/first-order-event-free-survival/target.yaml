@@ -1,0 +1,18 @@
+id: first-order-event-free-survival
+level: subsubsection
+parent: aged-order-risk
+children:
+- first-order-survival-curve
+question: How long do first-order lines remain without an accepted upload or cancellation?
+title: How long do first-order lines remain without an accepted upload or cancellation?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/survival_analysis.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

@@ -1,0 +1,13 @@
+#+TITLE: Retained opportunity-reorder-customer-counts analysis
+
+This existing command is retained outside the report hierarchy. Moving its source does not add a report section.
+
+* Reproduction
+Run =make opportunity-reorder-customer-counts CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
+
+* Owned source
+- =targets/opportunity-reorder-customer-counts/src/python/summarize_opportunity_reorder_customer_counts.py=
+- =targets/opportunity-reorder-customer-counts/src/sql/summarize_opportunity_reorder_customer_counts-query-2.sql.j2=
+- =targets/opportunity-reorder-customer-counts/src/sql/summarize_opportunity_reorder_customer_counts-query-1.sql.j2=
+
+Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.

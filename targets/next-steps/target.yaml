@@ -1,0 +1,17 @@
+id: next-steps
+level: section
+parent: report
+children: []
+question: What are the next steps?
+title: What are the next steps?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/main.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

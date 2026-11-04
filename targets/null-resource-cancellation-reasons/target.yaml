@@ -1,0 +1,54 @@
+id: null-resource-cancellation-reasons
+level: paragraph
+parent: null-resource-order-cancellations
+children: []
+question: How are cancellation reasons distributed among orders referenced by uploads with no associated
+  resource type?
+title: How are cancellation reasons distributed among orders referenced by uploads with no associated
+  resource type?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- python/opportunity_report_tables.py
+- source-ownership.yaml
+- sql_templates.py
+- python/financial_values.py
+- python/sql_listing_format.py
+migration:
+  status: active
+  source: src/latex/appendix/data_verification.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Table (one visual).
+sources:
+- targets/null-resource-cancellation-reasons/src/python/analyze_null_resource_uploads.py
+- targets/null-resource-cancellation-reasons/src/sql/null_resource_upload_context.sql
+- targets/null-resource-cancellation-reasons/src/sql/null_resource_upload_orders.sql
+- targets/null-resource-cancellation-reasons/src/sql/null_resource_upload_validation.sql
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/python/opportunity_report_tables.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- targets/upload-resource-types/src/python/create_upload_data_verification.py
+- shared/paths.py
+- shared/python/financial_values.py
+- shared/python/sql_listing_format.py
+- shared/sql_templates.py
+- targets/report-sql-listings/src/python/create_report_sql_listings.py
+- targets/upload-data-verification-all/src/python/recreate_upload_data_verification.py
+pipeline: verification
+table_columns:
+- Cancellation reason
+- Distinct orders
+- Share (%)
+data_dependencies:
+- upload-resource-types
+- upload-source-date-coverage
+- uploaded-prescription-approval-channels
+- customer-upload-rx-status-coverage
+- uploaded-order-cancellation-reasons
+- null-resource-cancellation-reasons

@@ -1,0 +1,26 @@
+id: source-grains-and-counting
+level: paragraph
+parent: data-source-connections
+children: []
+question: What is the grain and counting unit of each source?
+title: What is the grain and counting unit of each source?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/markdown_tables.py
+migration:
+  status: active
+  source: src/latex/appendix/data_source_connections.tex
+  content: split
+  build: active
+artifact: Table (one visual).
+pipeline: diagrams
+table_columns:
+- Source within EDLDB
+- Grain and matching rules
+data_dependencies: []
+code_dependencies:
+- shared/paths.py
+- shared/python/markdown_tables.py
+- targets/data-source-diagrams/src/python/create_data_source_diagrams.py

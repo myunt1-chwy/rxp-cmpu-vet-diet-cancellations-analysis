@@ -1,0 +1,42 @@
+id: contact-cancellation-distribution
+level: paragraph
+parent: contacts-by-cancellation-reason
+children: []
+question: What proportion of customers contacted Chewy for each order cancellation reason?
+title: What proportion of customers contacted Chewy for each order cancellation reason?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- python/opportunity_report_tables.py
+- source-ownership.yaml
+- sql_templates.py
+- python/financial_values.py
+migration:
+  status: active
+  source: src/latex/appendix/customer_contacts_by_cancellation_reason.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Table (one visual).
+sources:
+- targets/contact-cancellation-distribution/src/python/create_opportunity_contacts_by_cancel_reason.py
+- targets/contact-cancellation-distribution/src/sql/opportunity_customer_contacts_by_cancel_reason.sql
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/python/opportunity_report_tables.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- shared/paths.py
+- shared/python/financial_values.py
+- shared/sql_templates.py
+pipeline: contact-reasons
+table_columns:
+- Cancellation reason
+- Cohort customers
+- Customers contacting
+- Contacted (%)
+data_dependencies:
+- cancellation-sales-baseline
+- contact-cancellation-distribution

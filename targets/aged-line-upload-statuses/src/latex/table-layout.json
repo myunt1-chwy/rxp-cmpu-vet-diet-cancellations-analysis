@@ -1,0 +1,16 @@
+{
+  "prefixes": [
+    "\\rowcolor{yellow!35}",
+    "\\rowcolor{yellow!35}",
+    "\\rowcolor{yellow!35}",
+    "\\rowcolor{yellow!35}",
+    "\\midrule"
+  ],
+  "lengths": [
+    8,
+    8,
+    8,
+    8,
+    5
+  ]
+}

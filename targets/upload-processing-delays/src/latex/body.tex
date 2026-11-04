@@ -1,0 +1,67 @@
+\label{app:aged-order-analysis}
+An order becomes an aged order when canceled automatically after the
+time between order creation and time of shipment or any other
+cancellation exceeds 11 days. A detailed breakdown of cancellation
+reasons can be found in Figure \ref{fig:first-order-lines-customer-upload}
+for the study population.
+
+The population of orders for this study consists of first orders and
+first order lines for prescriptions as we would like to analyze issues at
+prescription upload and approval.
+
+For this analysis; 95,073 vet diet prescriptions created between
+August 15, 2026 and October 15, 2026 were used with
+\verb|CUSTOMER_UPLOAD| as the approval channel. This corresponds to
+87,724 distinct orders and 95,073 order lines. The 24,408 orders
+described in \verb|OMS| with the cancellation reason
+\verb|AGED_ORDER| constitute the  aged orders leading to 26,443 line
+items, 26,443 corresponding prescriptions and 20,587 customers.
+
+The difference in counts between first orders and order lines and all
+orders and order lines is shown in Table
+{tab:first-all-order-cancellations}.
+
+
+Factors that might be contributing to an order aging are: delay in
+prescription upload by the customer, delay in processing the upload,
+and delay in approving the prescription after the uploaded
+prescription document is accepted.
+
+Matched upload coverage is 29,623 of 95,073 study first-order lines
+(31.16\%), compared with 777 of 26,443 aged first-order lines (2.94\%);
+25,666 aged lines (97.06\%) have no matched upload in the retained window
+(Table \ref{tab:study-upload-coverage-by-cancellation-reason}).
+The matched lines link to 29,715 distinct upload entities overall and
+782 in the aged subset (Table \ref{tab:study-population-counts}).
+These are different counting units: one entity can link to multiple
+prescriptions or lines. Unmatched evidence does not establish customer
+non-response, and uploads are not required to precede cancellation.
+
+Of the 782 matched aged-order upload entities, 52 (6.65\%) are currently
+ACCEPTED. Separately, 6 of 26,443 aged prescriptions (0.02\%) have a
+recorded approval (Table \ref{tab:study-population-prescription-decisions}).
+These snapshot counts do not form a same-grain conversion funnel from
+upload through approval. The median time for the accepted entities
+to become accepted was 10 days after upload, as a result
+missing the aged order cancellation deadline (Figure
+\ref{fig:entity-upload-state-time-aged}).  For comparison, the
+distributions of the time difference between upload of the documents
+and their final states are in Figure
+\ref{fig:entity-upload-state-time-overall} for all entities.
+Customers seem to upload at similar delays after order creation for
+overall and aged order prescriptions (Figure
+\ref{fig:entity-upload-vs-order-creation}).
+
+From the available entity upload data, it takes less than a minute to
+approve an accepted prescription document see Figure
+\ref{fig:accepted-upload-to-approval-cumulative}.
+
+\AnalysisChild{study-population-context}
+
+\AnalysisChild{prescription-upload-coverage}
+
+\AnalysisChild{customer-upload-delay}
+
+\AnalysisChild{upload-processing-time}
+
+\AnalysisChild{accepted-upload-approval-time}

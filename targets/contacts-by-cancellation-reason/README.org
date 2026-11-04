@@ -1,0 +1,27 @@
+#+TITLE: What is the distribution of CMPU customers with APPROVAL CHANNEL = CUSTOMER\_UPLOAD that contacted Chewy by cancellation reason?
+
+* Ownership
+Target: =contacts-by-cancellation-reason=. Level: =subsubsection=.
+Parent: =customer-contact-patterns=.
+Ordered children: =contact-cancellation-distribution=.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make contacts-by-cancellation-reason
+make contacts-by-cancellation-reason REPRO=1
+make contacts-by-cancellation-reason REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+* Inputs and dependencies
+The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+
+* Outputs
+Generated content: =targets/contacts-by-cancellation-reason/outputs/latex/content.tex=.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.

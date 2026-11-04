@@ -1,0 +1,18 @@
+id: customer-upload-delay
+level: subsubsection
+parent: upload-processing-delays
+children:
+- upload-delay-from-order-creation
+question: How long do customers wait to upload a prescription?
+title: How long do customers wait to upload a prescription?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/entity_upload_analysis.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

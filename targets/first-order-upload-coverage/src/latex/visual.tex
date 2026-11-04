@@ -1,0 +1,46 @@
+\begin{table}[!htbp]
+\centering
+\caption{Prescription upload coverage by first-order cancellation reason and line-item status: CMPU vet-diet CUSTOMER\_UPLOAD prescriptions created August 15--October 14, 2026, inclusive, UTC.}
+\label{tab:study-upload-coverage-by-cancellation-reason}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}llrrrrrrrr@{}}
+\toprule
+Cancellation reason & \shortstack{Line-item\\status} & \shortstack{First\\orders} & Prescriptions & \shortstack{First-order\\line items} & \shortstack{Line items\\with upload} & \shortstack{Upload\\coverage (\%)} & \shortstack{Total\\uploads} & \shortstack{Accepted\\uploads} & \shortstack{Rejected\\uploads} \\
+\midrule
+{{ table_rows }}
+\bottomrule
+\end{tabular}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Coverage = 100 $\times$ distinct first-order lines with at least
+one matched upload $\div$ all study first-order lines in that reason/status group, including
+lines without uploads. Prescriptions count distinct \texttt{RX\_ID}s and equal
+line-item counts in this frozen one-prescription-per-first-order-line cohort.
+Orders and physical order/line pairs count distinctly;
+shipment rows cannot multiply counts. The frozen population is the same as
+Table~\ref{tab:study-population-counts}, not the later financial comparison snapshot.
+Uploads are distinct \texttt{UPLOAD\_ID}s from HCDM
+\texttt{rxp\_upload\_entity}, restricted to \texttt{DIET\_PRESCRIPTION} entities.
+Expand prescription IDs and match both prescription and numeric customer IDs,
+then both first-order keys. Upload discovery is August 1--October 25 inclusive,
+UTC; missing creation timestamps follow the existing study's unknown-window rule
+and are audited. No requirement that upload precede cancellation is imposed.
+Accepted and rejected refer to current entity \texttt{STATE\_NAME=ACCEPTED} and
+\texttt{REJECTED}, not prescription approval or denial. Other entity states
+remain in Total uploads, so Accepted plus Rejected need not equal Total.
+Reasons are trimmed and case-insensitive. Aged order uses the inclusive
+October 27, 2026, 00:00 UTC cancellation cutoff; later or undated aged reasons
+remain in the outside-cutoff row. Missing/blank reasons do not prove an uncancelled
+order. Line-item status is \texttt{ORDER\_ORDER\_LINE\_STATUS} from the frozen
+October 28, 2026 first-order-line extract, with shipment-row consistency checked.
+Codes are shown as recorded; missing status is explicit. Table~\ref{tab:study-no-cancellation-upload-details}
+uses a later status/reason extraction, so its counts can differ.
+An entity may match multiple prescriptions/lines and reason/status groups;
+an order can also span groups. TOTAL independently deduplicates both and is not
+the sum of overlapping rows. Cancellation reasons/times use the retained
+prescription-decision extract and agree with the upload extract; originally blank
+reasons populated since the earlier membership snapshot are audited separately.
+Counts describe the retained source snapshots.
+\end{minipage}
+\end{table}

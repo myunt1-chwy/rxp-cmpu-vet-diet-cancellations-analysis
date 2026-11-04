@@ -1,0 +1,32 @@
+id: contact-matching-rules
+level: paragraph
+parent: data-source-connections
+children: []
+question: How are customer contacts matched to aged orders and observation windows?
+title: How are customer contacts matched to aged orders and observation windows?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- source-ownership.yaml
+- sql_templates.py
+- python/markdown_tables.py
+migration:
+  status: active
+  source: src/latex/appendix/data_source_connections.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Diagram (one visual).
+sources:
+- targets/contact-matching-rules/src/mermaid/connections.mmd
+code_dependencies:
+- shared/paths.py
+- shared/python/markdown_tables.py
+- targets/data-source-diagrams/src/python/create_data_source_diagrams.py
+pipeline: diagrams
+images:
+- source: outputs/diagrams/data-source-connections/contact-matching.png
+  output: outputs/diagrams/visual.png
+data_dependencies: []

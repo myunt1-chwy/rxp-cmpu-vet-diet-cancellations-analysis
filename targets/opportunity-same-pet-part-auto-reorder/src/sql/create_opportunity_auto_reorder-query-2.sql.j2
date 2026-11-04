@@ -1,0 +1,10 @@
+-- sqlfluff:dialect:duckdb
+SELECT
+    flag_group,
+    count(*) AS row_count,
+    count(DISTINCT reorder_customer_id) AS reorder_customer_id_count,
+    count(DISTINCT reorder_order_id) AS reorder_order_id_count,
+    sum(cast(reorder_known_net_sales AS DECIMAL(38, 5))) AS total_sales,
+    sum(missing_sales_records) AS missing_sales_count
+FROM matched_lines
+GROUP BY flag_group

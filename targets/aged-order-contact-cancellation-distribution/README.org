@@ -1,0 +1,11 @@
+#+TITLE: Retained aged-order-contact-cancellation-distribution analysis
+
+This existing command is retained outside the report hierarchy. Moving its source does not add a report section.
+
+* Reproduction
+Run =make aged-order-contact-cancellation-distribution CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
+
+* Owned source
+- =targets/aged-order-contact-cancellation-distribution/src/python/create_aged_order_contact_cancellation_distribution.py=
+
+Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.

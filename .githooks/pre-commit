@@ -6,4 +6,5 @@ if [ ! -x .venv/bin/python ]; then
     echo 'Project environment missing. Run make setup before committing.' >&2
     exit 1
 fi
+.venv/bin/python scripts/check_staged_python.py
 exec .venv/bin/python scripts/check_staged_sql.py

@@ -1,0 +1,11 @@
+#+TITLE: Retained aged-order-reorder-upload-approval-evidence analysis
+
+This existing command is retained outside the report hierarchy. Moving its source does not add a report section.
+
+* Reproduction
+Run =make aged-order-reorder-upload-approval-evidence CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
+
+* Owned source
+- =targets/aged-order-reorder-upload-approval-evidence/src/sql/aged_order_reorder_upload_approval_evidence.sql=
+
+Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.

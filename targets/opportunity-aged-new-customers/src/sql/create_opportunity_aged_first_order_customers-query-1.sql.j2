@@ -1,0 +1,55 @@
+-- sqlfluff:dialect:duckdb
+WITH classified AS (
+    SELECT
+        order_id,
+        customer_id,
+        CASE
+            WHEN
+                ecom_aged_customer_id IS NULL
+                OR ecom_aged_placed_at_utc IS NULL
+                OR first_placed_at_utc IS NULL
+                THEN 'Unknown'
+            WHEN
+                first_placed_at_utc < ecom_aged_placed_at_utc
+                THEN 'Existing customer'
+            WHEN
+                order_id = first_order_id
+                AND earliest_timestamp_ties = 1
+                AND history_orders_missing_placement = 0
+                AND vet_orders_missing_ecom_header = 0
+                THEN '{{ first_order_label }}'
+            ELSE 'Unknown'
+        END AS status
+    FROM orders
+),
+
+customers AS (
+    SELECT
+        customer_id,
+        CASE
+            WHEN
+                COUNT(*) FILTER (
+                    WHERE status = '{{ first_order_label }}'
+                )
+                > 0
+                THEN '{{ first_order_label }}'
+            WHEN
+                COUNT(*) FILTER (WHERE status = 'Unknown') > 0
+                THEN 'Unknown'
+            ELSE 'Existing customer'
+        END AS status
+    FROM classified
+    GROUP BY customer_id
+)
+
+SELECT
+    'order' AS grain,
+    order_id AS id,
+    status
+FROM classified
+UNION ALL
+SELECT
+    'customer' AS grain,
+    customer_id,
+    status
+FROM customers

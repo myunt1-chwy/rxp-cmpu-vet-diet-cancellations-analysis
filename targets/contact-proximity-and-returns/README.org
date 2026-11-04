@@ -1,0 +1,27 @@
+#+TITLE: Does contact closer to cancellation imply higher propensity to re-order successfully in 14 days for the same pet and part number?
+
+* Ownership
+Target: =contact-proximity-and-returns=. Level: =subsubsection=.
+Parent: =customer-contact-patterns=.
+Ordered children: =return-rates-by-contact-window=.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make contact-proximity-and-returns
+make contact-proximity-and-returns REPRO=1
+make contact-proximity-and-returns REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+* Inputs and dependencies
+The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+
+* Outputs
+Generated content: =targets/contact-proximity-and-returns/outputs/latex/content.tex=.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.

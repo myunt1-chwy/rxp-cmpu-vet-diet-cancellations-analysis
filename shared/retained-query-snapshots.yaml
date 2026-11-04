@@ -1,0 +1,36 @@
+# Historical snapshots retained during the database-cohort migration.
+# These hashes permit explicit offline replay, not validation of new SQL results.
+snapshots:
+- manifest: data/aged-order-reorder-wismo/2026-08-15_2026-10-15_customer_upload_same-pet_reorders-7d-14d-21d_as-of-2026-10-27_all-handled-contacts_all-order-history/UTC/source.json
+  query_sha256: 8a9e8c6fb68130ac9cab7520df01b358aa568380d6b5c62ddce18b167c651e51
+  parquet_sha256: 3b4f3f7144b9575880a15efbd14a22ea675c500373ec071771366317efb0c80f
+- manifest: data/aged-order-reorder-wismo/2026-08-15_2026-10-15_customer_upload_same-pet_reorders-7d-14d-21d_as-of-2026-10-27_all-handled-contacts/UTC/source.json
+  query_sha256: eb80878b098ba4f29aab280f75926844293bb625d4706159e88c5e60d961c82a
+  parquet_sha256: 68022254692cbd2cea6a8e7b8ad9e9ea1e8d78d9dc97790b74167fb40229d592
+- manifest: data/aged-order-reorder-wismo/2026-08-15_2026-10-15_customer_upload_same-pet_reorders-7d-14d-21d_as-of-2026-10-27/UTC/source.json
+  query_sha256: 9596063941e728ebb4ddad650b440ec3178e1a306401fef87e33600944a54a53
+  parquet_sha256: 5a408ebaa7929d786b438d9b6c714b02ef47f32a4c21171780dfe6c4a7634e97
+- manifest: data/aged-order-reorder-prescriptions/2026-08-15_2026-10-15_customer_upload_reorders-7d_as-of-2026-10-27/source.json
+  query_sha256: 2074c02ca4732dc2f45fa4a58d754b5980849644aa8e7cfd91dd7ce470af9b35
+  parquet_sha256: b62f264c0995bda4ce221c1f30d6f694a0c1e573fc5235f2388b1e77508a2add
+- manifest: data/aged-order-reorder-prescription-sankeys/2026-08-15_2026-10-15_customer_upload_same-pet_reorders-7d-14d-21d_as-of-2026-10-27/source.json
+  query_sha256: a26b407a87d39d5647b011777ef1853f0474fef5456f952c51720cc23230889d
+  parquet_sha256: 36cb5192eddff4d300889e7f7dcbdd098face71fd99965ff31420cc0cc144363
+- manifest: data/aged-order-reorder-approval-channels/2026-08-15_2026-10-15_customer_upload_reorders-7d_as-of-2026-10-27/source.json
+  query_sha256: cdd3a958e99caef08f855b3a8443f436705c3562689fc8adbf0f7cad58fd175b
+  parquet_sha256: 02d09333cdb778789408e9029d0c9c122f6ba58773f9b0e641fb342f1ea44739
+- manifest: data/aged-order-reorder-uploads/2026-08-15_2026-10-15_customer_upload_reorders-7d_as-of-2026-10-27/source.json
+  query_sha256: 8d8269c3237a24aa2e816f67194fe14dcd1416977bea28810d9b82ef741190a0
+  parquet_sha256: c10fe25deadcef942ba1df065d38ad38da1bd960bbd7b5a0f9d5e4520c63d9a9
+- manifest: data/aged-order-reorder-upload-approval-evidence/2026-08-15_2026-10-15_customer_upload_same-pet_reorders-7d-14d-21d_as-of-2026-10-27/source.json
+  query_sha256: ac95b09898a9f9ccb8669be92baa950f8697e1b421ef23a270c302595d0470eb
+  parquet_sha256: c7f099769e32f52aa6c99d3c963ebc6d4f2c3c065a74cdf8d4e4ef6b50eb4f08
+- manifest: targets/no-recorded-cancellation-upload-statuses/data/study-no-cancellation-upload-details/2026-08-15_2026-10-14/source.json
+  query_sha256: 8918ca5f124e28294d7ddee7754fbe4f6bff93d86b2079015037698e3a5b8ff1
+  parquet_sha256: 3f9fff38cb707e573cce8eef328b34e3dc0490dfef8444d4770f11ada067b039
+- manifest: targets/study-order-cancellation-sales/data/prescription-cohort-order-comparison/2026-08-15_2026-10-15_as-of-2026-10-27/source.json
+  query_sha256: cf26912808f096061dc820b96174d57a93ab770d53474336b817ba2427809333
+  parquet_sha256: 4346e56de38a3b091728f623612082732ecab471484f0c126e831460edf0ce93
+- manifest: data/opportunity/same-pet-part-auto-reorder/source.json
+  query_sha256: 33dd8a0fe0183ca3cbfa19d6d9ce6bf9878be6ba6f1b2f6ac142d65d0d0e63c0
+  parquet_sha256: 876ebfcd2c0c17a041d459de0cd23da1b116a3ee57f6474ae4fd90ea1d94e00c

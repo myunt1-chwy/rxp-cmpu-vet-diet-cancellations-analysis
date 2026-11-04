@@ -1,0 +1,43 @@
+#+TITLE: How long does it take study uploads to reach their recorded states?
+
+* Ownership
+Target: =all-upload-state-change-delays=. Level: =paragraph=.
+Parent: =upload-processing-time=.
+Ordered children: none.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make all-upload-state-change-delays
+make all-upload-state-change-delays REPRO=1
+make all-upload-state-change-delays REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+* Inputs and dependencies
+Generator batch: =upload-state=, defined in =shared/analysis/pipelines.yaml=. The batch is shared by related paragraphs and runs once per make invocation.
+Existing generator commands (the batch explicitly sets CACHED=1 by default):
+- =make cmpu-upload-entity-state-change-distributions CACHED=1=
+
+Retained input folders and ownership:
+- =targets/all-upload-state-change-delays/data/=
+
+Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+
+* Outputs
+Generated content: =targets/all-upload-state-change-delays/outputs/latex/content.tex=.
+Tables are exported to =outputs/tables/table.org= and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; =outputs/tables/provenance.json= records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's =outputs/build/= folder.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+
+* Additional target-owned source
+- =targets/all-upload-state-change-delays/src/sql/cmpu_upload_entity_state_change_distributions.sql=
+
+* Source ownership
+This target owns =src/python/create_cmpu_upload_entity_state_change_distributions.py= and =src/sql/cmpu_upload_entity_state_change_distributions.sql=. The generator produces the full-study and aged-order plots consumed by the two paragraph targets.
+
+Other analyses import =shared/upload_entities.py= for date parameters and entity/association validation, =shared/duration_plots.py= for duration statistics and boxplots, and =shared/runtime.py= for file fingerprints. They no longer import this generator. Cached builds retain the existing recorded source-identity checks; this split does not refresh warehouse data.

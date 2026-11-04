@@ -1,0 +1,59 @@
+id: customer-upload-rx-status-coverage
+level: paragraph
+parent: upload-coverage-by-rx-status
+children: []
+question: How does upload-source coverage vary by prescription source and status for customer-upload vet-diet
+  prescriptions?
+title: How does upload-source coverage vary by prescription source and status for customer-upload vet-diet
+  prescriptions?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- python/opportunity_report_tables.py
+- source-ownership.yaml
+- sql_templates.py
+- python/financial_values.py
+- python/sql_listing_format.py
+migration:
+  status: active
+  source: src/latex/appendix/data_verification.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Table (one visual).
+sources:
+- targets/customer-upload-rx-status-coverage/src/python/analyze_cmpu_approved_prescription_upload_coverage.py
+- targets/customer-upload-rx-status-coverage/src/sql/cmpu_approved_prescription_upload_coverage.sql
+- targets/customer-upload-rx-status-coverage/src/sql/cmpu_approved_prescription_upload_coverage_validation.sql
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/python/opportunity_report_tables.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- targets/upload-resource-types/src/python/create_upload_data_verification.py
+- shared/paths.py
+- shared/python/financial_values.py
+- shared/python/sql_listing_format.py
+- shared/sql_templates.py
+- targets/report-sql-listings/src/python/create_report_sql_listings.py
+- targets/upload-data-verification-all/src/python/recreate_upload_data_verification.py
+pipeline: verification
+table_columns:
+- Prescription source
+- RX status
+- Eligible
+- HCDM (%)
+- Notification (%)
+- Both (%)
+- HCDM only
+- Notification only
+- Neither (%)
+data_dependencies:
+- upload-resource-types
+- upload-source-date-coverage
+- uploaded-prescription-approval-channels
+- customer-upload-rx-status-coverage
+- uploaded-order-cancellation-reasons
+- null-resource-cancellation-reasons

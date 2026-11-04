@@ -1,0 +1,27 @@
+#+TITLE: What was the frequency of contacting Chewy for CMPU aged order customers?
+
+* Ownership
+Target: =contact-frequency=. Level: =subsubsection=.
+Parent: =customer-contact-patterns=.
+Ordered children: =customer-contact-day-frequency=.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make contact-frequency
+make contact-frequency REPRO=1
+make contact-frequency REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+* Inputs and dependencies
+The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+
+* Outputs
+Generated content: =targets/contact-frequency/outputs/latex/content.tex=.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.

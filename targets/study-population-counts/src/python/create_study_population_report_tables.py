@@ -1,0 +1,105 @@
+"""Render frozen study-population tables from validated summaries."""
+
+import json
+
+import duckdb
+import pandas as pd
+from shared.python.create_opportunity_order_cancellation_summary import digest
+
+from shared.paths import artifact_path, repository_root
+from shared.python.latex_table_rows import replace_rows
+from shared.python.markdown_tables import markdown_table, write_text
+from shared.sql_templates import module_sql
+
+ROOT = repository_root()
+DATA = artifact_path(ROOT / "data")
+LABELS = [
+    "All approval channels, matched to first-order lines",
+    r"\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines",
+    r"\texttt{CUSTOMER\_UPLOAD} aged-cancellation subset",
+]
+
+
+def main():
+    decisions = artifact_path(
+        DATA / "cmpu-study-population-prescription-decisions"
+    )
+    uploads = artifact_path(DATA / "cmpu-study-population-uploaded-documents")
+    # These summaries are regenerated and independently checked by the Make
+    # recipe.
+    for directory in [decisions, uploads]:
+        receipt = json.loads((directory / "analysis.json").read_text())
+        for name, sha in receipt["exports"].items():
+            if digest(directory / name) != sha:
+                raise ValueError(
+                    f"Validated study export fingerprint differs: "
+                    f"{directory / name}"
+                )
+    details = pd.read_parquet(decisions / "prescriptions.parquet")
+    documents = pd.read_parquet(uploads / "summary.parquet")
+    decision_counts = pd.read_parquet(decisions / "summary.parquet")
+    rows = []
+    masks = [
+        pd.Series(True, index=details.index),
+        details.approval_channel.eq("CUSTOMER_UPLOAD"),
+        details.aged_subset,
+    ]
+    for mask in masks:
+        group = details.loc[mask]
+        rows.append(
+            {
+                "prescriptions": group.rx_id.nunique(),
+                "orders": group.order_id.nunique(),
+                "order_lines": len(
+                    group[["order_id", "order_line_id"]].drop_duplicates()
+                ),
+                "customers": group.customer_id.nunique(),
+            }
+        )
+    counts = pd.DataFrame(rows)
+    with duckdb.connect() as connection:
+        connection.register("details", details)
+        independent = connection.sql(
+            module_sql(
+                __file__,
+                "create_study_population_report_tables-query-1.sql.j2",
+            )
+        ).df()
+    pd.testing.assert_frame_equal(counts, independent, check_dtype=False)
+    if documents.population.tolist() != decision_counts.population.tolist():
+        raise ValueError("Study population row labels differ")
+    if not counts.prescriptions.eq(decision_counts.prescriptions).all():
+        raise ValueError("Study population denominators differ")
+    counts["uploaded_documents"] = documents.uploaded_documents
+    counts["accepted_documents"] = documents.accepted_documents
+    tables = artifact_path(ROOT / "outputs/tables/2026-08-15_2026-10-14")
+    write_text(
+        tables / "study-population-counts.md",
+        "# Study population counts\n\n"
+        + markdown_table(counts.assign(population=documents.population))
+        + "\n",
+    )
+    target = artifact_path(
+        ROOT / "src/latex/appendix/study_population_analysis.tex"
+    )
+    text = target.read_text()
+    for label, frame in [
+        ("tab:study-population-counts", counts),
+        (
+            "tab:study-population-prescription-decisions",
+            decision_counts.drop(columns="population"),
+        ),
+    ]:
+        rendered = [
+            name + " & " + " & ".join(f"{int(n):,}" for n in values) + r" \\"
+            for name, values in zip(
+                LABELS, frame.itertuples(index=False, name=None)
+            )
+        ]
+        text = replace_rows(text, label, rendered)
+    write_text(target, text)
+    print("Rendered both study-population tables from verified retained data.")
+
+
+if __name__ == "__main__":
+    main()

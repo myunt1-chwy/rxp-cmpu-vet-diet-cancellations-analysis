@@ -1,0 +1,44 @@
+#+TITLE: Source lint cleanup validation
+
+* Scope
+Format maintained Python at 79 columns and SQL at 80 columns, preserving all
+pre-commit rules. Warehouse queries retain Snowflake; local DuckDB audits declare
+their actual dialect. Large SQL files are checked rather than silently skipped.
+
+SQL changes include named join CTEs, qualified references, explicit wildcard
+replacement projections, descriptive aggregate aliases and numbered bound
+parameters. Financial and first-order audit branches now use scalar Jinja
+parameters instead of Python string replacements. The financial report query is
+a separate, self-contained Snowflake template owned by cancellation-sales-baseline.
+
+* Checks
+Ruff lint and format checks pass across the repository. Seven staged-hook tests
+pass, including partially staged source/configuration. Source and hierarchy
+validators pass (63 Python modules, 57 canonical queries, 65 analysis targets).
+SQLFluff checks every staged SQL/template; no checks or hooks are bypassed.
+
+A separate copy of the staged pre-cleanup source ran the full tests: 570 passed,
+62 failed, and 16 subtests passed. Existing failures concern obsolete identifier-fed
+renderer APIs, compatibility imports and setup mocks. They are not treated as a
+successful suite. Tests that adapt Snowflake to DuckDB now tolerate SQL formatting
+and preserve nanosecond timestamp arithmetic. Final results are recorded below.
+
+* Retained data and report
+No warehouse refresh was performed. =make report= stops at the financial baseline
+because its retained SQL fingerprint differs from the formatted query. This is an
+intentional provenance check; manifests were not updated to claim fresh execution.
+The existing PDF was generated before this cleanup. Rebuilding requires a reviewed
+snapshot transition or an explicitly authorized refresh; it is not certified here.
+
+* Final regression comparison
+The final full suite reports 570 passed, 62 failed, and 16 subtests passed,
+matching the pre-cleanup failure set. The 36 focused financial and customer-upload
+first-order tests also pass. Both financial date bases and line-status grouping
+are exercised. =git diff --check= and both graph/source validators pass.
+Type-changed files are included in staged source checks, including SQL compatibility
+symlinks. Generated table artifacts are no longer tracked; local files remain.
+
+* Follow-up outside this lint task
+Update obsolete identifier-fed renderer tests, compatibility imports, and setup
+mocks, then resolve retained-query provenance before rebuilding the PDF. No test
+failure has been hidden with a skip/xfail, and no cache check has been disabled.

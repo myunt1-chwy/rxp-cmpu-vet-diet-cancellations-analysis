@@ -1,0 +1,41 @@
+id: first-order-survival-curve
+level: paragraph
+parent: first-order-event-free-survival
+children: []
+question: What proportion of first-order lines remain without an accepted upload or cancellation over
+  time?
+title: What proportion of first-order lines remain without an accepted upload or cancellation over time?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- source-ownership.yaml
+- sql_templates.py
+- runtime.py
+- prescription_uploads.py
+- sankey.py
+migration:
+  status: active
+  source: src/latex/appendix/survival_analysis.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Figure (one visual).
+sources:
+- targets/first-order-survival-curve/src/python/create_cmpu_first_order_line_survival.py
+- targets/first-order-survival-curve/src/python/create_cmpu_first_order_line_event_times.py
+- targets/first-order-survival-curve/src/sql/cmpu_first_order_line_event_times.sql
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/runtime.py
+- shared/prescription_uploads.py
+- shared/sankey.py
+- shared/paths.py
+pipeline: survival
+images:
+- source: targets/first-order-survival-curve/outputs/figures/2026-08-15_2026-10-14/cmpu-first-order-line-survival_uploads-2026-08-01_2026-10-26_accepted-state-change_order-placed.png
+  output: outputs/figures/visual.png
+data_dependencies:
+- first-order-survival-curve

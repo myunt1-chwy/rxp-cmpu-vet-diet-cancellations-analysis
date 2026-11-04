@@ -1,0 +1,115 @@
+financial-baseline:
+  commands:
+  - - opportunity-order-cancellation-summary
+    - WRITE_LATEX=1
+    - DATE_BASIS=shipped-or-cancelled
+  data_targets:
+  - cancellation-sales-baseline
+financial-returns:
+  commands:
+  - - opportunity-follow-up-sales
+  - - opportunity-new-upload-customer-follow-up
+  - - opportunity-new-vet-diet-customer-follow-up
+  - - combined-follow-up-table
+  data_targets:
+  - cancellation-sales-baseline
+  - same-pet-product-return-comparison
+  - any-chewy-return-comparison
+contacts:
+  commands:
+  - - opportunity-aged-customer-contacts
+    - HANDLED_ONLY=0
+  data_targets:
+  - cancellation-sales-baseline
+  - contact-days-relative-to-cancellation
+contact-reasons:
+  commands:
+  - - opportunity-customer-contacts-by-cancel-reason
+    - HANDLED_ONLY=0
+  data_targets:
+  - cancellation-sales-baseline
+  - contact-cancellation-distribution
+contact-frequency:
+  commands:
+  - - opportunity-contact-frequency-reorders
+    - FOLLOWUP_DAYS=14
+    - HANDLED_ONLY=0
+  data_targets:
+  - contact-days-relative-to-cancellation
+  - return-rates-by-contact-frequency
+contact-window:
+  commands:
+  - - opportunity-contact-window-reorders
+  dependencies:
+  - contact-frequency
+  data_targets:
+  - return-rates-by-contact-frequency
+  - return-rates-by-contact-window
+study-population:
+  commands:
+  - - study-population-tables
+  refresh_error: The study uses frozen, mutually reconciled extracts. Refresh its source snapshots together
+    before rebuilding; see the target input manifests. No partial refresh is performed.
+  data_targets:
+  - first-order-upload-status-flow
+  - study-population-counts
+  - study-prescription-decisions
+  - study-order-cancellation-sales
+upload-coverage:
+  commands:
+  - - study-upload-tables
+  dependencies:
+  - study-population
+  refresh_error: The retained upload tables use frozen prescription/reason membership and upload snapshots.
+    The new SQL derives membership from current database tables; coordinate a full cohort refresh and
+    reconcile membership before replacing the historical report.
+  data_targets:
+  - first-order-upload-status-flow
+  - study-population-counts
+  - study-prescription-decisions
+  - first-order-upload-coverage
+  - no-recorded-cancellation-upload-statuses
+  - aged-line-upload-statuses
+first-order-status:
+  commands:
+  - - cmpu-first-order-line-status
+  data_targets:
+  - first-order-upload-status-flow
+upload-creation:
+  commands:
+  - - cmpu-upload-entity-order-creation-distributions
+  data_targets:
+  - upload-delay-from-order-creation
+upload-state:
+  commands:
+  - - cmpu-upload-entity-state-change-distributions
+  data_targets:
+  - all-upload-state-change-delays
+upload-approval:
+  commands:
+  - - cmpu-upload-to-approval-distribution
+  data_targets:
+  - accepted-upload-approval-delay
+  - first-order-upload-status-flow
+survival:
+  commands:
+  - - cmpu-first-order-line-survival
+  refresh_commands:
+  - - cmpu-first-order-line-event-times
+  - - cmpu-first-order-line-survival
+  data_targets:
+  - first-order-survival-curve
+verification:
+  commands:
+  - - upload-data-verification-all
+  data_targets:
+  - upload-resource-types
+  - upload-source-date-coverage
+  - uploaded-prescription-approval-channels
+  - customer-upload-rx-status-coverage
+  - uploaded-order-cancellation-reasons
+  - null-resource-cancellation-reasons
+diagrams:
+  commands:
+  - - data-source-diagrams
+  data_targets: []

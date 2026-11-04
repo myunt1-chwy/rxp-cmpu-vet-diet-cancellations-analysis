@@ -1,0 +1,39 @@
+-- sqlfluff:dialect:duckdb
+WITH per_customer AS (
+    SELECT
+        customer_id,
+        COUNT(
+            DISTINCT FLOOR(
+                (EPOCH_NS(contact_time_sql) - EPOCH_NS(cancellation_time_sql))
+                / 86400000000000.0
+            )
+        ) AS days_contacted
+    FROM
+        contacts
+    WHERE
+        direction = 'inbound' AND contact_customer_id = customer_id
+        AND contact_time_sql IS NOT NULL AND COALESCE(handled_flag, FALSE) IN (
+            TRUE{% if not handled_only %}, FALSE{% endif %}
+        )
+    GROUP BY customer_id
+),
+
+cohort AS (SELECT DISTINCT customer_id FROM aged_orders),
+
+counts AS (
+    SELECT
+        COALESCE(p.days_contacted, 0)::BIGINT AS days_contacted,
+        COUNT(*) AS distinct_customers
+    FROM cohort
+    LEFT JOIN per_customer AS p ON cohort.customer_id = p.customer_id
+    GROUP BY days_contacted
+),
+
+days AS (SELECT range AS days_contacted FROM RANGE(0, {{ end_count }}))
+
+SELECT
+    d.days_contacted,
+    COALESCE(c.distinct_customers, 0) AS distinct_customers
+FROM days AS d
+LEFT JOIN counts AS c ON d.days_contacted = c.days_contacted
+ORDER BY d.days_contacted

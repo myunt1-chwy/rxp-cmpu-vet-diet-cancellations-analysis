@@ -1,0 +1,22 @@
+id: aged-upload-state-change-delays
+level: paragraph
+parent: upload-processing-time
+children: []
+question: How long does it take aged-order uploads to reach their recorded states?
+title: How long does it take aged-order uploads to reach their recorded states?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/entity_upload_analysis.tex
+  content: split
+  build: active
+artifact: Figure (one visual).
+pipeline: upload-state
+images:
+- source: targets/all-upload-state-change-delays/outputs/figures/2026-08-15_2026-10-14/cmpu-upload-entity-state-change-distributions/aged-order.png
+  output: outputs/figures/visual.png
+data_dependencies:
+- all-upload-state-change-delays

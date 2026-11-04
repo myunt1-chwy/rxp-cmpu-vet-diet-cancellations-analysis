@@ -1,0 +1,13 @@
+#+TITLE: Retained opportunity-aged-new-customers analysis
+
+This existing command is retained outside the report hierarchy. Moving its source does not add a report section.
+
+* Reproduction
+Run =make opportunity-aged-new-customers METHOD=same-day CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
+
+* Owned source
+- =targets/opportunity-aged-new-customers/src/python/create_opportunity_aged_new_customers.py=
+- =targets/opportunity-aged-new-customers/src/sql/create_opportunity_aged_new_customers-query-1.sql.j2=
+- =targets/opportunity-aged-new-customers/src/sql/opportunity_aged_new_customers.sql=
+
+Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.

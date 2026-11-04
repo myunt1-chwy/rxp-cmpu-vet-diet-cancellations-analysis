@@ -1,0 +1,67 @@
+#+TITLE: CMPU aged-order analysis
+
+* Ownership
+Target: =report=. Level: =document=.
+Parent: =None=.
+Ordered children: =executive-summary=, =next-steps=, =appendix=.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make report
+make report REPRO=1
+make report REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+The report is a draft by default (FINAL=0). Use =make report FINAL=1= to omit the watermark and opening DRAFT text. REPRO=1 includes the target reproduction instructions. The published copy is =outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf=. A graph-wide refresh stops for the frozen-study workflows described below.
+
+* Inputs and dependencies
+The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+
+* Outputs
+Generated content: =targets/report/outputs/latex/content.tex=.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.
+
+* Review database-derived cohort SQL
+=make cohort-sql-review= renders eleven self-contained cohort queries without
+warehouse access. =make cohort-sql-check= lints both their templates and rendered
+SQL with Snowflake defaults. Inputs are scalar dates/timezone; identifiers come
+from database CTEs. See =docs/database-derived-cohorts.org= for cohort definitions,
+key-set reconciliation and frozen-snapshot limitations. Cached builds identify
+historical replay explicitly; replay does not establish current warehouse totals.
+
+* Python lint and formatting
+=make setup= installs Ruff and the repository pre-commit hook. The hook checks staged Python (.py and .pyi) for lint and formatting using the staged pyproject.toml configuration. It preserves both the index and unstaged edits; fix failures locally and stage the corrected files. SQLFluff checks remain enabled.
+
+- =make python-lint= checks Python lint.
+- =make python-format= formats Python with a 79-column target.
+- =make python-format-check= checks formatting without modifying files.
+- =make python-lint-staged= runs both staged Python checks.
+- Add =PYTHON_PATH=path/to/file.py= to scope the first three commands.
+
+Ruff's E501 rule checks overlong lines the formatter cannot wrap automatically. Long strings and comments may need manual wrapping; Ruff retains its standard exceptions for URLs, single words and pragma comments. See https://docs.astral.sh/ruff/rules/line-too-long/. Playground, generated, vendored skill and environment files are excluded. Maintained source files have been formatted. Staged files are checked on each commit. SQL formatting changes query fingerprints; retained manifests are not rewritten to pretend the new query was executed.
+
+* Shared Python ownership audit
+See =docs/shared-python-audit.org= for the file-by-file review of all original shared/python modules. Analysis entry points now have target owners; shared/python contains reusable libraries and import compatibility only. Run =make validate-analysis-sources= to check this boundary and canonical source dependencies. Existing reproduction commands are preserved.
+
+* SQL line length
+SQLFluff explicitly sets =max_line_length = 80= in =.sqlfluff=. The existing =make sql-lint=, =make sql-format= and staged pre-commit checks use this limit for SQL and SQL templates. To work on one file, use =make sql-format SQL_PATH=path/to/query.sql= followed by =make sql-lint SQL_PATH=path/to/query.sql=.
+
+* Source lint cleanup and retained snapshots
+Warehouse SQL uses Snowflake. Local audit templates declare DuckDB inline so
+its row counting, timestamp and bound-parameter syntax is checked correctly.
+SQLFluff checks 80-column SQL, including large queries; no rules are disabled.
+Ruff checks 79-column Python. Long report strings preserve their emitted bytes.
+
+The lint cleanup changes SQL and implementation fingerprints. The existing
+cached financial baseline therefore stops =make report= before rendering. No
+warehouse data has been refreshed and retained manifests have not been relabeled.
+See =docs/lint-cleanup-validation.org= for the validation record and outstanding
+migration-era tests. A report rebuild needs an explicitly reviewed snapshot
+transition or authorized refresh; refreshing historical cohorts may change results.

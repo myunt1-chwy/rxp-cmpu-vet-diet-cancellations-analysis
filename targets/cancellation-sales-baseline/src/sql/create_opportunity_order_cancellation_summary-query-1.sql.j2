@@ -1,0 +1,97 @@
+-- sqlfluff:dialect:duckdb
+WITH eligible_keys AS (
+    SELECT DISTINCT
+        TRY_CAST(order_id AS DECIMAL(38, 0)) AS order_id,
+        TRY_CAST(order_line_id AS DECIMAL(38, 0)) AS order_line_id
+    FROM source
+    WHERE
+        rx_source_rows > 0 AND is_vet_diet_flag AND rx_is_vet_diet_flag
+        AND rx_approval_channel = 'CUSTOMER_UPLOAD'
+        AND prescription_source = 'CMPU'
+        AND TRY_CAST(customer_id AS DECIMAL(38, 0))
+        = TRY_CAST(rx_customer_id AS DECIMAL(38, 0))
+        AND (
+            '{{ date_basis }}' <> 'placed'
+            OR (
+                CAST(order_placed_utc AS TIMESTAMP_NS)
+                >= CAST($1 AS TIMESTAMP_NS)
+                AND CAST(order_placed_utc AS TIMESTAMP_NS)
+                < CAST($2 AS TIMESTAMP_NS)
+            )
+        )
+),
+
+financial AS (
+    SELECT DISTINCT
+        TRY_CAST(s.order_id AS DECIMAL(38, 0)) AS order_id,
+        TRY_CAST(s.order_line_id AS DECIMAL(38, 0)) AS order_line_id,
+        TRY_CAST(s.shipment_key AS DECIMAL(38, 0)) AS shipment_key,
+        TRY_CAST(s.customer_id AS DECIMAL(38, 0)) AS customer_id,
+        COALESCE(
+            NULLIF(LOWER(TRIM(s.order_cancel_reason)), ''),
+            '[No recorded cancellation reason]'
+        ) AS reason,
+        {% if by_status %}
+            COALESCE(NULLIF(UPPER(TRIM(s.line_status)), ''), '[Missing]')
+                AS line_status,
+        {% endif %}
+        CAST(s.order_line_net_sales AS DECIMAL(38, 5)) AS sales
+    FROM source AS s INNER JOIN eligible_keys AS k
+        ON
+            TRY_CAST(s.order_id AS DECIMAL(38, 0)) = k.order_id
+            AND TRY_CAST(s.order_line_id AS DECIMAL(38, 0)) = k.order_line_id
+    {% if date_basis == 'shipped-or-cancelled' %}
+        WHERE
+            (
+                CAST(s.shipped_at_utc AS TIMESTAMP_NS)
+                >= CAST($1 AS TIMESTAMP_NS)
+                AND CAST(s.shipped_at_utc AS TIMESTAMP_NS)
+                < CAST($2 AS TIMESTAMP_NS)
+            )
+            OR (
+                CAST(s.cancelled_at_utc AS TIMESTAMP_NS)
+                >= CAST($1 AS TIMESTAMP_NS)
+                AND CAST(s.cancelled_at_utc AS TIMESTAMP_NS)
+                < CAST($2 AS TIMESTAMP_NS)
+            )
+    {% endif %}
+),
+
+summary AS (
+    SELECT
+        'reason' AS row_type,
+        reason,
+        {% if by_status %}line_status,{% endif %}
+        COUNT(DISTINCT customer_id) AS customers,
+        COUNT(DISTINCT order_id) AS orders,
+        COUNT(DISTINCT ROW(order_id, order_line_id)) AS line_items,
+        CASE
+            WHEN COUNT(*) FILTER (WHERE sales IS NULL) > 0 THEN NULL
+            ELSE COALESCE(SUM(sales), 0)
+        END AS net_sales
+    FROM financial
+    GROUP BY reason{% if by_status %}, line_status{% endif %}
+    UNION ALL
+    SELECT
+        'total' AS row_type,
+        'TOTAL' AS reason,
+        {% if by_status %}'All' AS line_status,{% endif %}
+        COUNT(DISTINCT customer_id) AS customers,
+        COUNT(DISTINCT order_id) AS orders,
+        COUNT(DISTINCT ROW(order_id, order_line_id)) AS line_items,
+        CASE
+            WHEN COUNT(*) FILTER (WHERE sales IS NULL) > 0 THEN NULL
+            ELSE COALESCE(SUM(sales), 0)
+        END AS net_sales
+    FROM financial
+)
+
+SELECT
+    row_type,
+    reason,
+    {% if by_status %}line_status,{% endif %}
+    customers,
+    orders,
+    line_items,
+    net_sales
+FROM summary

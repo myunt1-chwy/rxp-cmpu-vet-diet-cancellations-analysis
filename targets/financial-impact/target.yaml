@@ -1,0 +1,22 @@
+id: financial-impact
+level: subsection
+parent: appendix
+children:
+- estimated-sales-loss
+- same-pet-product-returns
+- same-pet-other-product-returns
+- any-vet-diet-returns
+- any-chewy-returns
+question: What is the financial impact of CMPU aged orders?
+title: What is the financial impact of CMPU aged orders?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/financial_opportunity.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

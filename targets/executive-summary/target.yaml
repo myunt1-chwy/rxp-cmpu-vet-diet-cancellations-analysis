@@ -1,0 +1,17 @@
+id: executive-summary
+level: section
+parent: report
+children: []
+question: null
+title: Executive summary
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/main.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

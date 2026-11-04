@@ -1,0 +1,58 @@
+-- sqlfluff:dialect:duckdb
+WITH joined AS (
+    SELECT
+        b.*,
+        u.upload_id,
+        u.state_name
+    FROM study AS b LEFT JOIN uploads AS u
+        ON
+            b.rx_id = u.rx_id AND b.customer_id = u.customer_id
+            AND b.order_id = u.order_id AND b.order_line_id = u.order_line_id
+),
+
+classified AS (
+    SELECT
+        *,
+        CASE
+            WHEN
+                reason_key = 'aged order'
+                AND (
+                    cancel_time IS NULL
+                    OR cancel_time > TIMESTAMPTZ '2026-10-27 00:00:00+00'
+                )
+                THEN '[Aged order outside cutoff]'
+            ELSE reason_key
+        END AS category
+    FROM joined
+),
+
+counts AS (
+    SELECT
+        CASE WHEN GROUPING(category) = 1 THEN 'total' ELSE 'reason' END
+            AS row_type,
+        CASE WHEN GROUPING(category) = 1 THEN 'TOTAL' ELSE category END
+            AS cancellation_reason,
+        CASE WHEN GROUPING(category) = 1 THEN 'All' ELSE line_item_status END
+            AS line_item_status,
+        COUNT(DISTINCT order_id) AS orders,
+        COUNT(DISTINCT rx_id) AS prescriptions,
+        COUNT(DISTINCT ROW(order_id, order_line_id)) AS line_items,
+        COUNT(
+            DISTINCT CASE
+                WHEN upload_id IS NOT NULL THEN (order_id, order_line_id)
+            END
+        ) AS lines_with_upload,
+        COUNT(DISTINCT upload_id) AS uploads,
+        COUNT(DISTINCT CASE WHEN state_name = 'ACCEPTED' THEN upload_id END)
+            AS accepted_uploads,
+        COUNT(DISTINCT CASE WHEN state_name = 'REJECTED' THEN upload_id END)
+            AS rejected_uploads
+    FROM classified
+    GROUP BY GROUPING SETS ((category, line_item_status), ())
+)
+
+SELECT
+    *,
+    100.0 * lines_with_upload / NULLIF(line_items, 0) AS upload_coverage_pct
+FROM counts
+ORDER BY row_type, cancellation_reason, line_item_status

@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+\centering
+\caption{Prescription decisions for the study populations.}
+\label{tab:study-population-prescription-decisions}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.45\linewidth}rrrr@{}}
+\toprule
+Population & Prescriptions & Approved & Unknown & Rejected \\
+\midrule
+{{ table_rows }}
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} Distinct prescriptions in the same populations as
+Table~\ref{tab:study-population-counts}. Approved means
+\texttt{PRESCRIPTION\_APPROVED = TRUE}, consistent with the prescription registry's
+\texttt{APPROVED\_NUMERATOR}. Rejected means current \texttt{RX\_STATUS = DENIED}
+without an approval flag. Unknown includes cancelled and pending prescriptions
+without a recorded approval or rejection outcome. The three categories are
+mutually exclusive and sum to the prescription count in each row.
+Decisions use the current source snapshot refreshed October 28, 2026;
+approval and denial times are not restricted to the aged-cancellation cutoff.
+\end{minipage}
+\end{table}

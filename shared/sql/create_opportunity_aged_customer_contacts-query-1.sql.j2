@@ -1,0 +1,36 @@
+-- sqlfluff:dialect:duckdb
+WITH days AS (
+    SELECT range AS relative_day FROM range({{ min_day }}, {{ end_day }})
+),
+
+classified AS (
+    SELECT
+        customer_id,
+        order_id,
+        cast(floor(
+            (epoch_ns(contact_time_sql) - epoch_ns(cancellation_time_sql))
+            / 86400000000000.0
+        ) AS INTEGER) AS contact_relative_day
+    FROM contacts
+    WHERE
+        direction = 'inbound' AND contact_customer_id = customer_id
+        AND contact_time_sql IS NOT NULL AND coalesce(handled_flag, FALSE) IN (
+            TRUE{% if not handled_only %}, FALSE{% endif %}
+        )
+),
+
+counts AS (
+    SELECT
+        contact_relative_day AS relative_day,
+        count(DISTINCT customer_id) AS distinct_customers,
+        count(DISTINCT order_id) AS distinct_aged_orders
+    FROM classified
+    GROUP BY contact_relative_day
+)
+
+SELECT
+    d.relative_day,
+    coalesce(c.distinct_customers, 0) AS distinct_customers,
+    coalesce(c.distinct_aged_orders, 0) AS distinct_aged_orders
+FROM days AS d LEFT JOIN counts AS c ON d.relative_day = c.relative_day
+ORDER BY d.relative_day

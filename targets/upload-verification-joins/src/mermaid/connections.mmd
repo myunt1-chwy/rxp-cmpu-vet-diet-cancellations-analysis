@@ -1,0 +1,21 @@
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "18px", "primaryTextColor": "#172b4d", "lineColor": "#456078", "edgeLabelBackground": "#f2f5f9"}, "flowchart": {"htmlLabels": true, "useMaxWidth": false, "nodeSpacing": 25, "rankSpacing": 35}}}%%
+flowchart TB
+classDef physical fill:#e3f2fd,stroke:#235789,stroke-width:2px;
+classDef derived fill:#fff2d5,stroke:#9b6916,stroke-dasharray:5 3;
+H["EDLDB.BT_HCA_HCDM.RXP_UPLOAD_ENTITY<br/>RX_ID; ORDER_ID; CREATED_TS_UTC"]:::physical
+N["EDLDB.RXP_NOTIFICATION_SERVICE.UPLOAD_ENTITY<br/>ASSOCIATED_RESOURCE_IDS; context; CREATED_AT"]:::physical
+I["Distinct source_table + rx_id<br/>TRANSLATE delimiters/quotes, SPLIT, FLATTEN,<br/>TRIM; exclude blank, null and numeric zero"]:::derived
+P["EDLDB.BT_HCA_HCDM.RXP_PRESCRIPTIONS<br/>TRIM RX_ID; IS_VET_DIET_FLAG;<br/>APPROVAL_CHANNEL; PRESCRIPTION_SOURCE; RX_STATUS"]:::physical
+R["Channel distribution: IDs LEFT JOIN registry<br/>Coverage: eligible registry LEFT JOIN each ID set<br/>Join on rx_id only; no customer check"]:::derived
+D["Distinct source_table + numeric order_id<br/>DIET_PRESCRIPTION: ORDER_ID / context:orderId<br/>NULL resource: notification context:orderId only"]:::derived
+O["EDLDB.ECOM.ORDERS<br/>ORDER_ID; ORDER_CANCEL_REASON;<br/>ORDER_STATUS_DESCRIPTION; ORDER_STATUS"]:::physical
+C["Source-order LEFT JOIN order extract in Python<br/>One count per source / order ID;<br/>unmatched orders and SQL NULL reason separate"]:::derived
+H -->|"RX_ID tokens"| I
+N -->|"TO_JSON ASSOCIATED_RESOURCE_IDS tokens"| I
+I -->|"rx_id = TRIM registry RX_ID"| R
+P -->|"vet-diet channel / coverage cohorts"| R
+H -->|"digits-only ORDER_ID to TRY_TO_NUMBER"| D
+N -->|"digits-only context:orderId to TRY_TO_NUMBER"| D
+D -->|"extract INNER: ids.order_id = ORDERS.ORDER_ID"| O
+D -->|"LEFT on normalized order_id"| C
+O -->|"unique ORDER_ID checked before merge"| C

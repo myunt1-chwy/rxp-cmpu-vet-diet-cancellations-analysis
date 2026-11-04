@@ -1,0 +1,20 @@
+id: contacts-by-cancellation-reason
+level: subsubsection
+parent: customer-contact-patterns
+children:
+- contact-cancellation-distribution
+question: What is the distribution of CMPU customers with APPROVAL CHANNEL = CUSTOMER\_UPLOAD that contacted
+  Chewy by cancellation reason?
+title: What is the distribution of CMPU customers with APPROVAL CHANNEL = CUSTOMER\_UPLOAD that contacted
+  Chewy by cancellation reason?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/customer_contacts_by_cancellation_reason.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

@@ -1,0 +1,20 @@
+id: upload-coverage-by-rx-status
+level: subsubsection
+parent: data-verification
+children:
+- customer-upload-rx-status-coverage
+question: What is the coverage of vet diet prescriptions with \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD},
+  by \texttt{RX\_STATUS}?
+title: What is the coverage of vet diet prescriptions with \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD},
+  by \texttt{RX\_STATUS}?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/data_verification.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

@@ -1,0 +1,47 @@
+#+TITLE: How do customer counts, order counts, and estimated net sales vary by cancellation reason and line-item status?
+
+* Ownership
+Target: =cancellation-sales-baseline=. Level: =paragraph=.
+Parent: =estimated-sales-loss=.
+Ordered children: none.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make cancellation-sales-baseline
+make cancellation-sales-baseline REPRO=1
+make cancellation-sales-baseline REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+* Inputs and dependencies
+Generator batch: =financial-baseline=, defined in =shared/analysis/pipelines.yaml=. The batch is shared by related paragraphs and runs once per make invocation.
+Existing generator commands (the batch explicitly sets CACHED=1 by default):
+- =make opportunity-order-cancellation-summary WRITE_LATEX=1 DATE_BASIS=shipped-or-cancelled CACHED=1=
+
+Retained input folders and ownership:
+- =targets/cancellation-sales-baseline/data/=
+
+Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+- =targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py=
+- =targets/cancellation-sales-baseline/src/sql/create_opportunity_order_cancellation_summary-query-1.sql.j2=
+- =targets/cancellation-sales-baseline/src/sql/opportunity_order_cancellation_summary.sql=
+
+Imported analysis dependencies:
+- =shared/python/markdown_tables.py=
+- =shared/python/opportunity_report_tables.py=
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+- =shared/python/__init__.py=
+- =shared/python/markdown_tables.py=
+- =shared/python/opportunity_report_tables.py=
+- =shared/source-ownership.yaml=
+- =shared/sql_templates.py=
+
+* Outputs
+Generated content: =targets/cancellation-sales-baseline/outputs/latex/content.tex=.
+Tables are exported to =outputs/tables/table.org= and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; =outputs/tables/provenance.json= records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's =outputs/build/= folder.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.

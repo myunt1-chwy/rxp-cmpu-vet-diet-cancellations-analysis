@@ -1,0 +1,5 @@
+#+TITLE: report-sql-listings
+
+This existing Make command coordinates outputs for multiple report paragraphs; it does not add a document section.
+
+Run =make report-sql-listings CACHED=1= to rebuild with retained data. Source is owned under =src/python/=; queries and templates used only by this command are in =src/sql/=. Existing arguments, output paths and cache checks are preserved.

@@ -1,0 +1,11 @@
+#+TITLE: Retained aged-customer-21d-reorder-clinic-history analysis
+
+This existing command is retained outside the report hierarchy. Moving its source does not add a report section.
+
+* Reproduction
+Run =make aged-customer-21d-reorder-clinic-history CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
+
+* Owned source
+- =targets/aged-customer-21d-reorder-clinic-history/src/python/create_aged_customer_21d_reorder_clinic_history.py=
+
+Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.

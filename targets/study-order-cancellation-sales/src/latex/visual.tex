@@ -1,0 +1,33 @@
+\begin{table}[htbp]
+\centering
+\caption{Cancellation reasons, order counts and net sales for first orders and all linked orders.}
+\label{tab:first-all-order-cancellations}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.28\linewidth}rrrrrr@{}}
+\toprule
+ & \multicolumn{3}{c}{First orders} & \multicolumn{3}{c}{All orders} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Cancellation reason & Orders & Lines & Net sales & Orders & Lines & Net sales \\
+\midrule
+{{ table_rows }}
+\bottomrule
+\end{tabular}
+
+\begin{minipage}{\linewidth}
+\footnotesize
+\textit{Notes:} CMPU vet-diet \texttt{CUSTOMER\_UPLOAD} prescriptions created
+August 15--October 14, 2026, UTC. All orders includes first and subsequent linked
+orders, without an order-placement window. Qualifying aged cancellations are
+observed on or before October 27, 2026, 00:00 UTC; current aged reasons outside
+that cutoff are shown separately for reconciliation. Other reasons reflect
+the comparison snapshot. Counts are distinct orders and physical lines within
+each group. Net sales sum \texttt{ORDER\_LINE\_NET\_SALES} once per
+shipment/line record, for qualifying lines only. Amounts are displayed
+to two decimals; five-decimal values remain in the data exports.
+Gray net-sales amounts have a recorded cancellation reason and represent
+unrealized sales, not realized revenue. TOTAL includes these gray amounts.
+The validated comparison snapshot contains one additional matched first-order
+line/order relative to the earlier frozen population in Table~\ref{tab:study-population-counts}.
+\end{minipage}
+\end{table}

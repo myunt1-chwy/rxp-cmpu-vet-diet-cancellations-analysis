@@ -1,0 +1,40 @@
+id: contact-days-relative-to-cancellation
+level: paragraph
+parent: contact-timing
+children: []
+question: How many customers contacted Chewy on each day relative to aged-order cancellation?
+title: How many customers contacted Chewy on each day relative to aged-order cancellation?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/contact_analysis.py
+- python/financial_values.py
+- python/markdown_tables.py
+- python/opportunity_report_tables.py
+- sql_templates.py
+migration:
+  status: active
+  source: src/latex/appendix/contact_analysis.tex
+  content: split
+  build: active
+artifact: Table (one visual).
+pipeline: contacts
+table_columns:
+- Days relative to cancellation
+- Customers contacting
+- Aged order IDs
+data_dependencies:
+- cancellation-sales-baseline
+- contact-days-relative-to-cancellation
+sources:
+- targets/contact-days-relative-to-cancellation/src/sql/opportunity_aged_customer_contacts.sql
+- targets/contact-days-relative-to-cancellation/src/python/create_opportunity_aged_customer_contacts.py
+code_dependencies:
+- shared/paths.py
+- shared/python/contact_analysis.py
+- shared/python/financial_values.py
+- shared/python/markdown_tables.py
+- shared/python/opportunity_report_tables.py
+- shared/sql_templates.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py

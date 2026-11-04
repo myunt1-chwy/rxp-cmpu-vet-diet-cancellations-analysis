@@ -1,0 +1,37 @@
+id: customer-contact-day-frequency
+level: paragraph
+parent: contact-frequency
+children: []
+question: How many distinct days did aged-order customers contact Chewy?
+title: How many distinct days did aged-order customers contact Chewy?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/contact_analysis.py
+- python/financial_values.py
+- python/markdown_tables.py
+- python/opportunity_report_tables.py
+- sql_templates.py
+migration:
+  status: active
+  source: src/latex/appendix/contact_analysis.tex
+  content: split
+  build: active
+artifact: Table (one visual).
+pipeline: contacts
+table_columns:
+- Days contacted
+- Customers
+data_dependencies:
+- cancellation-sales-baseline
+- contact-days-relative-to-cancellation
+code_dependencies:
+- shared/paths.py
+- shared/python/contact_analysis.py
+- shared/python/financial_values.py
+- shared/python/markdown_tables.py
+- shared/python/opportunity_report_tables.py
+- shared/sql_templates.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- targets/contact-days-relative-to-cancellation/src/python/create_opportunity_aged_customer_contacts.py

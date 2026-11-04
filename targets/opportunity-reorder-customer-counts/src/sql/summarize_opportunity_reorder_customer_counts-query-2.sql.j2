@@ -1,0 +1,6 @@
+-- sqlfluff:dialect:duckdb
+SELECT
+    reorder_customer_id,
+    COUNT(DISTINCT reorder_order_id) AS reorder_order_id_count
+FROM reorders
+GROUP BY reorder_customer_id

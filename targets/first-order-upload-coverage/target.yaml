@@ -1,0 +1,59 @@
+id: first-order-upload-coverage
+level: paragraph
+parent: prescription-upload-coverage
+children: []
+question: What proportion of first-order lines have prescription uploads by cancellation reason and line-item
+  status?
+title: What proportion of first-order lines have prescription uploads by cancellation reason and line-item
+  status?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- python/opportunity_report_tables.py
+- source-ownership.yaml
+- sql_templates.py
+- runtime.py
+- upload_entities.py
+- python/financial_values.py
+migration:
+  status: active
+  source: src/latex/appendix/study_upload_coverage_by_cancel_reason.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Table (one visual).
+sources:
+- targets/first-order-upload-coverage/src/python/create_study_upload_coverage_by_cancel_reason.py
+- targets/first-order-upload-coverage/src/sql/create_study_upload_coverage_by_cancel_reason-query-1.sql.j2
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/python/opportunity_report_tables.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- targets/study-prescription-decisions/src/python/summarize_study_population_prescription_decisions.py
+- shared/runtime.py
+- shared/upload_entities.py
+- shared/paths.py
+- shared/python/financial_values.py
+- shared/sql_templates.py
+pipeline: upload-coverage
+table_columns:
+- Cancellation reason
+- Line-item status
+- First orders
+- Prescriptions
+- First-order line items
+- Line items with upload
+- Upload coverage (%)
+- Total uploads
+- Accepted uploads
+- Rejected uploads
+data_dependencies:
+- first-order-upload-status-flow
+- study-population-counts
+- study-prescription-decisions
+- first-order-upload-coverage
+- no-recorded-cancellation-upload-statuses
+- aged-line-upload-statuses

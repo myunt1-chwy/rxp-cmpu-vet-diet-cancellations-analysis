@@ -1,0 +1,35 @@
+id: all-upload-state-change-delays
+level: paragraph
+parent: upload-processing-time
+children: []
+question: How long does it take study uploads to reach their recorded states?
+title: How long does it take study uploads to reach their recorded states?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- runtime.py
+- upload_entities.py
+- duration_plots.py
+- python/markdown_tables.py
+migration:
+  status: active
+  source: src/latex/appendix/entity_upload_analysis.tex
+  content: split
+  build: active
+artifact: Figure (one visual).
+pipeline: upload-state
+images:
+- source: targets/all-upload-state-change-delays/outputs/figures/2026-08-15_2026-10-14/cmpu-upload-entity-state-change-distributions/all-study-linked.png
+  output: outputs/figures/visual.png
+data_dependencies:
+- all-upload-state-change-delays
+sources:
+- targets/all-upload-state-change-delays/src/sql/cmpu_upload_entity_state_change_distributions.sql
+- targets/all-upload-state-change-delays/src/python/create_cmpu_upload_entity_state_change_distributions.py
+code_dependencies:
+- shared/duration_plots.py
+- shared/paths.py
+- shared/python/markdown_tables.py
+- shared/runtime.py
+- shared/upload_entities.py

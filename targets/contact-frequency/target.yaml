@@ -1,0 +1,18 @@
+id: contact-frequency
+level: subsubsection
+parent: customer-contact-patterns
+children:
+- customer-contact-day-frequency
+question: What was the frequency of contacting Chewy for CMPU aged order customers?
+title: What was the frequency of contacting Chewy for CMPU aged order customers?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/contact_analysis.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

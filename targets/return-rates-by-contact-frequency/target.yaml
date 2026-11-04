@@ -1,0 +1,48 @@
+id: return-rates-by-contact-frequency
+level: paragraph
+parent: contact-frequency-and-returns
+children: []
+question: How do 14-day same-pet, same-product return rates vary with contact-day frequency?
+title: How do 14-day same-pet, same-product return rates vary with contact-day frequency?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- python/opportunity_report_tables.py
+- source-ownership.yaml
+- sql_templates.py
+- python/contact_analysis.py
+- python/reorder_analysis.py
+- python/financial_values.py
+migration:
+  status: active
+  source: src/latex/appendix/contact_frequency_reorders.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Table (one visual).
+sources:
+- targets/return-rates-by-contact-frequency/src/python/create_opportunity_contact_frequency_reorders.py
+- targets/return-rates-by-contact-frequency/src/sql/create_opportunity_contact_frequency_reorders-query-1.sql.j2
+code_dependencies:
+- targets/contact-days-relative-to-cancellation/src/python/create_opportunity_aged_customer_contacts.py
+- targets/opportunity-aged-reorders/src/python/create_opportunity_aged_reorders.py
+- shared/python/markdown_tables.py
+- shared/python/opportunity_report_tables.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- shared/paths.py
+- shared/python/contact_analysis.py
+- shared/python/financial_values.py
+- shared/python/reorder_analysis.py
+- shared/sql_templates.py
+pipeline: contact-frequency
+table_columns:
+- Days contacted
+- Segment customers
+- Customers reordered
+- Segment reordered (%)
+data_dependencies:
+- contact-days-relative-to-cancellation
+- return-rates-by-contact-frequency

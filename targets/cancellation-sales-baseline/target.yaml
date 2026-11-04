@@ -1,0 +1,46 @@
+id: cancellation-sales-baseline
+level: paragraph
+parent: estimated-sales-loss
+children: []
+question: How do customer counts, order counts, and estimated net sales vary by cancellation reason and
+  line-item status?
+title: How do customer counts, order counts, and estimated net sales vary by cancellation reason and line-item
+  status?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- python/opportunity_report_tables.py
+- source-ownership.yaml
+- sql_templates.py
+- python/financial_values.py
+migration:
+  status: active
+  source: src/latex/appendix/financial_opportunity.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Table (one visual).
+sources:
+- targets/cancellation-sales-baseline/src/sql/financial_opportunity_report.sql
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- targets/cancellation-sales-baseline/src/sql/create_opportunity_order_cancellation_summary-query-1.sql.j2
+- targets/cancellation-sales-baseline/src/sql/opportunity_order_cancellation_summary.sql
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/python/opportunity_report_tables.py
+- shared/paths.py
+- shared/python/financial_values.py
+- shared/sql_templates.py
+pipeline: financial-baseline
+table_columns:
+- Cancellation reason
+- Line-item status
+- Customers
+- Orders
+- Order lines
+- Estimated net sales
+data_dependencies:
+- cancellation-sales-baseline

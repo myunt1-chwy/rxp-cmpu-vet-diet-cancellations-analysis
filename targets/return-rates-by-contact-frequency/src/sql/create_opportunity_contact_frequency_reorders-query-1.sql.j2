@@ -1,0 +1,46 @@
+-- sqlfluff:dialect:duckdb
+WITH contacting AS (
+    SELECT
+        customer_id,
+        COUNT(
+            DISTINCT FLOOR(
+                (EPOCH_NS(contact_time_sql) - EPOCH_NS(cancellation_time_sql))
+                / 86400000000000.0
+            )
+        ) AS days_contacted
+    FROM
+        contact_details
+    WHERE
+        direction = 'inbound' AND contact_customer_id = customer_id
+        AND contact_time_sql IS NOT NULL AND COALESCE(handled_flag, FALSE) IN (
+            TRUE{% if not handled_only %}, FALSE{% endif %}
+        )
+    GROUP BY customer_id
+),
+
+cohort AS (SELECT DISTINCT customer_id FROM aged_orders),
+
+frequencies AS (
+    SELECT
+        c.customer_id,
+        COALESCE(d.days_contacted, 0) AS days_contacted
+    FROM cohort AS c LEFT JOIN contacting AS d ON c.customer_id = d.customer_id
+),
+
+returners AS (
+    SELECT DISTINCT original_customer_id AS customer_id
+    FROM matches
+    WHERE qualifying_non_cancelled
+),
+
+segments (days_contacted) AS (VALUES (1), (2))
+
+SELECT
+    s.days_contacted,
+    COUNT(DISTINCT f.customer_id) AS segment_customers,
+    COUNT(DISTINCT r.customer_id) AS reordered_customers
+FROM segments AS s
+LEFT JOIN frequencies AS f ON s.days_contacted = f.days_contacted
+LEFT JOIN returners AS r ON f.customer_id = r.customer_id
+GROUP BY s.days_contacted
+ORDER BY s.days_contacted

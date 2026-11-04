@@ -1,0 +1,52 @@
+id: upload-source-date-coverage
+level: paragraph
+parent: upload-source-origins
+children: []
+question: What creation-date ranges do the upload sources cover?
+title: What creation-date ranges do the upload sources cover?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- python/opportunity_report_tables.py
+- source-ownership.yaml
+- sql_templates.py
+- python/financial_values.py
+- python/sql_listing_format.py
+migration:
+  status: active
+  source: src/latex/appendix/data_verification.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Table (one visual).
+sources:
+- targets/upload-source-date-coverage/src/python/analyze_upload_source_time_coverage.py
+- targets/upload-source-date-coverage/src/sql/upload_source_time_coverage.sql
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/python/opportunity_report_tables.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- targets/upload-resource-types/src/python/create_upload_data_verification.py
+- shared/paths.py
+- shared/python/financial_values.py
+- shared/python/sql_listing_format.py
+- shared/sql_templates.py
+- targets/report-sql-listings/src/python/create_report_sql_listings.py
+- targets/upload-data-verification-all/src/python/recreate_upload_data_verification.py
+pipeline: verification
+table_columns:
+- Resource type
+- HCDM minimum creation
+- HCDM maximum creation
+- Notification minimum creation
+- Notification maximum creation
+data_dependencies:
+- upload-resource-types
+- upload-source-date-coverage
+- uploaded-prescription-approval-channels
+- customer-upload-rx-status-coverage
+- uploaded-order-cancellation-reasons
+- null-resource-cancellation-reasons

@@ -1,0 +1,13 @@
+#+TITLE: Retained opportunity-same-pet-part-auto-reorder analysis
+
+This existing command is retained outside the report hierarchy. Moving its source does not add a report section.
+
+* Reproduction
+Run =make opportunity-same-pet-part-auto-reorder CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
+
+* Owned source
+- =targets/opportunity-same-pet-part-auto-reorder/src/python/create_opportunity_auto_reorder.py=
+- =targets/opportunity-same-pet-part-auto-reorder/src/sql/create_opportunity_auto_reorder-query-2.sql.j2=
+- =targets/opportunity-same-pet-part-auto-reorder/src/sql/opportunity_auto_reorder_flags.sql=
+
+Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.

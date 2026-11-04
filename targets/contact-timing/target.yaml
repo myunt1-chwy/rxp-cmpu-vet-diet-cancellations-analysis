@@ -1,0 +1,18 @@
+id: contact-timing
+level: subsubsection
+parent: customer-contact-patterns
+children:
+- contact-days-relative-to-cancellation
+question: When did the CMPU aged order customers contact Chewy relative to the cancellation date?
+title: When did the CMPU aged order customers contact Chewy relative to the cancellation date?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/contact_analysis.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

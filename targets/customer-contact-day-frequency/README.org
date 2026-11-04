@@ -1,0 +1,36 @@
+#+TITLE: How many distinct days did aged-order customers contact Chewy?
+
+* Ownership
+Target: =customer-contact-day-frequency=. Level: =paragraph=.
+Parent: =contact-frequency=.
+Ordered children: none.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make customer-contact-day-frequency
+make customer-contact-day-frequency REPRO=1
+make customer-contact-day-frequency REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+* Inputs and dependencies
+Generator batch: =contacts=, defined in =shared/analysis/pipelines.yaml=. The batch is shared by related paragraphs and runs once per make invocation.
+Existing generator commands (the batch explicitly sets CACHED=1 by default):
+- =make opportunity-aged-customer-contacts HANDLED_ONLY=0 CACHED=1=
+
+Retained input folders and ownership:
+- =targets/cancellation-sales-baseline/data/=
+- =targets/contact-days-relative-to-cancellation/data/=
+
+Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+
+* Outputs
+Generated content: =targets/customer-contact-day-frequency/outputs/latex/content.tex=.
+Tables are exported to =outputs/tables/table.org= and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; =outputs/tables/provenance.json= records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's =outputs/build/= folder.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.

@@ -1,0 +1,18 @@
+id: accepted-upload-approval-time
+level: subsubsection
+parent: upload-processing-delays
+children:
+- accepted-upload-approval-delay
+question: How long does it take for an accepted prescription document to get approved?
+title: How long does it take for an accepted prescription document to get approved?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/approval_analysis.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

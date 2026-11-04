@@ -1,0 +1,20 @@
+id: upload-approval-channel-distribution
+level: subsubsection
+parent: data-verification
+children:
+- uploaded-prescription-approval-channels
+question: What's the distribution of all the vet diet prescriptions in the prescription upload tables
+  by \texttt{APPROVAL\_CHANNEL} ?
+title: What's the distribution of all the vet diet prescriptions in the prescription upload tables by
+  \texttt{APPROVAL\_CHANNEL} ?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/data_verification.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

@@ -1,0 +1,22 @@
+id: upload-processing-delays
+level: subsection
+parent: appendix
+children:
+- study-population-context
+- prescription-upload-coverage
+- customer-upload-delay
+- upload-processing-time
+- accepted-upload-approval-time
+question: What are the delays in processing uploaded prescriptions?
+title: What are the delays in processing uploaded prescriptions?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- paths.py
+migration:
+  status: active
+  source: src/latex/appendix/study_population_analysis.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

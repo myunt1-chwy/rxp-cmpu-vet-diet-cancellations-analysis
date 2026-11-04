@@ -1,0 +1,54 @@
+id: study-order-cancellation-sales
+level: paragraph
+parent: study-population-context
+children: []
+question: How do cancellation reasons, order counts, and net sales compare between first orders and all
+  linked orders?
+title: How do cancellation reasons, order counts, and net sales compare between first orders and all linked
+  orders?
+shared_dependencies:
+- analysis
+- artifact-ownership.yaml
+- cohort_queries.py
+- paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- python/opportunity_report_tables.py
+- retained-query-snapshots.yaml
+- source-ownership.yaml
+- sql_templates.py
+- python/financial_values.py
+migration:
+  status: active
+  source: src/latex/appendix/study_population_analysis.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Table (one visual).
+sources:
+- targets/study-order-cancellation-sales/src/python/summarize_prescription_cohort_order_comparison.py
+- targets/study-order-cancellation-sales/src/sql/prescription_cohort_order_sales.sql
+- targets/study-order-cancellation-sales/src/sql/summarize_prescription_cohort_order_comparison-query-1.sql.j2
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/python/opportunity_report_tables.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- shared/cohort_queries.py
+- shared/paths.py
+- shared/python/financial_values.py
+- shared/sql_templates.py
+- targets/study-population-counts/src/python/create_study_population_report_tables.py
+pipeline: study-population
+table_columns:
+- Cancellation reason
+- First orders
+- First-order lines
+- First-order net sales
+- All orders
+- All-order lines
+- All-order net sales
+data_dependencies:
+- first-order-upload-status-flow
+- study-population-counts
+- study-prescription-decisions
+- study-order-cancellation-sales

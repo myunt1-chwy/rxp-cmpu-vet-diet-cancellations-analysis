@@ -1,0 +1,27 @@
+#+TITLE: What is the probability that after X days the order will be an aged order?
+
+* Ownership
+Target: =aged-order-risk=. Level: =subsection=.
+Parent: =appendix=.
+Ordered children: =first-order-event-free-survival=.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make aged-order-risk
+make aged-order-risk REPRO=1
+make aged-order-risk REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+* Inputs and dependencies
+The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+
+* Outputs
+Generated content: =targets/aged-order-risk/outputs/latex/content.tex=.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.

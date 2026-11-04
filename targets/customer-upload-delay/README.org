@@ -1,0 +1,27 @@
+#+TITLE: How long do customers wait to upload a prescription?
+
+* Ownership
+Target: =customer-upload-delay=. Level: =subsubsection=.
+Parent: =upload-processing-delays=.
+Ordered children: =upload-delay-from-order-creation=.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make customer-upload-delay
+make customer-upload-delay REPRO=1
+make customer-upload-delay REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+
+* Inputs and dependencies
+The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/paths.py=
+
+* Outputs
+Generated content: =targets/customer-upload-delay/outputs/latex/content.tex=.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Existing legacy paths remain compatibility aliases.

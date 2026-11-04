@@ -1,0 +1,12 @@
+#+TITLE: Retained cmpu-order-to-approval-distributions analysis
+
+This existing command is retained outside the report hierarchy. Moving its source does not add a report section.
+
+* Reproduction
+Run =make cmpu-order-to-approval-distributions CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
+
+* Owned source
+- =targets/cmpu-order-to-approval-distributions/src/python/create_cmpu_order_to_approval_distributions.py=
+- =targets/cmpu-order-to-approval-distributions/src/sql/cmpu_order_to_approval_distributions.sql=
+
+Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.
