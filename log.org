@@ -311,3 +311,8 @@
   - SQL and SQL fragments, including validation/DuckDB queries, must live in separate files. Python renders templates with Jinja2 and StrictUndefined; no embedded or concatenated SQL.
   - Skill validation and staged diff checks passed; the pre-commit hook remained enabled. Pending SQLFluff configuration, hook setup, analysis and report changes were excluded. No warehouse access, merge or push.
 
+* 2026-11-04 Define reproducible analysis structure
+  - User approved my-analysis-structure and its task entry; committed as 38f1766 on feat/financial-line-status.
+  - Recorded the agreed question-led hierarchy, first-class flat targets, stable IDs, YAML ordering, included per-target Makefiles, portable target folders/shared dependencies, authoritative Org tables, parent LaTeX narrative, explicit refresh behavior and ordered reproduction documentation with optional REPRO=1.
+  - Skill validation, YAML examples, linked SQL skill and staged diff checks passed. Commit hook remained enabled. No migration, warehouse queries, report rebuild, merge or push; unrelated pending changes excluded.
+
