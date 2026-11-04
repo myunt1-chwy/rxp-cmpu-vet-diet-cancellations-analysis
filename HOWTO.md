@@ -27,7 +27,7 @@ make report REFRESH=1
 ```
 Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
-The report is a draft by default (FINAL=0). Use `make report FINAL=1` to omit the watermark and opening DRAFT text. REPRO=1 includes the target reproduction instructions. The published copy is `outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf`. Study-population and upload-coverage refreshes now use coordinated inputs with membership and status reconciliation. Full-report refresh and staged publication still require end-to-end verification.
+The report is a draft by default (FINAL=0). Use `make report FINAL=1` to omit the watermark and opening DRAFT text. REPRO=1 includes the target reproduction instructions. The published copy is `outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf`. Study-population and upload-coverage refreshes now use coordinated inputs with membership and status reconciliation. Full-report refresh and subsequent cached reproduction passed on November 4, 2026. Isolated staged publication remains a separate improvement.
 
 
 ### Inputs and dependencies
@@ -101,6 +101,13 @@ The root `src/` and `data/` directories are retired. Retained datasets and gener
 The report's retained LaTeX assembly fragments live in `targets/report/src/latex/retained/`. Paragraph adapters still read these fragments to reproduce the authoritative Org tables. Current authored target prose remains in each target's `src/latex/`. `make legacy-report` delegates to `make report`.
 
 `make validate-analysis-sources validate-analysis-structure` checks ownership and the target graph. `make preview-target-report` renders retained presentation snapshots without warehouse access or replacing the published PDF. This preview does not certify the query cache or replace a successful `make report`.
+
+
+### SQL execution history
+
+The SQL runner records executed queries under ignored `.cache/sql-history/`.
+Legacy target-local history arguments are redirected there; execution logs are
+not committed. Reviewed SQL sources remain under their owning target.
 
 ## executive-summary: Executive summary
 
@@ -428,6 +435,8 @@ Shared dependencies:
 Generated content: `targets/same-pet-product-return-comparison/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
 Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+
+The financial-returns refresh first regenerates the first CUSTOMER_UPLOAD vet-diet and first vet-diet customer cohorts. Both follow-up families then validate those cohort fingerprints before extracting outcomes; cached replay performs no cohort extraction.
 
 ## same-pet-other-product-returns: What percentage of customers come back and place a successful order for the same pet but different product after an aged order in the next 70 days?
 

@@ -97,7 +97,13 @@ def validate_output_path(path: Path) -> Path:
 
 
 def record_sql(sql: str, directory: Path, source: str) -> Path:
-    directory = validate_workspace_path(directory, "--sql-log-dir")
+    # Execution history is local cache, separate from target-owned SQL sources.
+    requested = validate_workspace_path(directory, "--sql-log-dir")
+    relative = requested.relative_to(Path.cwd().resolve())
+    cache = Path(".cache/sql-history")
+    if not relative.is_relative_to(cache):
+        relative = cache / relative
+    directory = validate_workspace_path(relative, "--sql-log-dir")
     directory.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     path = directory / f"rxp-sql-{timestamp}-{uuid.uuid4().hex[:8]}.sql"
@@ -124,7 +130,7 @@ def verify_duckdb() -> None:
 @click.option("--query", help="One read-only SQL statement")
 @click.option("--env-file", type=click.Path(path_type=Path, dir_okay=False), default=Path(".env"), show_default=True, help="Local connection settings")
 @click.option("--output-parquet", type=click.Path(path_type=Path, dir_okay=False), help="Relative output path within this repository")
-@click.option("--sql-log-dir", type=click.Path(path_type=Path, file_okay=False), default=Path("generated_sql"), show_default=True, help="Relative directory for recorded SQL")
+@click.option("--sql-log-dir", type=click.Path(path_type=Path, file_okay=False), default=Path(".cache/sql-history"), show_default=True, help="History location within ignored .cache/sql-history; legacy paths are nested under it")
 def main(query_file: Path | None, query: str | None, env_file: Path, output_parquet: Path | None, sql_log_dir: Path) -> None:
     """Run one read-only Snowflake statement through DuckDB."""
     if (query_file is None) == (query is None):

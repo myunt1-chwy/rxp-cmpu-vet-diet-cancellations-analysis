@@ -1385,3 +1385,18 @@
   - Remove the blanket refresh blocker after executable checks and cached replay pass.
   - Fresh warehouse status extraction reconciled 95,106 coverage lines; rebuilt 40,870 no-recorded-reason and 26,443 aged-order lines. Cached replay and all three target artifacts pass.
   - Fourteen focused coverage tests cover identity/status/reason mismatches, shipment duplication, empty subgroups, mixed runs, and installation rollback. Related population/financial tests, Ruff, SQLFluff, source/hierarchy checks, and diff checks pass. No PDF publication or commit.
+
+* DONE Refresh financial-return cohort prerequisites
+  - The full report refresh exposed stale first-order customer cohort manifests after saved Parquet removal. Added both cohort extractors before financial follow-up refresh commands.
+  - Both cohort extractions and all financial return comparisons completed successfully in the authorized report refresh.
+
+* DONE Repair appendix verification extraction paths
+  - Full refresh exposed writes to retired root data/src directories. Resolve both Parquet and SQL-history paths to target owners before passing relative paths to the SQL runner.
+  - All six appendix verification analyses refreshed successfully; moved the four misplaced generated artifacts to their owners and removed the empty retired directories.
+
+* DONE Verify the refreshed draft report and cached reproduction
+  - All report extraction pipelines completed; draft PDF compiled. Updated stale summary/study counts and extraction-date notes found during visual review. Plain make report completed successfully with cached inputs. The published 40-page draft matches the target PDF hash; reviewed pages 1, 16, 20 and 21 visually. All 43 focused population/coverage/financial tests passed.
+
+* DONE Keep SQL execution history outside targets and Git
+  - User requested committing the build fixes and refreshed report without SQL-history files. No history files were tracked.
+  - Centralized history routing under ignored .cache/sql-history and moved 263 existing history files out of targets. Added explicit legacy-history ignore rules and tests for cache placement and path boundaries.

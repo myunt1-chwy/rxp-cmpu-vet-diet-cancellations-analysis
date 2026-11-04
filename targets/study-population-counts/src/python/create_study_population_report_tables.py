@@ -1,6 +1,7 @@
 """Render frozen study-population tables from validated summaries."""
 
 import json
+import re
 
 import duckdb
 import pandas as pd
@@ -113,6 +114,25 @@ def main():
         / "study_population_analysis.tex"
     )
     text = target.read_text()
+    extracted_date = pd.Timestamp(line_manifest["extracted_at_utc"]).strftime(
+        "%B %d, %Y"
+    )
+    text = re.sub(
+        r"Line associations and document counts were refreshed on [^\n]+\.",
+        (
+            "Line associations and document counts were refreshed on "
+            f"{extracted_date}."
+        ),
+        text,
+    )
+    text = re.sub(
+        r"Decisions use the current source snapshot refreshed [^;]+;",
+        (
+            "Decisions use the current source snapshot refreshed "
+            f"{extracted_date};"
+        ),
+        text,
+    )
     for label, frame in [
         ("tab:study-population-counts", counts),
         (

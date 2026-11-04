@@ -11,6 +11,13 @@ financial-returns:
   - - opportunity-new-upload-customer-follow-up
   - - opportunity-new-vet-diet-customer-follow-up
   - - combined-follow-up-table
+  refresh_commands:
+  - - opportunity-aged-new-customer-upload-vet-diet-customers
+  - - opportunity-aged-new-vet-diet-customers
+  - - opportunity-follow-up-sales
+  - - opportunity-new-upload-customer-follow-up
+  - - opportunity-new-vet-diet-customer-follow-up
+  - - combined-follow-up-table
   data_targets:
   - cancellation-sales-baseline
   - same-pet-product-return-comparison

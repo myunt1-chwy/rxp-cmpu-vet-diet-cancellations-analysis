@@ -9,17 +9,17 @@ The population of orders for this study consists of first orders and
 first order lines for prescriptions as we would like to analyze issues at
 prescription upload and approval.
 
-For this analysis; 95,073 vet diet prescriptions created between
+For this analysis; 95,106 vet diet prescriptions created between
 August 15, 2026 and October 15, 2026 were used with
 \verb|CUSTOMER_UPLOAD| as the approval channel. This corresponds to
-87,724 distinct orders and 95,073 order lines. The 24,408 orders
+87,757 distinct orders and 95,106 order lines. The 24,408 orders
 described in \verb|OMS| with the cancellation reason
 \verb|AGED_ORDER| constitute the  aged orders leading to 26,443 line
 items, 26,443 corresponding prescriptions and 20,587 customers.
 
 The difference in counts between first orders and order lines and all
 orders and order lines is shown in Table
-{tab:first-all-order-cancellations}.
+\ref{tab:first-all-order-cancellations}.
 
 
 Factors that might be contributing to an order aging are: delay in
@@ -27,11 +27,11 @@ prescription upload by the customer, delay in processing the upload,
 and delay in approving the prescription after the uploaded
 prescription document is accepted.
 
-Matched upload coverage is 29,623 of 95,073 study first-order lines
-(31.16\%), compared with 777 of 26,443 aged first-order lines (2.94\%);
+Matched upload coverage is 29,655 of 95,106 study first-order lines
+(31.18\%), compared with 777 of 26,443 aged first-order lines (2.94\%);
 25,666 aged lines (97.06\%) have no matched upload in the retained window
 (Table \ref{tab:study-upload-coverage-by-cancellation-reason}).
-The matched lines link to 29,715 distinct upload entities overall and
+The matched lines link to 29,750 distinct upload entities overall and
 782 in the aged subset (Table \ref{tab:study-population-counts}).
 These are different counting units: one entity can link to multiple
 prescriptions or lines. Unmatched evidence does not establish customer

@@ -60,13 +60,12 @@ October 27, 2026, 00:00 UTC cancellation cutoff; later or undated aged reasons
 remain in the outside-cutoff row. Missing/blank reasons do not prove an uncancelled
 order. Line-item status is \texttt{ORDER\_ORDER\_LINE\_STATUS} from the coordinated first-order-line extract, with shipment-row consistency checked.
 Codes are shown as recorded; missing status is explicit. Table~\ref{tab:study-no-cancellation-upload-details}
-uses a later status/reason extraction, so its counts can differ.
+uses reconciled status/reason evidence.
 An entity may match multiple prescriptions/lines and reason/status groups;
 an order can also span groups. TOTAL independently deduplicates both and is not
 the sum of overlapping rows. Cancellation reasons/times use the retained
-prescription-decision extract and agree with the upload extract; originally blank
-reasons populated since the earlier membership snapshot are audited separately.
-Counts describe the retained source snapshots.
+prescription-decision extract and agree with the upload and status extracts.
+Counts describe the validated source snapshots.
 \end{minipage}
 \end{table}
 \end{landscape}
