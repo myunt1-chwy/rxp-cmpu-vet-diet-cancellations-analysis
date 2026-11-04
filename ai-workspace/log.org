@@ -400,3 +400,9 @@
     upload-resource export against all cached LaTeX cells and corrected its
     pre-existing percentage labels to prescription-ID count labels.
   - No generated data, SQL history or PDF changes were committed. No push.
+
+* 2026-11-04 Move agent work records into ai-workspace
+  - User requested pushing the pending move; committed as 842fd7f on
+    feat/analysis-target-structure.
+  - Moved todo.org and log.org, updated AGENTS.md references and adjusted
+    relative Org file links. Diff checks and commit hooks passed.
