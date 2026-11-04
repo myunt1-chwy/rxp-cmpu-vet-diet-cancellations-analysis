@@ -346,3 +346,10 @@
   - SQLFluff initially failed on the legacy requested_keys template fragment. Added zero-row lint context and default-rule style corrections; documented that dynamic fragment contents require separate validation. The legacy runtime lookup remains unchanged.
   - Staged diff check and actual SQLFluff pre-commit hook passed with hooks enabled. Earlier analysis reconciliation and report verification are recorded in task history; no new warehouse refresh or report rebuild for this commit. Untracked .DS_Store excluded. No merge or push.
 
+
+* 2026-11-04 Coordinate study-population and upload-coverage refresh
+  - User approved committing the implementation; committed as fed42e8 on feat/analysis-target-structure.
+  - Added scalar-parameter warehouse extraction for prescription decisions and uploaded-document associations, database-derived financial membership, and shared status evidence for both coverage detail tables. Reconciled membership, customers, first-order keys, cancellation reasons and statuses, with run IDs and input fingerprints; removed fixed historical count requirements and the upload-coverage refresh blocker.
+  - Authorized warehouse refresh succeeded: 103,550 matched prescriptions, 36,147 upload associations, and 95,106 CUSTOMER_UPLOAD coverage lines. Detail tables reconcile 40,870 no-recorded-reason lines and 26,443 aged-order lines. Cached replay and all three coverage target builds pass without warehouse queries.
+  - Focused coverage tests cover empty subgroups, duplicate shipment evidence, changed keys/customers/reasons/statuses, mixed runs and installation rollback. Related population/financial tests, Ruff, SQLFluff, source/hierarchy checks and diff checks passed; commit hooks remained enabled and required two formatting corrections.
+  - Updated target reproduction instructions, generated HOWTO and task records. Full-report staging, validation and PDF publication remain pending. No merge or push. Untracked .DS_Store excluded.
