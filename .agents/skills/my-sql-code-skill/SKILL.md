@@ -16,6 +16,9 @@ Keep as much analytical computation as practical in SQL. Deliver self-contained 
 
 ## Self-contained query files
 
+- Store SQL and SQL templates in separate files, following the repository convention of `src/sql/`. Do not embed SQL statements or fragments in Python files, including validation queries and DuckDB queries, or assemble SQL with Python string concatenation or f-strings.
+- Load templates from files and render them with Jinja2 using explicit scalar parameters and `StrictUndefined`, so missing parameters fail clearly. Keep query logic in the template; Python should load, render, execute, and export results.
+
 - Include the source-to-result analytical logic in the SQL file, including cohort definitions. Do not require a prior application run to generate data-dependent SQL or populate intermediate tables.
 - Small scalar parameters such as date ranges, observation cutoffs, and follow-up lengths may be templated. Identify their types and intended values. Provide rendered executable SQL when running or sharing a concrete analysis; substituting those scalars should be sufficient to run it in the target CLI.
 - Use the target database's dialect and identify required database/schema context. Cross-database portability is not required; execution must not depend on host-language rewriting of analytical logic.

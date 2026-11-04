@@ -1406,3 +1406,7 @@
 * DONE Install my-sql-code-skill in this repository
   - Added .agents/skills/my-sql-code-skill/SKILL.md: keep analytical computation in SQL; derive cohorts and identifiers from database tables; prohibit uploaded identifiers/external row payloads, including DuckDB workflows; permit scalar date/window templates; require self-contained, CLI-executable, human-reviewable SQL.
   - Skill validation passed; user approved committing the skill and this task entry.
+
+* DONE Require separate SQL templates rendered with Jinja
+  - Updated my-sql-code-skill: SQL statements and fragments, including validation and DuckDB SQL, belong in separate files; Python loads and renders templates with Jinja2 and StrictUndefined rather than embedding or assembling SQL strings.
+  - Skill validation passed. Existing analysis code was not refactored; user approved committing this skill update.
