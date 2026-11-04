@@ -150,7 +150,7 @@ def test_status_presence_is_separate_from_state_time_exports_full_data(
         "extracted_at_utc": "fixture",
         "parquet_sha256": "fixture",
     }
-    with patch.object(status.legacy, "render_sankey"):
+    with patch.object(status.sankey, "render_sankey"):
         status.write_outputs(
             f,
             metadata,

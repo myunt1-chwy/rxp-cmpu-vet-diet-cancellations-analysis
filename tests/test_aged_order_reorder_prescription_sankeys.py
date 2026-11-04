@@ -9,6 +9,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 from click.testing import CliRunner
+from sql_fixtures import sql_contains
 
 from src.python import (
     create_aged_order_reorder_prescription_sankeys as analysis,
@@ -229,9 +230,9 @@ def test_fresh_cached_sql_only_fingerprint_and_exports(tmp_path):
         assert result.exit_code == 0, result.output
         run.assert_not_called()
         assert not list(tmp_path.iterdir())
-        assert (
-            "k.order_id=l.order_id AND k.order_line_id=l.order_line_id"
-            in result.output
+        assert sql_contains(
+            result.output,
+            "k.order_id=l.order_id AND k.order_line_id=l.order_line_id",
         )
         assert (
             "line_evidence" in result.output
@@ -290,9 +291,7 @@ def test_fresh_cached_sql_only_fingerprint_and_exports(tmp_path):
 def test_optional_padding_keeps_last_channel_label_inside_canvas():
     import xml.etree.ElementTree as ET
 
-    from src.python.create_cmpu_prescription_first_order_status import (
-        add_title,
-    )
+    from shared.sankey import add_title
 
     svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1000"/>'
     normal = ET.fromstring(add_title(svg, "Fixture"))
@@ -306,7 +305,7 @@ def test_optional_padding_keeps_last_channel_label_inside_canvas():
 
 
 def evidence_fixture():
-    from src.python import (
+    from shared.python import (
         create_aged_order_reorder_upload_approval_evidence as ev_analysis,
     )
     from tests.test_aged_order_reorder_upload_approval_evidence import (
@@ -487,7 +486,7 @@ def test_evidence_mode_cli_reads_frozen_caches_validates_dependencies():
         "parquet_sha256": "rx",
         "as_of_date": "2026-10-27",
     }
-    from src.python import (
+    from shared.python import (
         create_aged_order_reorder_upload_approval_evidence as ev_analysis,
     )
 
@@ -503,12 +502,14 @@ def test_evidence_mode_cli_reads_frozen_caches_validates_dependencies():
             return_value={"selected-customers": evidence},
         ),
     ):
-        returned, metadata = analysis.load_evidence(details, meta, "period")
+        returned, metadata = analysis.load_evidence(
+            details, meta, "2026-08-15_2026-10-15_as-of-2026-10-27"
+        )
         pd.testing.assert_frame_equal(returned, evidence)
         assert metadata["parquet_sha256"] == "ev"
         args = load.call_args.args
         assert args[2:] == (
-            "period",
+            "2026-08-15_2026-10-15_as-of-2026-10-27",
             {
                 "baseline": "baseline",
                 "prescription_channels": "rx",
@@ -524,7 +525,7 @@ def test_evidence_mode_cli_reads_frozen_caches_validates_dependencies():
             return_value=(
                 pd.DataFrame(),
                 {"parquet_sha256": "baseline"},
-                "period",
+                "2026-08-15_2026-10-15_as-of-2026-10-27",
             ),
         ),
         patch.object(

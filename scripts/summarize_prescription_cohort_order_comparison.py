@@ -15,6 +15,12 @@ if __name__ == "__main__":
 else:
     import importlib
 
-    sys.modules[__name__] = importlib.import_module(
+    _implementation = importlib.import_module(
         "shared.python.summarize_prescription_cohort_order_comparison"
     )
+
+    sys.modules[__name__] = _implementation
+
+    def __getattr__(name):
+        """Support callers retaining an importlib-created module object."""
+        return getattr(_implementation, name)

@@ -9,6 +9,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 from click.testing import CliRunner
+from sql_fixtures import sql_contains
 
 from src.python import (
     create_aged_order_reorder_upload_approval_evidence as analysis,
@@ -243,11 +244,11 @@ def test_fresh_cached_print_sql_exports_and_fingerprint_rejection(tmp_path):
         result = runner.invoke(analysis.main, ["--print-sql"])
         assert result.exit_code == 0, result.output
         assert "MIN(l.min_approved_denied_datetime)" in result.output
-        assert (
-            "k.order_id=l.order_id AND k.order_line_id=l.order_line_id"
-            in result.output
+        assert sql_contains(
+            result.output,
+            "k.order_id=l.order_id AND k.order_line_id=l.order_line_id",
         )
-        assert "created_ts_utc >=" not in result.output
+        assert not sql_contains(result.output, "created_ts_utc >=")
         run.assert_not_called()
         assert not list(tmp_path.iterdir())
         result = runner.invoke(analysis.main, [])

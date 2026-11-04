@@ -82,6 +82,10 @@ def render_sql(
     period=None,
 ):
     """Derive warehouse keys entirely from validated scalar parameters."""
+    if contact_timezone not in {"UTC", "America/New_York"}:
+        raise ValueError(
+            "Contact timezone must be explicitly UTC or America/New_York"
+        )
     template = (
         ALL_HISTORY_TEMPLATE
         if all_order_history

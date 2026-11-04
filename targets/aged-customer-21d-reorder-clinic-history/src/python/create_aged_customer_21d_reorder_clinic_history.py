@@ -8,15 +8,15 @@ import json
 
 import click
 import pandas as pd
-from shared.python.create_aged_order_reorder_daily_customers import (
-    daily_counts,
-)
 
 from shared.paths import artifact_path
 from shared.python import (
     create_aged_customer_prior_same_clinic_shipments as clinics,
 )
 from shared.python import create_aged_order_reorder_windows as windows
+from shared.python.create_aged_order_reorder_daily_customers import (
+    daily_counts,
+)
 from shared.python.markdown_tables import (
     markdown_table,
     table_layout,

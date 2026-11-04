@@ -21,7 +21,7 @@ A separate copy of the staged pre-cleanup source ran the full tests: 570 passed,
 62 failed, and 16 subtests passed. Existing failures concern obsolete identifier-fed
 renderer APIs, compatibility imports and setup mocks. They are not treated as a
 successful suite. Tests that adapt Snowflake to DuckDB now tolerate SQL formatting
-and preserve nanosecond timestamp arithmetic. Final results are recorded below.
+and preserve nanosecond timestamp arithmetic. Baseline and subsequent repair results are recorded below.
 
 * Retained data and report
 No warehouse refresh was performed. =make report= stops at the financial baseline
@@ -30,7 +30,7 @@ intentional provenance check; manifests were not updated to claim fresh executio
 The existing PDF was generated before this cleanup. Rebuilding requires a reviewed
 snapshot transition or an explicitly authorized refresh; it is not certified here.
 
-* Final regression comparison
+* Lint-cleanup baseline comparison
 The final full suite reports 570 passed, 62 failed, and 16 subtests passed,
 matching the pre-cleanup failure set. The 36 focused financial and customer-upload
 first-order tests also pass. Both financial date bases and line-status grouping
@@ -38,7 +38,28 @@ are exercised. =git diff --check= and both graph/source validators pass.
 Type-changed files are included in staged source checks, including SQL compatibility
 symlinks. Generated table artifacts are no longer tracked; local files remain.
 
-* Follow-up outside this lint task
-Update obsolete identifier-fed renderer tests, compatibility imports, and setup
-mocks, then resolve retained-query provenance before rebuilding the PDF. No test
-failure has been hidden with a skip/xfail, and no cache check has been disabled.
+* Test repairs after baseline commit a178ef4
+The migration/lint baseline was committed first, as requested. All 62 test failures
+were then repaired. The complete suite now passes: 634 tests and 16 subtests,
+including regressions for hook-installation failure propagation and staged-only
+first-party import classification. Explicit Ruff first-party configuration keeps
+local and isolated staged checks consistent; staged hooks pass.
+
+- Replaced obsolete renderer calls with scalar-only APIs and assertions that
+  identifier payloads cannot be supplied.
+- Isolated the requested-keys CTE in local test fixtures without changing production
+  SQL. Contact matching, duplicate handling, empty cohorts and strict nanosecond
+  time boundaries still execute the downstream production query.
+- Restored compatibility access for importlib-created module objects and validated
+  the required contact timezone explicitly.
+- Updated moved import/patch targets, valid period fixtures, and setup mocks for
+  both dependency synchronization and hook installation.
+
+Ruff lint/format, SQLFluff fixture lint, source/hierarchy validation and
+=git diff --check= pass. No tests were skipped or marked xfail. No cache checks
+were disabled and no warehouse data was refreshed.
+
+* Remaining report limitation
+Resolve retained-query provenance before rebuilding the PDF, as described above.
+The migration-era test failures are resolved; the cached-report limitation is a
+separate issue and was not bypassed by these repairs.

@@ -9,7 +9,6 @@ import re
 
 import altair as alt
 import pandas as pd
-from shared.python.create_upload_data_verification import latex_escape
 
 from shared.paths import (
     artifact_path,
@@ -17,6 +16,7 @@ from shared.paths import (
     output_path,
     repository_root,
 )
+from shared.python.create_upload_data_verification import latex_escape
 from shared.python.markdown_tables import markdown_table, write_text
 
 ROOT = repository_root()

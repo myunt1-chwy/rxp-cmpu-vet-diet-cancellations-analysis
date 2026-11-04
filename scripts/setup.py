@@ -48,6 +48,8 @@ def project_configuration(name: str, description: str) -> str:
         '".agents", ".codex"]\n'
         "\n[tool.ruff.lint]\n"
         'extend-select = ["E501"]\n'
+        "\n[tool.ruff.lint.isort]\n"
+        'known-first-party = ["shared", "src", "tests"]\n'
     )
 
 

@@ -8,6 +8,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 from click.testing import CliRunner
+from sql_fixtures import sql_contains
 
 from src.python import create_aged_order_reorder_approval_channels as analysis
 
@@ -134,13 +135,21 @@ def test_repeated_cancellations_usages_and_shared_rx_deduplicate_lines():
         analysis.line_prescriptions(matches, source)
 
 
-def test_sql_ids_deduplicate_and_escape():
-    sql = analysis.render_sql(["B", "A", "A", "O'Hare"])
-    assert '["A","B","O\'\'Hare"]' in sql
-    assert "k.rx_id=p.rx_id" in sql
-    assert "approval_channel = 'CUSTOMER_UPLOAD'" not in sql
-    with pytest.raises(ValueError):
-        analysis.render_sql([])
+def test_sql_derives_distinct_prescriptions_without_identifier_payloads():
+    sql = analysis.render_sql()
+    assert sql_contains(
+        sql, "SELECT DISTINCT NULLIF(TRIM(l.rx_id), '') AS rx_id"
+    )
+    assert sql_contains(sql, "k.rx_id = p.rx_id")
+    registry_lookup = sql.split("FROM requested_prescriptions AS k")[1]
+    assert not sql_contains(
+        registry_lookup, "approval_channel = 'CUSTOMER_UPLOAD'"
+    )
+    assert "PARSE_JSON" not in sql.upper()
+    with pytest.raises(TypeError):
+        analysis.render_sql(["B", "A", "O'Hare"])
+    with pytest.raises(ValueError, match="cohort period"):
+        analysis.render_sql(period="invalid")
 
 
 def test_cli_modes_exports_and_fingerprints(tmp_path):

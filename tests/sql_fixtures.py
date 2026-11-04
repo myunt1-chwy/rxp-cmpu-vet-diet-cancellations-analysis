@@ -1,6 +1,7 @@
 """Adapt warehouse SQL to DuckDB fixtures without depending on formatting."""
 
 import re
+from pathlib import Path
 
 
 def _arguments(text, opening):
@@ -84,4 +85,49 @@ def sql_contains(sql, fragment):
     """Check SQL fragments independently of whitespace and keyword casing."""
     return (
         re.sub(r"\s+", "", fragment).upper() in re.sub(r"\s+", "", sql).upper()
+    )
+
+
+def isolate_cte(sql, name, fixture):
+    """Exercise downstream production SQL using a typed upstream fixture.
+
+    The old tests injected identifier JSON into the production renderer. These
+    fixtures replace only the upstream CTE at the test boundary. The source
+    query and its matching predicates remain intact.
+    """
+    declaration = re.search(
+        r"\b" + re.escape(name) + r"\s+AS\s*\(", sql, re.IGNORECASE
+    )
+    if declaration is None:
+        raise ValueError(f"Missing fixture seam: {name}")
+    _, end = _arguments(sql, declaration.end() - 1)
+    start = re.search(r"\bWITH\s+", sql, re.IGNORECASE)
+    query = (Path(__file__).parent / "sql" / fixture).read_text()
+    return (
+        sql[start.start() : start.end()]
+        + sql[declaration.start() : declaration.end()]
+        + query
+        + sql[end - 1 :]
+    )
+
+
+def contact_fixture_sql(sql):
+    """Translate Snowflake aggregate syntax, preserving contact-leg records."""
+    sql = re.sub(
+        r"LISTAGG\(DISTINCT\s+(\w+\.session_channel),\s*', '\)"
+        r"\s+WITHIN GROUP\s*\(\s*ORDER BY\s+\1\s*\)",
+        r"STRING_AGG(DISTINCT \1, ', ' ORDER BY \1)",
+        sql,
+        flags=re.IGNORECASE,
+    )
+    array = re.search(r"ARRAY_AGG\(", sql, re.IGNORECASE)
+    if array is None:
+        raise ValueError("Contact records aggregate missing")
+    _, end = _arguments(sql, array.end() - 1)
+    return (
+        sql[: array.start()]
+        + "TO_JSON("
+        + sql[array.start() : end]
+        + ")"
+        + sql[end:]
     )

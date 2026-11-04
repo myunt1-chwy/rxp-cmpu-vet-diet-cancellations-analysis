@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pandas as pd
 import pytest
+from sql_fixtures import fixture_sql, isolate_cte, sql_contains
 
 from src.python import create_aged_order_reorder_uploads as analysis
 
@@ -141,61 +142,35 @@ def test_different_prescriptions_only_and_frozen_channel_join():
 
 def test_sql_no_lower_upload_bound_and_safe_pairs():
     _, r, _ = fixtures()
-    sql = analysis.render_sql(r, ASOF)
-    assert "upload_type='DIET_PRESCRIPTION'" in sql
-    assert (
-        "created_ts_utc <= '2026-10-27'" in sql
-        and "created_ts_utc IS NULL" in sql
-    )
-    assert "created_ts_utc >=" not in sql
-    assert "k.customer_id=e.upload_customer_id" in sql
-    assert "has_uploaded_file::VARCHAR" in sql
-    with pytest.raises(ValueError):
+    sql = analysis.render_sql(ASOF)
+    assert sql_contains(sql, "upload_type='DIET_PRESCRIPTION'")
+    assert sql_contains(
+        sql, "created_ts_utc <= '2026-10-27'"
+    ) and sql_contains(sql, "created_ts_utc IS NULL")
+    assert not sql_contains(sql, "created_ts_utc >=")
+    assert sql_contains(sql, "k.customer_id=e.upload_customer_id")
+    assert sql_contains(sql, "has_uploaded_file::VARCHAR")
+    assert "PARSE_JSON" not in sql.upper()
+    with pytest.raises(TypeError):
         analysis.render_sql(r.iloc[:0], ASOF)
 
 
 def execute_sql(requests, uploads):
     import duckdb
 
-    sql = fixture_sql(analysis.render_sql(requests, ASOF))
+    sql = fixture_sql(analysis.render_sql(ASOF))
     sql = sql.replace(
         "EDLDB.BT_HCA_HCDM.RXP_PRESCRIPTIONS", "prescriptions_source"
     ).replace("EDLDB.BT_HCA_HCDM.RXP_UPLOAD_ENTITY", "uploads_source")
     sql = sql.replace("TIMESTAMP_NTZ", "TIMESTAMP_NS").replace(
         "CURRENT_WAREHOUSE()", "'test'"
     )
-    values = json.dumps(
-        [[r.rx_id, int(r.customer_id)] for r in requests.itertuples()],
-        separators=(",", ":"),
-    )
-    start = sql.index("    SELECT value[0]::VARCHAR")
-    end = sql.index("\n), prescriptions AS")
-    sql = (
-        sql[:start]
-        + (
-            "    SELECT json_extract_string(value,'$[0]') AS rx_id"
-            ",\n         CAST(json_extract_string(value,'$[1]') AS "
-            "DECIMAL(38,0)) AS customer_id\n         FROM json_each"
-            "('"
-            f"{values}"
-            "')"
-        )
-        + sql[end:]
-    )
-    sql = sql.replace(
-        (
-            "LATERAL FLATTEN(INPUT => SPLIT(TRIM(COALESCE(u.rx_"
-            "ids,''),'{}'),','), OUTER => TRUE) t"
-        ),
-        (
-            "LATERAL UNNEST(string_split(TRIM(COALESCE(u.rx_"
-            "ids,''),'{}'),',')) t(value)"
-        ),
-    )
+    sql = isolate_cte(sql, "requested", "upload_key_fixture.sql")
     registry = requests[["rx_id", "customer_id"]].assign(
         rx_creation_datetime=pd.Timestamp("2026-10-20")
     )
     with duckdb.connect() as con:
+        con.register("request_fixture", requests)
         con.register("prescriptions_source", registry)
         con.register("uploads_source", uploads)
         con.execute("CREATE MACRO REGEXP_LIKE(x,p) AS regexp_full_match(x,p)")
@@ -316,6 +291,3 @@ def test_fresh_cached_dependency_dates_and_fingerprint_rejection(tmp_path):
         manifest.with_suffix(".parquet").write_bytes(b"bad")
         with pytest.raises(ValueError, match="fingerprint"):
             analysis.load_source(requests, period, deps, ASOF, True)
-
-
-from sql_fixtures import fixture_sql

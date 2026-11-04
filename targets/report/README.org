@@ -62,6 +62,6 @@ Ruff checks 79-column Python. Long report strings preserve their emitted bytes.
 The lint cleanup changes SQL and implementation fingerprints. The existing
 cached financial baseline therefore stops =make report= before rendering. No
 warehouse data has been refreshed and retained manifests have not been relabeled.
-See =docs/lint-cleanup-validation.org= for the validation record and outstanding
-migration-era tests. A report rebuild needs an explicitly reviewed snapshot
+See =docs/lint-cleanup-validation.org= for the validation record and completed
+migration-era test repairs. A report rebuild needs an explicitly reviewed snapshot
 transition or authorized refresh; refreshing historical cohorts may change results.

@@ -93,3 +93,16 @@ def test_missing_staged_config_cannot_use_worktree_config(repo):
     git(repo, "rm", "--cached", "pyproject.toml")
     stage(repo, "value = 1\n")
     assert check(repo).returncode != 0
+
+
+def test_project_imports_do_not_depend_on_other_staged_files(repo):
+    stage(
+        repo,
+        "import pandas as pd\n\n"
+        "from shared.paths import artifact_path\n"
+        "from src.python import analysis\n"
+        "from tests import fixtures\n\n"
+        "print(pd, artifact_path, analysis, fixtures)\n",
+    )
+    result = check(repo)
+    assert result.returncode == 0, result.stdout + result.stderr

@@ -5,9 +5,9 @@ import json
 
 import click
 import pandas as pd
-from shared.python.create_opportunity_order_cancellation_summary import extract
 
 from shared.paths import artifact_path, canonical_sql_path, repository_root
+from shared.python.create_opportunity_order_cancellation_summary import extract
 from shared.python.markdown_tables import markdown_table, write_text
 
 ROOT = repository_root()

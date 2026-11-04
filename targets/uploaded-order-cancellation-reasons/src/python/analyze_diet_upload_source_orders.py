@@ -6,10 +6,10 @@ import hashlib
 import json
 
 import pandas as pd
-from shared.python.analyze_null_resource_uploads import numeric_id
-from shared.python.create_upload_data_verification import SOURCES, latex_escape
 
 from shared.paths import artifact_path, canonical_sql_path, repository_root
+from shared.python.analyze_null_resource_uploads import numeric_id
+from shared.python.create_upload_data_verification import SOURCES, latex_escape
 from shared.python.markdown_tables import markdown_table, write_text
 
 ROOT = repository_root()

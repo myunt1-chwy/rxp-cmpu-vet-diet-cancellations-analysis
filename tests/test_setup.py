@@ -2,11 +2,12 @@ import importlib.util
 import io
 import os
 import subprocess
+import sys
 import tempfile
 import tomllib
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 spec = importlib.util.spec_from_file_location(
     "project_setup", Path(__file__).resolve().parents[1] / "scripts/setup.py"
@@ -24,9 +25,37 @@ class SetupTests(unittest.TestCase):
         self.addCleanup(os.chdir, previous)
         self.addCleanup(patch.stopall)
         patch.object(setup.shutil, "which", return_value="uv").start()
-        self.sync = patch.object(setup.subprocess, "run").start()
+        self.sync = patch.object(
+            setup.subprocess,
+            "run",
+            return_value=subprocess.CompletedProcess([], 0),
+        ).start()
         patch("sys.stdout", new_callable=io.StringIO).start()
         patch("sys.stderr", new_callable=io.StringIO).start()
+
+    def assert_setup_commands(self):
+        self.assertEqual(
+            self.sync.call_args_list,
+            [
+                call(
+                    ["uv", "sync", "--python", "3.12", "--group", "dev"],
+                    check=True,
+                ),
+                call(
+                    [sys.executable, "scripts/install_git_hooks.py"],
+                    check=False,
+                ),
+            ],
+        )
+
+    def test_hook_install_failure_is_returned(self):
+        self.sync.side_effect = [
+            subprocess.CompletedProcess([], 0),
+            subprocess.CompletedProcess([], 3),
+        ]
+        self.assertEqual(self.run_setup(["valid", ""]), 3)
+        self.assertEqual(self.configuration()["project"]["name"], "valid")
+        self.assert_setup_commands()
 
     def run_setup(self, answers, argv=None):
         with patch("builtins.input", side_effect=answers):
@@ -63,9 +92,7 @@ class SetupTests(unittest.TestCase):
             self.configuration()["dependency-groups"]["dev"],
             setup.DEVELOPMENT_DEPENDENCIES,
         )
-        self.sync.assert_called_once_with(
-            ["uv", "sync", "--python", "3.12", "--group", "dev"], check=True
-        )
+        self.assert_setup_commands()
 
     def test_custom_metadata_and_escaping(self):
         description = 'Quotes " and backslash \\ with café 🐾\t'
@@ -102,7 +129,7 @@ class SetupTests(unittest.TestCase):
             self.run_setup([AssertionError("Must not prompt")]), 0
         )
         self.assertEqual(Path("pyproject.toml").read_bytes(), original)
-        self.sync.assert_called_once()
+        self.assert_setup_commands()
 
     def test_sync_failure_preserves_configuration(self):
         self.run_setup(["valid", ""])
@@ -136,7 +163,7 @@ class SetupTests(unittest.TestCase):
                 '"Old description"', '"New description"'
             ),
         )
-        self.sync.assert_called_once()
+        self.assert_setup_commands()
 
     def test_init_defaults_and_repeated_initialization(self):
         self.run_setup(["old", "Existing description"])

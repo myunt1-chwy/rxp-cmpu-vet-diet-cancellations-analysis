@@ -9,6 +9,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 from click.testing import CliRunner
+from sql_fixtures import sql_contains
 
 from src.python import create_aged_order_reorder_prescriptions as analysis
 
@@ -188,13 +189,14 @@ def test_requested_keys_and_readonly_sql():
     m, _, _ = fixtures()
     keys = analysis.requested_keys(pd.concat([m, m]))
     assert len(keys) == 8
-    sql = analysis.render_sql(keys)
-    assert (
-        "k.order_id = l.order_id AND k.order_line_id = l.order_line_id" in sql
+    sql = analysis.render_sql()
+    assert sql_contains(
+        sql, "k.order_id = l.order_id AND k.order_line_id = l.order_line_id"
     )
-    assert "RX_ID" in sql.upper() and "RX_USAGE_ID" in sql.upper()
-    assert "MIN(" not in sql.upper()
-    with pytest.raises(ValueError, match="no reorder"):
+    assert sql_contains(sql.upper(), "RX_ID") and "RX_USAGE_ID" in sql.upper()
+    assert "MIN(" not in sql.split("FROM requested_keys AS k")[1].upper()
+    assert "PARSE_JSON" not in sql.upper()
+    with pytest.raises(TypeError):
         analysis.render_sql(keys.iloc[:0])
     with pytest.raises(ValueError, match="invalid"):
         analysis.requested_keys(m.assign(original_order_id=None))

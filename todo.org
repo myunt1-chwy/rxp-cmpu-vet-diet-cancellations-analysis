@@ -1354,3 +1354,10 @@
   - Ruff checks pass (141 maintained files formatted); staged Python/SQL checks retain all rules, include type changes, and parse local DuckDB audits in their actual dialect.
   - Full tests match the pre-cleanup baseline: 570 passed, 62 existing failures, 16 subtests passed. Focused financial/customer-upload checks: 36 passed. Source/hierarchy validators pass.
   - make report correctly stops on the changed financial-query fingerprint. No refresh or manifest relabeling; details and remaining migration tests are in docs/lint-cleanup-validation.org.
+
+* DONE Repair the 62 migration-era test failures
+  - Commit the migration/lint baseline first (a178ef4), then repair stale renderer callers, test SQL adapters, moved imports and setup mocks.
+  - Preserve analytical assertions, scalar-only SQL and strict provenance checks. Run the complete suite and source lint checks; do not refresh warehouse data.
+  - Fixed compatibility access for importlib callers and explicit timezone validation; updated renderer/API tests, typed SQL fixtures, moved imports, valid cohort periods, and uv/hook subprocess mocks.
+  - Preserved analytical counts, duplicate handling, nanosecond boundaries and cache-rejection assertions. No skip/xfail or disabled rules.
+  - Full suite: 634 passed and 16 subtests passed. Explicit Ruff first-party configuration and its regression keep staged import checks consistent. Ruff lint/format, SQLFluff fixture lint, source/hierarchy validators and git diff --check pass. No warehouse refresh. User approved committing all test repairs.

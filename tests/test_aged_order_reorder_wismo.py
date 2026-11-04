@@ -4,12 +4,19 @@ intervals.
 """
 
 import json
+from pathlib import Path
 from unittest.mock import patch
 
 import duckdb
 import pandas as pd
 import pytest
 from click.testing import CliRunner
+from sql_fixtures import (
+    contact_fixture_sql,
+    fixture_sql,
+    isolate_cte,
+    sql_contains,
+)
 
 from src.python import create_aged_order_reorder_wismo as analysis
 
@@ -74,58 +81,26 @@ def execute_sql(
     intervals, contacts, all_contacts=False, all_order_history=False
 ):
     sql = fixture_sql(
-        analysis.render_sql(intervals, "UTC", all_contacts, all_order_history)
+        analysis.render_sql("UTC", all_contacts, all_order_history)
     )
-    records = [
-        [
-            int(r.request_id),
-            int(r.original_order_id),
-            analysis.timestamp_text(r.order_cancel_time),
-            analysis.timestamp_text(r.reorder_placed_at_utc),
-        ]
-        for r in intervals.itertuples()
-    ]
-    start, end = (
-        sql.index("    SELECT value[0]"),
-        sql.index("\n), contacts AS"),
+    sql = isolate_cte(sql, "requested", "contact_interval_fixture.sql")
+    sql = (
+        contact_fixture_sql(sql)
+        .replace("EDLDB.BT_CUSTOMER_CARE.FCT_CONTACTS_BRD", "contacts_source")
+        .replace("CURRENT_WAREHOUSE()", "'test'")
     )
-    requested = (
-        "    SELECT CAST(value->>0 AS BIGINT) AS request_id, CAST("
-        "value->>1 AS BIGINT) AS original_order_id,\n         CAST("
-        "value->>2 AS TIMESTAMP_NS) AS order_cancel_time, CAST(val"
-        "ue->>3 AS TIMESTAMP_NS) AS reorder_placed_at_utc\n        "
-        " FROM json_each('"
-        f"{json.dumps(records)}"
-        "')"
-    )
-    sql = sql[:start] + requested + sql[end:]
-    sql = sql.replace(
-        "EDLDB.BT_CUSTOMER_CARE.FCT_CONTACTS_BRD", "contacts_source"
-    ).replace("CURRENT_WAREHOUSE()", "'test'")
-    sql = sql.replace(
-        (
-            "LISTAGG(DISTINCT c.SESSION_CHANNEL, ', ') WITHIN GROUP "
-            "(ORDER BY c.SESSION_CHANNEL)"
-        ),
-        (
-            "STRING_AGG(DISTINCT c.SESSION_CHANNEL, ', ' ORDER BY "
-            "c.SESSION_CHANNEL)"
-        ),
-    )
-    sql = sql.replace("ARRAY_AGG(", "TO_JSON(ARRAY_AGG(").replace(
-        "))::VARCHAR AS matched_contacts_json",
-        ")))::VARCHAR AS matched_contacts_json",
-    )
+    typed_intervals = intervals.copy()
+    for field in ["order_cancel_time", "reorder_placed_at_utc"]:
+        typed_intervals[field] = pd.to_datetime(
+            typed_intervals[field], utc=True
+        ).dt.tz_localize(None)
     with duckdb.connect() as con:
+        con.register("interval_fixture", typed_intervals)
         con.register("contacts_source", contacts)
-        con.execute("CREATE MACRO TO_CHAR(x,f) AS CAST(x AS VARCHAR)")
         con.execute(
-            "CREATE MACRO OBJECT_CONSTRUCT_KEEP_"
-            "NULL(k1,v1,k2,v2,k3,v3,k4,v4,k5,v5,k6,v6,k7,v7,k8,v8) "
-            "AS\n          struct_pack(order_id:=v1,leg_"
-            "id:=v2,session_id:=v3,session_channel:=v4,session_"
-            "start_dttm_raw:=v5,\n                      contact_at_"
-            "utc:=v6,category_wismo_flag:=v7,handled_flag:=v8)"
+            (
+                Path(__file__).parent / "sql" / "contact_fixture_functions.sql"
+            ).read_text()
         )
         return con.execute(sql).df()
 
@@ -214,10 +189,10 @@ def test_same_order_different_selected_reorder_windows_are_not_collapsed():
 def test_timezone_must_be_explicit_and_conversion_is_verified():
     selected, intervals, contacts = fixtures()
     with pytest.raises(ValueError, match="explicitly"):
-        analysis.render_sql(intervals, None)
-    assert (
-        "CONVERT_TIMEZONE('America/New_York', 'UTC', c.SESSION_START_DTTM)"
-        in analysis.render_sql(intervals, "America/New_York")
+        analysis.render_sql(None)
+    assert sql_contains(
+        analysis.render_sql("America/New_York"),
+        "CONVERT_TIMEZONE('America/New_York', 'UTC', c.SESSION_START_DTTM)",
     )
     raw = execute_sql(intervals, contacts)
     for index, row in raw.iterrows():
@@ -395,10 +370,9 @@ def test_all_categories_keeps_false_null_flags_but_needs_handled_strict_time():
         leg_id="NULLCAT", session_id="s8", category_wismo_flag=pd.NA
     )
     contacts = pd.concat([contacts, extra], ignore_index=True)
-    sql = analysis.render_sql(intervals, "UTC", True)
-    assert (
-        "WHERE c.HANDLED_FLAG=TRUE" in sql
-        and "CATEGORY_WISMO_FLAG=TRUE" not in sql
+    sql = analysis.render_sql("UTC", True)
+    assert sql_contains(sql, "WHERE c.HANDLED_FLAG=TRUE") and not sql_contains(
+        sql, "CATEGORY_WISMO_FLAG=TRUE"
     )
     raw = execute_sql(intervals, contacts, True)
     result = analysis.summarize(selected, intervals, raw, "UTC", True)
@@ -475,14 +449,12 @@ def test_all_category_cache_is_separate_and_rejects_wrong_scope(tmp_path):
 
 def test_all_order_history_includes_before_after_boundaries_undated_contacts():
     selected, intervals, contacts = fixtures()
-    sql = analysis.render_sql(intervals, "UTC", all_order_history=True)
-    assert (
-        "c.contact_at_utc > d.order_cancel_time" not in sql
-        and "c.contact_at_utc < d.reorder_placed_at_utc" not in sql
-    )
-    assert (
-        "WHERE c.HANDLED_FLAG=TRUE" in sql
-        and "CATEGORY_WISMO_FLAG=TRUE" not in sql
+    sql = analysis.render_sql("UTC", all_order_history=True)
+    assert not sql_contains(
+        sql, "c.contact_at_utc > d.order_cancel_time"
+    ) and not sql_contains(sql, "c.contact_at_utc < d.reorder_placed_at_utc")
+    assert sql_contains(sql, "WHERE c.HANDLED_FLAG=TRUE") and not sql_contains(
+        sql, "CATEGORY_WISMO_FLAG=TRUE"
     )
     raw = execute_sql(intervals, contacts, all_order_history=True)
     result = analysis.summarize(
@@ -583,6 +555,3 @@ def test_all_history_cache_records_and_checks_time_scope(tmp_path):
             analysis.load_source(
                 intervals, period, {}, "UTC", True, all_order_history=True
             )
-
-
-from sql_fixtures import fixture_sql
