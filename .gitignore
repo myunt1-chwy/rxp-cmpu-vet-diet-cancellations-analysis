@@ -1,0 +1,19 @@
+!gradle/wrapper/gradle-wrapper.jar
+*.class
+*.env
+*.env.local
+*.log
+.DS_Store
+.attach_pid*
+.docker
+.gradle
+**/build/
+**/bin/
+**/version.txt
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+*.csv
