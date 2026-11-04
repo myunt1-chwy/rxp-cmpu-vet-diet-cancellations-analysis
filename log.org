@@ -321,3 +321,8 @@
   - Defined make report with first-class executive-summary, next-steps and appendix dependencies in document order, question-heading exceptions, analysis subsections beneath Appendix, YAML parent relationships, and propagated REFRESH/REPRO options.
   - Skill/YAML validation and staged diff checks passed. Pre-commit hook remained enabled. Existing report implementation and unrelated pending changes were excluded; no merge or push.
 
+* 2026-11-04 Commit staged SQL tooling, auto-reorder analysis and report updates
+  - User approved committing all staged changes; committed as 421e190 on feat/financial-line-status. Included SQLFluff dependency/configuration and pre-commit checks, standalone auto-reorder split, financial reproduction/report updates, skill guidance and staged task documentation.
+  - SQLFluff initially failed on the legacy requested_keys template fragment. Added zero-row lint context and default-rule style corrections; documented that dynamic fragment contents require separate validation. The legacy runtime lookup remains unchanged.
+  - Staged diff check and actual SQLFluff pre-commit hook passed with hooks enabled. Earlier analysis reconciliation and report verification are recorded in task history; no new warehouse refresh or report rebuild for this commit. Untracked .DS_Store excluded. No merge or push.
+
