@@ -1,5 +1,5 @@
 """
-First-order-line upload coverage by reason and status in the frozen study.
+First-order-line upload coverage by reason and status in the validated study.
 """
 
 import hashlib
@@ -20,7 +20,7 @@ from shared.python.markdown_tables import markdown_table, write_text
 from shared.sql_templates import module_sql
 
 ROOT = base.ROOT
-DATA = artifact_path(ROOT / "data")
+DATA = ROOT / "data"
 NAME = "study-upload-coverage-by-cancel-reason"
 PERIOD = "2026-08-15_2026-10-14"
 BASELINE = artifact_path(
@@ -72,22 +72,22 @@ def analyze(baseline, decision_source, upload_source):
         or not matched.cancel_reason_variants.eq(1).all()
     ):
         raise ValueError(
-            "Conflicting frozen prescription or cancellation membership"
+            "Conflicting validated prescription or cancellation membership"
         )
     if not matched.line_status_variants.eq(1).all():
-        raise ValueError("Conflicting frozen shipment-to-line statuses")
+        raise ValueError("Conflicting validated shipment-to-line statuses")
     if (
         matched.matched_order_id.ne(matched.first_order_id).any()
         or matched.matched_order_line_id.ne(matched.first_order_line_id).any()
     ):
-        raise ValueError("Frozen first-order keys disagree")
-    # Freeze membership to the same baseline used by the existing study tables.
+        raise ValueError("Validated first-order keys disagree")
+    # All consumers must use exactly the refreshed matched population.
     omitted = decision_source.loc[
         ~decision_source.rx_id.isin(matched.rx_id)
     ].copy()
-    details, _ = decisions.summarize(
-        decision_source.loc[decision_source.rx_id.isin(matched.rx_id)].copy()
-    )
+    if not omitted.empty:
+        raise ValueError("Decision membership exceeds the population")
+    details, _ = decisions.summarize(decision_source.copy())
     check = details.merge(
         matched[
             [
@@ -106,7 +106,7 @@ def analyze(baseline, decision_source, upload_source):
         indicator=True,
     )
     if not check["_merge"].eq("both").all():
-        raise ValueError("Decision source does not cover the frozen study")
+        raise ValueError("Decision source does not cover the validated study")
     for col in [
         "customer_id",
         "first_order_id",
@@ -114,14 +114,14 @@ def analyze(baseline, decision_source, upload_source):
         "approval_channel",
     ]:
         if not check[col].eq(check[col + "_baseline"]).all():
-            raise ValueError(f"Frozen {col} differs from the decision source")
+            raise ValueError(
+                f"Validated {col} differs from the decision source"
+            )
     changed = ~reason_key(check.cancel_reason).eq(
         reason_key(check.order_cancel_reason)
     )
-    if (
-        changed & reason_key(check.order_cancel_reason).ne(base.MISSING_REASON)
-    ).any():
-        raise ValueError("A populated frozen cancellation reason changed")
+    if changed.any():
+        raise ValueError("A populated validated cancellation reason changed")
     reason_differences = check.loc[
         changed & check.approval_channel.eq("CUSTOMER_UPLOAD"),
         [
@@ -141,7 +141,7 @@ def analyze(baseline, decision_source, upload_source):
     study["reason_key"] = reason_key(study.cancel_reason)
     if study[MATCH].isna().any().any() or study.duplicated(KEYS).any():
         raise ValueError(
-            "Missing or non-unique frozen first-order-line identity"
+            "Missing or non-unique validated first-order-line identity"
         )
     associations, _, entity_audit = entity.validate(upload_source, PARAMS)
     uploads = associations.loc[
@@ -186,7 +186,7 @@ def analyze(baseline, decision_source, upload_source):
     )
     if not linked["_merge"].eq("both").all():
         raise ValueError(
-            "Upload association is outside the frozen first-order study"
+            "Upload association is outside the validated first-order study"
         )
     if (
         not reason_key(linked.order_cancel_reason).eq(linked.reason_key).all()
@@ -195,7 +195,7 @@ def analyze(baseline, decision_source, upload_source):
             | (linked.order_cancel_time.isna() & linked.cancel_time.isna())
         ).all()
     ):
-        raise ValueError("Upload and frozen cancellation evidence disagree")
+        raise ValueError("Upload and validated cancellation evidence disagree")
     uploads = uploads.drop_duplicates(MATCH + ["upload_id"]).copy()
     study["cancellation_reason"] = study.reason_key
     outside = study.reason_key.eq("aged order") & (
@@ -232,7 +232,7 @@ def analyze(baseline, decision_source, upload_source):
     )
     if not study_with_status["_merge"].eq("both").all():
         raise ValueError(
-            "Frozen line status does not cover every study identity"
+            "Validated line status does not cover every study identity"
         )
     study_with_status = study_with_status.drop(columns="_merge")
     joined = study_with_status.merge(
@@ -282,20 +282,17 @@ def analyze(baseline, decision_source, upload_source):
         summary, independent, check_dtype=False, atol=1e-10, rtol=0
     )
     total = summary.iloc[-1]
-    if tuple(
-        total[
-            [
-                "orders",
-                "prescriptions",
-                "line_items",
-                "uploads",
-                "accepted_uploads",
-                "rejected_uploads",
-            ]
-        ]
-    ) != (87724, 95073, 95073, 29715, 25606, 914):
-        raise ValueError("Totals differ from the retained study snapshot")
-    if not summary.upload_coverage_pct.between(0, 100).all():
+    if (
+        total.prescriptions != study.rx_id.nunique()
+        or total.line_items != study[KEYS].drop_duplicates().shape[0]
+        or total.orders != study.order_id.nunique()
+    ):
+        raise ValueError("Coverage totals do not match refreshed membership")
+    if (
+        not summary.loc[summary.line_items.gt(0), "upload_coverage_pct"]
+        .between(0, 100)
+        .all()
+    ):
         raise ValueError("Upload coverage outside 0--100%")
     if (
         not summary.loc[
@@ -311,7 +308,7 @@ def analyze(baseline, decision_source, upload_source):
         )
     audit = {
         "excluded_newly_linked_decision_rows": len(omitted),
-        "frozen_membership_lines_with_newly_populated_reason": len(
+        "population_lines_with_newly_populated_reason": len(
             reason_differences
         ),
         "raw_upload_rows": len(upload_source),
@@ -416,12 +413,11 @@ def latex_table(summary):
             "order lines in that reason/status group, "
             "including\nlines without uploads. Prescriptions count "
             "distinct \\texttt{RX\\_ID}s and equal\nline-item "
-            "counts in this frozen one-prescription-per-first-order-"
+            "counts in this validated one-prescription-per-first-order-"
             "line cohort.\nOrders and physical order/line pairs "
             "count distinctly;\nshipment rows cannot multiply "
-            "counts. The frozen population is the same "
-            "as\nTable~\\ref{tab:study-population-counts}, not the "
-            "later financial comparison snapshot.\nUploads are "
+            "counts. The validated population is the same "
+            "as\nTable~\\ref{tab:study-population-counts}.\nUploads are "
             "distinct \\texttt{UPLOAD\\_ID}s from "
             "HCDM\n\\texttt{rxp\\_upload\\_entity}, restricted to "
             "\\texttt{DIET\\_PRESCRIPTION} entities.\nExpand "
@@ -442,7 +438,7 @@ def latex_table(summary):
             "reasons\nremain in the outside-cutoff row. Missing/"
             "blank reasons do not prove an uncancelled\norder. Line-"
             "item status is \\texttt{ORDER\\_ORDER\\_LINE\\_STATUS} "
-            "from the frozen\nOctober 28, 2026 first-order-line "
+            "from the coordinated first-order-line "
             "extract, with shipment-row consistency checked.\nCodes "
             "are shown as recorded; missing status is explicit. "
             "Table~\\ref{tab:study-no-cancellation-upload-"
@@ -476,6 +472,15 @@ def main():
     loaded = {
         name: load_source(directory) for name, directory in sources.items()
     }
+    run_ids = {value[1].get("refresh_run_id") for value in loaded.values()}
+    if len(run_ids) != 1 or None in run_ids:
+        raise ValueError("Upload coverage inputs mix refresh runs")
+    for name in ["decisions", "uploads"]:
+        if (
+            loaded[name][1].get("population_dependency_sha256")
+            != (loaded["baseline"][1]["parquet_sha256"])
+        ):
+            raise ValueError("Coverage population dependency differs")
     frames, audit = analyze(
         *(loaded[name][0] for name in ["baseline", "decisions", "uploads"])
     )
@@ -492,7 +497,8 @@ def main():
         json.dumps(
             {
                 "generated_at_utc": datetime.now(UTC).isoformat(),
-                "version": 2,
+                "version": 3,
+                "refresh_run_id": next(iter(run_ids)),
                 "generator_sha256": base.digest(Path(__file__)),
                 "parameters": PARAMS,
                 "coverage_definition": (
@@ -518,14 +524,13 @@ def main():
         artifact_path(ROOT / "outputs/tables" / PERIOD / f"{NAME}.md"),
         "# Prescription upload coverage by cancellation reason and line-item "
         "status\n\n"
-        "Frozen CUSTOMER_UPLOAD first-order study; percentage is line-item "
+        "Validated CUSTOMER_UPLOAD first-order study; percentage is line-item "
         "coverage, not uploads divided by lines. "
         "Upload discovery [2026-08-01,2026-10-26) UTC; aged cutoff 2026-10-27 "
         "00:00 UTC. "
-        "Line-item status is ORDER_ORDER_LINE_STATUS from the frozen October "
-        "28 first-order-line snapshot. "
+        "Line-item status is from the coordinated first-order extraction. "
         "Prescriptions count distinct RX_IDs, equal to line counts in this "
-        "frozen cohort. "
+        "validated cohort. "
         "TOTAL deduplicates entities/orders across reason/status groups. "
         "Accepted/rejected are current entity states.\n\n"
         + markdown_table(frames["summary"])

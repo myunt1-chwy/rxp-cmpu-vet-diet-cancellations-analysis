@@ -48,8 +48,13 @@ contact-window:
 study-population:
   commands:
   - - study-population-tables
-  refresh_error: The study uses frozen, mutually reconciled extracts. Refresh its source snapshots together
-    before rebuilding; see the target input manifests. No partial refresh is performed.
+  - - prescription-cohort-order-comparison
+    - WRITE_LATEX=1
+  refresh_commands:
+  - - study-population-refresh-inputs
+  - - prescription-cohort-order-comparison
+    - WRITE_LATEX=1
+  - - study-population-tables
   data_targets:
   - first-order-upload-status-flow
   - study-population-counts
@@ -60,9 +65,8 @@ upload-coverage:
   - - study-upload-tables
   dependencies:
   - study-population
-  refresh_error: The retained upload tables use frozen prescription/reason membership and upload snapshots.
-    The new SQL derives membership from current database tables; coordinate a full cohort refresh and
-    reconcile membership before replacing the historical report.
+  refresh_commands:
+  - - study-upload-tables-refresh
   data_targets:
   - first-order-upload-status-flow
   - study-population-counts

@@ -57,3 +57,19 @@ Shared dependencies:
 Generated content: =targets/no-recorded-cancellation-upload-statuses/outputs/latex/content.tex=.
 Tables are exported to =outputs/tables/table.org= and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; =outputs/tables/provenance.json= records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's =outputs/build/= folder.
 Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+
+* Coordinated coverage refresh
+Run =make first-order-upload-coverage REFRESH=1= to refresh the population,
+upload associations, and shared status evidence before building the tables.
+The status query derives all eligible CUSTOMER_UPLOAD first-order lines in SQL;
+it accepts scalar dates only and runs once for both status-detail tables.
+Every extracted identity, customer, cancellation reason, prescription status,
+order status, and line status must reconcile with the refreshed population.
+Distinct shipment rows are aggregated; duplicate shipment keys fail validation.
+
+Coverage inherits the population run identifier and records input and SQL hashes
+and extraction time. Separate queries are not a single warehouse snapshot.
+A mismatch stops the build before either status subset is installed.
+=make study-upload-tables= replays validated inputs without warehouse access.
+Empty status subgroups produce zero totals. Study dates, upload discovery dates,
+and the aged-cancellation cutoff remain unchanged.

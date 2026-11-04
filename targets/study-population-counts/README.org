@@ -12,14 +12,11 @@ make study-population-counts
 make study-population-counts REPRO=1
 make study-population-counts REFRESH=1
 #+end_src
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
-
-Refresh limitation: The study uses frozen, mutually reconciled extracts. Refresh its source snapshots together before rebuilding; see the target input manifests. No partial refresh is performed.
+Default builds reuse retained source data and rerun validation and presentation. =REFRESH=1= runs the study-population extraction workflow: the first-order population, decision evidence, uploaded-document associations, and financial evidence are refreshed with the existing study windows and cutoffs. The extracts are separate warehouse queries, not one warehouse snapshot. The workflow records one refresh-run ID and checks membership, customer/order keys, cancellation reasons, and financial membership before rendering.
 
 * Inputs and dependencies
 Generator batch: =study-population=, defined in =shared/analysis/pipelines.yaml=. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
-- =make study-population-tables CACHED=1=
+The shared =study-population= pipeline runs once for the population paragraphs. Its refresh sequence is =study-population-refresh-inputs=, =prescription-cohort-order-comparison=, then =study-population-tables=. The first-order status query is regenerated with the same run ID before the other population extracts.
 
 Retained input folders and ownership:
 - =targets/first-order-upload-status-flow/data/=
@@ -27,7 +24,10 @@ Retained input folders and ownership:
 - =targets/study-prescription-decisions/data/=
 - =targets/study-order-cancellation-sales/data/=
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+The study window remains August 15 through October 14, 2026 UTC; upload creation remains August 1 through October 25 inclusive; aged cancellation remains through October 27, 2026 at 00:00 UTC. A failed membership or evidence reconciliation stops the pipeline.
+- =targets/study-population-counts/src/python/refresh_study_population_inputs.py=
+- =targets/study-population-counts/src/sql/refresh_study_population_uploaded_documents.sql.j2=
+- =targets/study-prescription-decisions/src/sql/refresh_study_population_prescription_decisions.sql.j2=
 - =targets/study-population-counts/src/python/summarize_study_population_uploaded_documents.py=
 - =targets/study-population-counts/src/sql/cmpu_study_population_uploaded_documents.sql=
 - =targets/study-population-counts/src/sql/summarize_study_population_uploaded_documents-query-1.sql.j2=

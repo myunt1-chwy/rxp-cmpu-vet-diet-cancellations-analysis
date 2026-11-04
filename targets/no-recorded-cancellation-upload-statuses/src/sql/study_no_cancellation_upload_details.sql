@@ -30,7 +30,6 @@ requested AS (
             AND p.first_order_line_id = l.order_line_id
             AND p.customer_id = l.customer_id
     GROUP BY p.rx_id
-    HAVING COUNT_IF(NULLIF(TRIM(l.order_cancel_reason), '') IS NOT NULL) = 0
 ),
 
 prescriptions AS (
@@ -62,6 +61,7 @@ normalized_lines AS (
         l.order_id,
         l.order_line_id,
         l.customer_id,
+        l.shipment_key,
         NULLIF(UPPER(TRIM(l.order_status)), '') AS order_status,
         NULLIF(UPPER(TRIM(l.order_order_line_status)), '') AS line_item_status,
         NULLIF(LOWER(TRIM(l.order_cancel_reason)), '')
@@ -76,6 +76,9 @@ lines AS (
         order_id,
         order_line_id,
         COUNT(*) AS shipment_rows,
+        COUNT(*) - COUNT(DISTINCT COALESCE(
+            shipment_key::VARCHAR, '[No shipment]'
+        )) AS duplicate_shipment_rows,
         MIN(customer_id) AS line_customer_id,
         COUNT(DISTINCT customer_id)
         + IFF(COUNT_IF(customer_id IS NULL) > 0, 1, 0) AS customer_variants,
@@ -98,6 +101,7 @@ lines AS (
 SELECT
     p.*,
     l.shipment_rows,
+    l.duplicate_shipment_rows,
     l.line_customer_id,
     l.customer_variants,
     l.order_status,

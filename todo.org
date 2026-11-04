@@ -8,6 +8,16 @@
   - Priority A: address before decision-making circulation. Priority B: specify before committing to a pilot or broader product investment. Priority C: publication/readability cleanup.
   - Review order: correct numerical and outcome claims first, then define the decision and the eligible intervention population, then specify discovery/experiment work. A confirmed mismatch is a correction; an unmeasured mechanism or proposed experiment is a follow-up, not a proven defect in customer behavior.
 
+* TODO [#A] Enable a coordinated warehouse refresh for the report
+  :PROPERTIES:
+  :REFNUM:   148.
+  :END:
+  - Preserve the study dates, upload cutoffs, follow-up windows, and published draft while refreshing the first-order population, upload associations, prescription decisions, financial evidence, and status/coverage inputs together.
+  - Remove historical count requirements from fresh-run validation; retain key, membership, duplicate, status/reason, upload-coverage, and financial reconciliation checks. Record extraction provenance and reject mixed runs.
+  - Stage refreshed artifacts, rebuild and validate the report, then replace the published PDF only after success. Keep FINAL=0 and update report text and reproduction instructions.
+  - Study-population phase implemented: the first-order population, decision evidence, uploaded-document associations, and financial lines refresh through target-owned SQL, share a run ID, and reconcile their keys, customers, cancellation reasons, and financial membership. Historical totals were removed from the fresh-run checks. Warehouse extraction and reconciliation succeeded; cached tables reproduce successfully.
+  - Upload-coverage now refreshes and reconciles its shared status evidence. Remaining: stage and validate the full report before replacing the published PDF.
+
 ** DONE [#A] Correct the executive-summary percentages and their denominators
    :PROPERTIES:
    :REFNUM:   1.1.
@@ -1369,3 +1379,9 @@
   - Validation: 639 tests and 16 subtests pass; Ruff lint/format, source/hierarchy validators and git diff --check pass. All 34 paragraph artifacts regenerated from retained inputs; combined follow-up generation and the retained-data PDF preview pass.
   - Verified retained-file checksums during moves and rechecked 176 data/SQL evidence records from the local migration manifest. No warehouse refresh or provenance fingerprint relabeling. The published PDF is unchanged; make report still stops on the pre-existing financial query fingerprint mismatch.
   - User approved committing the root-directory migration.
+
+* DONE Coordinate upload-coverage refresh
+  - Reuse the validated population and upload inputs; extract status evidence once, reconcile membership/reasons/statuses, and build both detail tables.
+  - Remove the blanket refresh blocker after executable checks and cached replay pass.
+  - Fresh warehouse status extraction reconciled 95,106 coverage lines; rebuilt 40,870 no-recorded-reason and 26,443 aged-order lines. Cached replay and all three target artifacts pass.
+  - Fourteen focused coverage tests cover identity/status/reason mismatches, shipment duplication, empty subgroups, mixed runs, and installation rollback. Related population/financial tests, Ruff, SQLFluff, source/hierarchy checks, and diff checks pass. No PDF publication or commit.

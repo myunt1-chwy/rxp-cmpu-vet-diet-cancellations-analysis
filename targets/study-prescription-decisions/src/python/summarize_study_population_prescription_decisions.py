@@ -162,22 +162,39 @@ def main():
         != baseline_metadata["parquet_sha256"]
     ):
         raise ValueError("baseline population source fingerprint mismatch")
+    if metadata.get("refresh_run_id") != baseline_metadata.get(
+        "refresh_run_id"
+    ) or metadata.get("population_dependency_sha256") != baseline_metadata.get(
+        "parquet_sha256"
+    ):
+        raise ValueError(
+            "Decision and population extracts belong to different runs"
+        )
     baseline = pd.read_parquet(baseline_dir / "source.parquet").rename(
         columns=str.lower
     )
     baseline = baseline.loc[baseline.line_source_rows.gt(0)]
-    if not baseline.rx_id.is_unique:
-        raise ValueError("baseline prescription IDs are not unique")
+    if (
+        not baseline.rx_id.is_unique
+        or baseline.rx_id.isna().any()
+        or baseline.customer_id.isna().any()
+        or baseline.first_order_id.isna().any()
+        or baseline.first_order_line_id.isna().any()
+    ):
+        raise ValueError(
+            "population prescription and physical keys are invalid"
+        )
     omitted = source.loc[~source.rx_id.isin(baseline.rx_id)].copy()
     source = source.loc[source.rx_id.isin(baseline.rx_id)].copy()
     if set(source.rx_id) != set(baseline.rx_id):
         raise ValueError(
-            "missing current decision evidence for frozen report cohort"
+            "missing current decision evidence for population cohort"
         )
     check = source.merge(
         baseline[
             [
                 "rx_id",
+                "customer_id",
                 "first_order_id",
                 "first_order_line_id",
                 "approval_channel",
@@ -191,11 +208,21 @@ def main():
         if not check[col].eq(check[col + "_baseline"]).all():
             raise ValueError(
                 "current first-order/channel membership differs from "
-                "frozen report cohort"
+                "population cohort"
             )
+    if not check.customer_id.eq(check.customer_id_baseline).all():
+        raise ValueError("prescription/customer association changed")
     details, summary = summarize(source)
-    if summary.prescriptions.tolist() != [103516, 95073, 26443]:
-        raise ValueError("population counts differ from the report baseline")
+    if (
+        not source.rx_id.is_unique
+        or source.rx_id.isna().any()
+        or source.customer_id.isna().any()
+        or source.first_order_id.isna().any()
+        or source.first_order_line_id.isna().any()
+    ):
+        raise ValueError(
+            "refreshed population has incomplete or duplicate keys"
+        )
     with duckdb.connect() as con:
         con.register("source", source)
         independent = con.sql(
@@ -238,9 +265,9 @@ def main():
         "cancellation <= 2026-10-27 00:00. "
         "Decision evidence is the current snapshot, without an "
         "approval/denial-time cutoff. "
-        f"Uses frozen first-order membership from the existing population "
-        f"table; {len(omitted)} newly linked current prescriptions are "
-        f"excluded and audited. "
+        "Uses the matched first-order membership from the current population "
+        f"extract; {len(omitted)} newly linked prescriptions are excluded "
+        "from the population and audited. "
         f"Extracted {metadata['extracted_at_utc']}; query "
         f"{metadata['query_id']}.\n\n"
     )

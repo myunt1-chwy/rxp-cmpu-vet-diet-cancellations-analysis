@@ -25,6 +25,7 @@ artifact: Table (one visual).
 sources:
 - targets/study-prescription-decisions/src/python/summarize_study_population_prescription_decisions.py
 - targets/study-prescription-decisions/src/sql/cmpu_study_population_prescription_decisions.sql
+- targets/study-prescription-decisions/src/sql/refresh_study_population_prescription_decisions.sql.j2
 - targets/study-prescription-decisions/src/sql/summarize_study_population_prescription_decisions-query-1.sql.j2
 code_dependencies:
 - shared/python/markdown_tables.py

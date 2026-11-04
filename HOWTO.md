@@ -27,7 +27,7 @@ make report REFRESH=1
 ```
 Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
-The report is a draft by default (FINAL=0). Use `make report FINAL=1` to omit the watermark and opening DRAFT text. REPRO=1 includes the target reproduction instructions. The published copy is `outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf`. A graph-wide refresh stops for the frozen-study workflows described below.
+The report is a draft by default (FINAL=0). Use `make report FINAL=1` to omit the watermark and opening DRAFT text. REPRO=1 includes the target reproduction instructions. The published copy is `outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf`. Study-population and upload-coverage refreshes now use coordinated inputs with membership and status reconciliation. Full-report refresh and staged publication still require end-to-end verification.
 
 
 ### Inputs and dependencies
@@ -1287,16 +1287,13 @@ make study-population-counts
 make study-population-counts REPRO=1
 make study-population-counts REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
-
-Refresh limitation: The study uses frozen, mutually reconciled extracts. Refresh its source snapshots together before rebuilding; see the target input manifests. No partial refresh is performed.
+Default builds reuse retained source data and rerun validation and presentation. `REFRESH=1` runs the study-population extraction workflow: the first-order population, decision evidence, uploaded-document associations, and financial evidence are refreshed with the existing study windows and cutoffs. The extracts are separate warehouse queries, not one warehouse snapshot. The workflow records one refresh-run ID and checks membership, customer/order keys, cancellation reasons, and financial membership before rendering.
 
 
 ### Inputs and dependencies
 
 Generator batch: `study-population`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
-- `make study-population-tables CACHED=1`
+The shared `study-population` pipeline runs once for the population paragraphs. Its refresh sequence is `study-population-refresh-inputs`, `prescription-cohort-order-comparison`, then `study-population-tables`. The first-order status query is regenerated with the same run ID before the other population extracts.
 
 Retained input folders and ownership:
 - `targets/first-order-upload-status-flow/data/`
@@ -1304,7 +1301,10 @@ Retained input folders and ownership:
 - `targets/study-prescription-decisions/data/`
 - `targets/study-order-cancellation-sales/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+The study window remains August 15 through October 14, 2026 UTC; upload creation remains August 1 through October 25 inclusive; aged cancellation remains through October 27, 2026 at 00:00 UTC. A failed membership or evidence reconciliation stops the pipeline.
+- `targets/study-population-counts/src/python/refresh_study_population_inputs.py`
+- `targets/study-population-counts/src/sql/refresh_study_population_uploaded_documents.sql.j2`
+- `targets/study-prescription-decisions/src/sql/refresh_study_population_prescription_decisions.sql.j2`
 - `targets/study-population-counts/src/python/summarize_study_population_uploaded_documents.py`
 - `targets/study-population-counts/src/sql/cmpu_study_population_uploaded_documents.sql`
 - `targets/study-population-counts/src/sql/summarize_study_population_uploaded_documents-query-1.sql.j2`
@@ -1349,16 +1349,13 @@ make study-prescription-decisions
 make study-prescription-decisions REPRO=1
 make study-prescription-decisions REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
-
-Refresh limitation: The study uses frozen, mutually reconciled extracts. Refresh its source snapshots together before rebuilding; see the target input manifests. No partial refresh is performed.
+Default builds reuse the validated population inputs. `REFRESH=1` runs the shared `study-population` pipeline, which refreshes the first-order population, decision evidence, uploaded-document associations, and financial evidence with one run ID. These are separate warehouse queries; the workflow does not claim a shared warehouse snapshot. Membership, customer, both first-order keys, and cancellation reasons are reconciled before presentation.
 
 
 ### Inputs and dependencies
 
 Generator batch: `study-population`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
-- `make study-population-tables CACHED=1`
+The shared `study-population` pipeline is defined in `shared/analysis/pipelines.yaml` and runs once for the population paragraphs.
 
 Retained input folders and ownership:
 - `targets/first-order-upload-status-flow/data/`
@@ -1366,7 +1363,8 @@ Retained input folders and ownership:
 - `targets/study-prescription-decisions/data/`
 - `targets/study-order-cancellation-sales/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+The prescription window remains August 15 through October 14, 2026 UTC; the aged-cancellation cutoff remains October 27, 2026 at 00:00 UTC. Run manifests record dates, SQL hashes, source hashes, extraction times, and the shared run ID.
+- `targets/study-prescription-decisions/src/sql/refresh_study_population_prescription_decisions.sql.j2`
 - `targets/study-prescription-decisions/src/python/summarize_study_population_prescription_decisions.py`
 - `targets/study-prescription-decisions/src/sql/cmpu_study_population_prescription_decisions.sql`
 - `targets/study-prescription-decisions/src/sql/summarize_study_population_prescription_decisions-query-1.sql.j2`
@@ -1411,16 +1409,13 @@ make study-order-cancellation-sales
 make study-order-cancellation-sales REPRO=1
 make study-order-cancellation-sales REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
-
-Refresh limitation: The study uses frozen, mutually reconciled extracts. Refresh its source snapshots together before rebuilding; see the target input manifests. No partial refresh is performed.
+Default builds replay the validated extract and derived membership. `REFRESH=1` derives prescription and first-order membership in SQL and fetches current shipment/line evidence. Its first-order key set is reconciled to the first-order population refreshed by the shared `study-population` pipeline. Study dates and the October 27, 2026 00:00 UTC aged cutoff remain unchanged.
 
 
 ### Inputs and dependencies
 
 Generator batch: `study-population`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
-- `make study-population-tables CACHED=1`
+The shared `study-population` pipeline runs this extraction and the population summaries once per make invocation.
 
 Retained input folders and ownership:
 - `targets/first-order-upload-status-flow/data/`
@@ -1428,7 +1423,7 @@ Retained input folders and ownership:
 - `targets/study-prescription-decisions/data/`
 - `targets/study-order-cancellation-sales/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+The cohort uses CMPU vet-diet CUSTOMER_UPLOAD prescriptions created August 15 through October 14, 2026 UTC. SQL derives prescription and first-order membership; it does not load saved identifier lists.
 - `targets/study-order-cancellation-sales/src/python/summarize_prescription_cohort_order_comparison.py`
 - `targets/study-order-cancellation-sales/src/sql/prescription_cohort_order_sales.sql`
 - `targets/study-order-cancellation-sales/src/sql/summarize_prescription_cohort_order_comparison-query-1.sql.j2`
@@ -1624,6 +1619,24 @@ Generated content: `targets/first-order-upload-coverage/outputs/latex/content.te
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
 Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
+
+### Coordinated coverage refresh
+
+Run `make first-order-upload-coverage REFRESH=1` to refresh the population,
+upload associations, and shared status evidence before building the tables.
+The status query derives all eligible CUSTOMER_UPLOAD first-order lines in SQL;
+it accepts scalar dates only and runs once for both status-detail tables.
+Every extracted identity, customer, cancellation reason, prescription status,
+order status, and line status must reconcile with the refreshed population.
+Distinct shipment rows are aggregated; duplicate shipment keys fail validation.
+
+Coverage inherits the population run identifier and records input and SQL hashes
+and extraction time. Separate queries are not a single warehouse snapshot.
+A mismatch stops the build before either status subset is installed.
+`make study-upload-tables` replays validated inputs without warehouse access.
+Empty status subgroups produce zero totals. Study dates, upload discovery dates,
+and the aged-cancellation cutoff remain unchanged.
+
 ## no-recorded-cancellation-upload-statuses: How do prescription, order, and line-item statuses vary by upload coverage when no cancellation reason is recorded?
 
 
@@ -1693,6 +1706,24 @@ Generated content: `targets/no-recorded-cancellation-upload-statuses/outputs/lat
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
 Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
 
+
+### Coordinated coverage refresh
+
+Run `make first-order-upload-coverage REFRESH=1` to refresh the population,
+upload associations, and shared status evidence before building the tables.
+The status query derives all eligible CUSTOMER_UPLOAD first-order lines in SQL;
+it accepts scalar dates only and runs once for both status-detail tables.
+Every extracted identity, customer, cancellation reason, prescription status,
+order status, and line status must reconcile with the refreshed population.
+Distinct shipment rows are aggregated; duplicate shipment keys fail validation.
+
+Coverage inherits the population run identifier and records input and SQL hashes
+and extraction time. Separate queries are not a single warehouse snapshot.
+A mismatch stops the build before either status subset is installed.
+`make study-upload-tables` replays validated inputs without warehouse access.
+Empty status subgroups produce zero totals. Study dates, upload discovery dates,
+and the aged-cancellation cutoff remain unchanged.
+
 ## aged-line-upload-statuses: How do prescription, order, and line-item statuses vary by upload coverage for aged orders?
 
 
@@ -1760,6 +1791,24 @@ Shared dependencies:
 Generated content: `targets/aged-line-upload-statuses/outputs/latex/content.tex`.
 Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
 Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+
+
+### Coordinated coverage refresh
+
+Run `make first-order-upload-coverage REFRESH=1` to refresh the population,
+upload associations, and shared status evidence before building the tables.
+The status query derives all eligible CUSTOMER_UPLOAD first-order lines in SQL;
+it accepts scalar dates only and runs once for both status-detail tables.
+Every extracted identity, customer, cancellation reason, prescription status,
+order status, and line status must reconcile with the refreshed population.
+Distinct shipment rows are aggregated; duplicate shipment keys fail validation.
+
+Coverage inherits the population run identifier and records input and SQL hashes
+and extraction time. Separate queries are not a single warehouse snapshot.
+A mismatch stops the build before either status subset is installed.
+`make study-upload-tables` replays validated inputs without warehouse access.
+Empty status subgroups produce zero totals. Study dates, upload discovery dates,
+and the aged-cancellation cutoff remain unchanged.
 
 ## customer-upload-delay: How long do customers wait to upload a prescription?
 

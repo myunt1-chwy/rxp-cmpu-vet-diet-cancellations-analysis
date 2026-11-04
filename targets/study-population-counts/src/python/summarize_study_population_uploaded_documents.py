@@ -80,7 +80,7 @@ with duckdb.connect() as con:
         .to_numpy()
         .tolist()
     )
-# Verify that the population rows being extended still match the report.
+# Verify the upload associations against the population extract.
 line_dir = artifact_path(
     root
     / (
@@ -91,34 +91,48 @@ line_dir = artifact_path(
 )
 line_meta = json.loads((line_dir / "source.json").read_text())
 assert digest(line_dir / "source.parquet") == line_meta["parquet_sha256"]
+if metadata.get("refresh_run_id") != line_meta.get(
+    "refresh_run_id"
+) or metadata.get("population_dependency_sha256") != line_meta.get(
+    "parquet_sha256"
+):
+    raise ValueError(
+        "Upload and first-order extracts belong to different runs"
+    )
 l = pd.read_parquet(line_dir / "source.parquet").rename(columns=str.lower)
 matched_lines = l.line_source_rows.gt(0)
-assert l.loc[matched_lines, "rx_id"].nunique() == 103516
-assert (
-    l.loc[
-        matched_lines & l.approval_channel.eq("CUSTOMER_UPLOAD"), "rx_id"
-    ].nunique()
-    == 95073
-)
 # A source entity can match several prescriptions: never sum upload_count per
 # line.
 valid_pairs = l.loc[
-    matched_lines, ["rx_id", "first_order_id", "first_order_line_id"]
+    matched_lines,
+    ["rx_id", "customer_id", "first_order_id", "first_order_line_id"],
 ].drop_duplicates()
-current = a.loc[
-    matched, ["matched_rx_id", "first_order_id", "first_order_line_id"]
-].rename(columns={"matched_rx_id": "rx_id"})
+current = (
+    a.loc[
+        matched,
+        [
+            "matched_rx_id",
+            "rx_customer_id",
+            "first_order_id",
+            "first_order_line_id",
+        ],
+    ]
+    .rename(
+        columns={"matched_rx_id": "rx_id", "rx_customer_id": "customer_id"}
+    )
+    .drop_duplicates()
+)
 assert len(
     current.merge(
         valid_pairs,
-        on=["rx_id", "first_order_id", "first_order_line_id"],
+        on=["rx_id", "customer_id", "first_order_id", "first_order_line_id"],
         how="inner",
     )
 ) == len(current)
 print(summary.to_string(index=False))
 print(
-    "Validated entity source, matched first-order membership, baseline "
-    "population counts and independent distinct aggregation."
+    "Validated upload associations against refreshed prescription, customer, "
+    "and first-order keys."
 )
 # Store a durable execution/derivation receipt with complete records and
 # bounded Markdown.

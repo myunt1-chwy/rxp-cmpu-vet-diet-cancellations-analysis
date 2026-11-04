@@ -45,7 +45,10 @@ study-population-tables:
 	.venv/bin/python scripts/summarize_study_population_uploaded_documents.py --export
 	.venv/bin/python scripts/summarize_study_population_prescription_decisions.py
 	.venv/bin/python -m shared.python.create_study_population_report_tables
-	$(MAKE) --no-print-directory prescription-cohort-order-comparison CACHED=1
+
+.PHONY: study-population-refresh-inputs
+study-population-refresh-inputs:
+	.venv/bin/python targets/study-population-counts/src/python/refresh_study_population_inputs.py
 
 reproduce-upload-delay-section:
 	$(MAKE) --no-print-directory study-population-tables
@@ -253,3 +256,13 @@ python-format-check:
 
 python-lint-staged:
 	.venv/bin/python scripts/check_staged_python.py
+
+.PHONY: study-upload-status-refresh study-upload-tables-refresh
+study-upload-status-refresh:
+	.venv/bin/python targets/no-recorded-cancellation-upload-statuses/src/python/refresh_study_upload_statuses.py
+
+study-upload-tables-refresh:
+	$(MAKE) --no-print-directory study-upload-coverage-by-cancel-reason
+	$(MAKE) --no-print-directory study-upload-status-refresh
+	$(MAKE) --no-print-directory study-no-cancellation-upload-details CACHED=1
+	$(MAKE) --no-print-directory study-aged-order-upload-coverage

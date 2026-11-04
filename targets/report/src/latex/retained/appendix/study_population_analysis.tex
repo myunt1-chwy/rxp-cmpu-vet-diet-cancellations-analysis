@@ -70,8 +70,8 @@ approve an accepted prescription document see Figure
 \cmidrule(lr){6-7}
 Population & Prescriptions & Orders & \shortstack[r]{Order\\lines} & Customers & Total & Accepted \\
 \midrule
-All approval channels, matched to first-order lines & 103,516 & 95,533 & 103,516 & 80,649 & 30,735 & 26,254 \\
-\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines & 95,073 & 87,724 & 95,073 & 73,905 & 29,715 & 25,606 \\
+All approval channels, matched to first-order lines & 103,550 & 95,567 & 103,550 & 80,651 & 30,770 & 26,294 \\
+\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines & 95,106 & 87,757 & 95,106 & 73,906 & 29,750 & 25,645 \\
 \texttt{CUSTOMER\_UPLOAD} aged-cancellation subset & 26,443 & 24,408 & 26,443 & 20,587 & 782 & 52 \\
 \bottomrule
 \end{tabular}
@@ -98,8 +98,8 @@ shared by prescriptions count once per row. Accepted documents have current
 \toprule
 Population & Prescriptions & Approved & Unknown & Rejected \\
 \midrule
-All approval channels, matched to first-order lines & 103,516 & 36,874 & 66,595 & 47 \\
-\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines & 95,073 & 30,504 & 64,569 & 0 \\
+All approval channels, matched to first-order lines & 103,550 & 36,908 & 66,595 & 47 \\
+\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines & 95,106 & 30,537 & 64,569 & 0 \\
 \texttt{CUSTOMER\_UPLOAD} aged-cancellation subset & 26,443 & 6 & 26,437 & 0 \\
 \bottomrule
 \end{tabular}
@@ -132,22 +132,22 @@ approval and denial times are not restricted to the aged-cancellation cutoff.
 Cancellation reason & Orders & Lines & Net sales & Orders & Lines & Net sales \\
 \midrule
 {[Aged order outside cutoff]} & 372 & 398 & \textcolor{gray}{33,489.70} & 372 & 398 & \textcolor{gray}{33,489.70} \\
-{[No recorded cancellation reason]} & 38,413 & 40,864 & 3,163,597.96 & 60,879 & 69,510 & 5,372,693.08 \\
+{[No recorded cancellation reason]} & 38,424 & 40,870 & 3,161,976.99 & 64,865 & 73,958 & 5,748,033.82 \\
 {Aged order} & 24,408 & 26,443 & \textcolor{gray}{2,236,727.20} & 24,409 & 26,445 & \textcolor{gray}{2,236,909.55} \\
-{Customer initiated cancellation} & 11,601 & 13,127 & \textcolor{gray}{995,271.62} & 12,255 & 13,933 & \textcolor{gray}{1,064,806.64} \\
-{Customer request} & 4,890 & 5,486 & \textcolor{gray}{428,933.38} & 5,037 & 5,683 & \textcolor{gray}{446,285.60} \\
-{Duplicate order} & 61 & 64 & \textcolor{gray}{5,237.98} & 74 & 80 & \textcolor{gray}{6,499.90} \\
+{Customer initiated cancellation} & 11,603 & 13,129 & \textcolor{gray}{995,465.64} & 12,381 & 14,083 & \textcolor{gray}{1,076,754.83} \\
+{Customer request} & 4,891 & 5,487 & \textcolor{gray}{428,945.72} & 5,049 & 5,698 & \textcolor{gray}{448,008.69} \\
+{Duplicate order} & 61 & 64 & \textcolor{gray}{5,237.98} & 76 & 82 & \textcolor{gray}{6,635.26} \\
 {Fraud} & 13 & 15 & \textcolor{gray}{1,809.92} & 13 & 15 & \textcolor{gray}{1,809.92} \\
 {Inventory issue} & 3 & 3 & \textcolor{gray}{264.42} & 3 & 3 & \textcolor{gray}{264.42} \\
-{No response} & 541 & 575 & \textcolor{gray}{48,509.38} & 559 & 593 & \textcolor{gray}{50,252.01} \\
-{Other} & 302 & 336 & \textcolor{gray}{25,662.96} & 317 & 354 & \textcolor{gray}{26,850.17} \\
-{Payment declined} & 2,444 & 2,679 & \textcolor{gray}{221,343.75} & 2,541 & 2,786 & \textcolor{gray}{229,682.76} \\
-{Payment issue} & 15 & 17 & \textcolor{gray}{1,503.07} & 16 & 18 & \textcolor{gray}{1,638.91} \\
-{Pharmacy rejection} & 137 & 157 & \textcolor{gray}{13,237.61} & 137 & 157 & \textcolor{gray}{13,237.61} \\
+{No response} & 541 & 575 & \textcolor{gray}{48,509.38} & 565 & 600 & \textcolor{gray}{50,813.21} \\
+{Other} & 302 & 336 & \textcolor{gray}{25,662.96} & 318 & 355 & \textcolor{gray}{26,944.01} \\
+{Payment declined} & 2,449 & 2,688 & \textcolor{gray}{221,833.07} & 2,567 & 2,821 & \textcolor{gray}{232,508.70} \\
+{Payment issue} & 15 & 17 & \textcolor{gray}{1,503.07} & 17 & 19 & \textcolor{gray}{1,694.00} \\
+{Pharmacy rejection} & 150 & 171 & \textcolor{gray}{14,278.29} & 150 & 171 & \textcolor{gray}{14,278.29} \\
 {Prescription issue} & 4,524 & 4,909 & \textcolor{gray}{412,858.46} & 4,524 & 4,910 & \textcolor{gray}{412,972.44} \\
 {Reseller} & 1 & 1 & \textcolor{gray}{132.99} & 1 & 1 & \textcolor{gray}{132.99} \\
 \midrule
-{TOTAL} & 87,725 & 95,074 & 7,588,580.40 & 111,137 & 124,886 & 9,897,525.70 \\
+{TOTAL} & 87,757 & 95,106 & 7,588,695.79 & 115,310 & 129,559 & 10,291,249.83 \\
 \bottomrule
 \end{tabular}
 
@@ -163,9 +163,7 @@ each group. Net sales sum \texttt{ORDER\_LINE\_NET\_SALES} once per
 shipment/line record, for qualifying lines only. Amounts are displayed
 to two decimals; five-decimal values remain in the data exports.
 Gray net-sales amounts have a recorded cancellation reason and represent
-unrealized sales, not realized revenue. TOTAL includes these gray amounts.
-The validated comparison snapshot contains one additional matched first-order
-line/order relative to the earlier frozen population in Table~\ref{tab:study-population-counts}.
+unrealized sales, not realized revenue. TOTAL includes these gray amounts. The financial cohort is derived from current prescription/order records and reconciled to the current first-order population.
 \end{minipage}
 \end{table}
 % END FIRST-ALL-ORDER-CANCELLATION-COMPARISON

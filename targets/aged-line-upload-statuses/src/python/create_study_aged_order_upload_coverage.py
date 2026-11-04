@@ -37,32 +37,40 @@ def main():
             "from the retained aged-order status extraction, then rerun "
             "make study-aged-order-upload-coverage"
         ) from error
+    parent = json.loads((details.PARENT / "analysis.json").read_text())
+    if (
+        metadata.get("refresh_run_id") != parent.get("refresh_run_id")
+        or not metadata.get("refresh_run_id")
+        or metadata.get("frozen_inputs") != hashes
+        or metadata.get("sql_sha256")
+        != details.hashlib.sha256(
+            details.render_cohort_query(details.SQL).encode()
+        ).hexdigest()
+    ):
+        raise ValueError("Aged status source mixes runs or dependencies")
     source = pd.read_parquet(artifact_path(DATA / "source.parquet")).rename(
         columns=str.lower
     )
     source = source.rename(columns={"status_variants": "line_status_variants"})
     retained, excluded, summary, audit = details.analyze(
-        source, cohort, uploads, "aged order"
+        source,
+        cohort,
+        uploads,
+        "aged order",
+        extracted_at_utc=metadata["extracted_at_utc"],
     )
     if audit["extracted_at_utc"] != metadata["extracted_at_utc"]:
         raise ValueError(
             "Status extraction timestamp disagrees with provenance"
         )
-    # The retained snapshot covers the complete, unchanged aged-order
-    # population.
-    if len(excluded):
-        raise ValueError(
-            "Retained aged-order snapshot has changed cancellation reasons"
-        )
     if (
-        summary.prescriptions.sum(),
-        summary.with_upload.sum(),
-        summary.without_upload.sum(),
-    ) != (26443, 777, 25666):
-        raise ValueError(
-            "Aged prescription/upload totals differ from the frozen "
-            "report cohort"
-        )
+        not retained.rx_id.is_unique
+        or retained["order_id"].isna().any()
+        or retained["order_line_id"].isna().any()
+    ):
+        raise ValueError("Retained aged-order keys are missing or duplicated")
+    if summary.line_items.sum() != len(retained):
+        raise ValueError("Aged-order status groups do not reconcile")
     for name, frame in {
         "summary": summary,
         "retained-lines": retained,
@@ -131,8 +139,9 @@ def main():
             "and counting rules as Table~\\ref{tab:study-no-"
             "cancellation-upload-details},\nfor the frozen aged-"
             "order subset of Table~\\ref{tab:study-upload-coverage-"
-            "by-cancellation-reason}:\n26,443 prescriptions/first-"
-            "order lines across 24,408 orders. Include "
+            "by-cancellation-reason}:\n"
+            f"{audit['parent_lines']:,} prescriptions/first-order lines "
+            f"across {audit['parent_orders']:,} orders. Include "
             "cancellations\nat or before October 27, 2026, 00:00 "
             "UTC; later or undated aged cancellations are "
             "excluded.\nStatuses are from the retained extraction "

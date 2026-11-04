@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-from shared.cohort_queries import query_matches, render_cohort_query
+from shared.cohort_queries import render_cohort_query
 from shared.paths import artifact_path
 from shared.sql_templates import module_sql
 
@@ -18,10 +18,14 @@ sys.path.insert(
 """REFNUM 60: first/all-order cancellation comparison and exact net sales."""
 import hashlib
 import json
+import os
+import shutil
 import sys
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from uuid import uuid4
 
 from shared.paths import canonical_sql_path, repository_root
 
@@ -36,9 +40,6 @@ from shared.python import (
 )
 from shared.python.markdown_tables import markdown_table, write_text
 
-PARENT = artifact_path(
-    ROOT / "data/opportunity/prescription-cohort-orders/2026-08-15_2026-10-15"
-)
 DIRECTORY = artifact_path(
     ROOT
     / (
@@ -177,6 +178,133 @@ def summarize(frozen, raw):
     return ships, lines, summary
 
 
+def derive_population(raw):
+    """Derive comparison membership from the database result, not saved IDs."""
+    frame = raw.rename(columns=str.lower).copy()
+    for column in KEYS + ["customer_id"]:
+        frame[column] = frame[column].map(opportunity.identifier)
+    if frame[KEYS + ["customer_id"]].isna().any().any():
+        raise ValueError("financial query returned missing physical-line keys")
+    frame["order_cancel_utc"] = pd.to_datetime(
+        frame.order_cancel_utc, utc=True, format="mixed", errors="raise"
+    )
+    frame["reason"] = (
+        frame.order_cancel_reason.astype("string")
+        .str.strip()
+        .str.casefold()
+        .replace("", pd.NA)
+        .fillna(opportunity.MISSING_REASON)
+    )
+    frame["first_order_line"] = pd.to_numeric(
+        frame.first_order_line, errors="raise"
+    )
+    if not frame.first_order_line.isin([0, 1]).all():
+        raise ValueError("invalid database-derived first-order flag")
+    dimensions = [
+        "customer_id",
+        "reason",
+        "order_cancel_utc",
+        "first_order_line",
+    ]
+    if (
+        frame.groupby(KEYS, dropna=False)[dimensions]
+        .nunique(dropna=False)
+        .gt(1)
+        .any()
+        .any()
+    ):
+        raise ValueError("conflicting physical-line cohort evidence")
+    population = frame.drop_duplicates(KEYS)[KEYS + dimensions].copy()
+    population["aged_by_prior_cutoff"] = (
+        population.reason.eq("aged order")
+        & population.order_cancel_utc.le(CUTOFF)
+    ).astype("int64")
+    population["report_reason"] = population.reason
+    population.loc[
+        population.reason.eq("aged order")
+        & population.aged_by_prior_cutoff.eq(0),
+        "report_reason",
+    ] = "[Aged order outside cutoff]"
+    return population.drop(columns="order_cancel_utc")
+
+
+def validate_population_dependency(frozen, run_id):
+    period = (
+        "2026-08-15_2026-10-15_uploads-from-2026-08-01_"
+        "uploads-end-2026-10-26_accepted-state-change_order-placed_"
+        "block-reasons"
+    )
+    line_directory = artifact_path(
+        ROOT / "data/cmpu-first-order-line-status" / period
+    )
+    source_path = line_directory / "source.parquet"
+    manifest = json.loads((line_directory / "source.json").read_text())
+    if opportunity.digest(source_path) != manifest.get("parquet_sha256"):
+        raise ValueError("First-order population fingerprint mismatch")
+    if run_id is not None and manifest.get("refresh_run_id") != run_id:
+        raise ValueError("Financial and first-order sources mix refresh runs")
+    line = pd.read_parquet(source_path).rename(columns=str.lower)
+    line = line.loc[
+        line.line_source_rows.gt(0)
+        & line.approval_channel.eq("CUSTOMER_UPLOAD")
+    ]
+    expected = line[
+        ["customer_id", "first_order_id", "first_order_line_id"]
+    ].rename(
+        columns={
+            "first_order_id": "order_id",
+            "first_order_line_id": "order_line_id",
+        }
+    )
+    expected = expected.apply(
+        lambda column: column.map(opportunity.identifier)
+    )
+    actual = frozen.loc[
+        frozen.first_order_line.eq(1),
+        ["customer_id", "order_id", "order_line_id"],
+    ].apply(lambda column: column.map(opportunity.identifier))
+    if set(map(tuple, expected.to_numpy())) != set(
+        map(tuple, actual.to_numpy())
+    ):
+        raise ValueError(
+            "Financial first-order membership differs from the population"
+        )
+    return manifest["parquet_sha256"]
+
+
+def promote_refresh(stage, metadata):
+    """Install validated source files and roll back failed replacements."""
+    DIRECTORY.mkdir(parents=True, exist_ok=True)
+    files = {
+        "query.sql": DIRECTORY / "query.sql",
+        "source.parquet": DIRECTORY / "source.parquet",
+        "population.parquet": DIRECTORY / "population.parquet",
+    }
+    metadata_path = DIRECTORY / "source.json"
+    staged_metadata = stage / "source.json"
+    write_text(staged_metadata, json.dumps(metadata, indent=2) + "\n")
+    files["source.json"] = metadata_path
+    backups = stage / "backup"
+    backups.mkdir()
+    previous = {}
+    installed = []
+    try:
+        for name, destination in files.items():
+            if destination.exists():
+                backup = backups / name
+                shutil.copy2(destination, backup)
+                previous[destination] = backup
+        for name, destination in files.items():
+            os.replace(stage / name, destination)
+            installed.append(destination)
+    except Exception:
+        for destination in installed:
+            destination.unlink(missing_ok=True)
+        for destination, backup in previous.items():
+            os.replace(backup, destination)
+        raise
+
+
 def verify(frozen, raw, summary):
     # Another engine recomputes counts and money directly from unique source
     # shipment records and the frozen line flags/reason labels.
@@ -286,11 +414,10 @@ def latex_table(summary):
             "decimal values remain in the data exports.\nGray net-"
             "sales amounts have a recorded cancellation reason and "
             "represent\nunrealized sales, not realized revenue. "
-            "TOTAL includes these gray amounts.\nThe validated "
-            "comparison snapshot contains one additional matched "
-            "first-order\nline/order relative to the earlier frozen "
-            "population in Table~\\ref{tab:study-population-"
-            "counts}.\n\\end{minipage}\n\\end{table}\n% END FIRST-"
+            "TOTAL includes these gray amounts. The financial cohort "
+            "is derived from current prescription/order records and "
+            "reconciled to the current first-order population.\n"
+            "\\end{minipage}\n\\end{table}\n% END FIRST-"
             "ALL-ORDER-CANCELLATION-COMPARISON\n"
         )
     )
@@ -388,7 +515,7 @@ def write_exports(ships, lines, summary, metadata, write_latex):
 @click.option(
     "--refresh",
     is_flag=True,
-    help="Fetch current sales for the frozen comparison line keys.",
+    help="Fetch current sales and derive the comparison cohort from SQL.",
 )
 @click.option(
     "--write-latex",
@@ -396,53 +523,70 @@ def write_exports(ships, lines, summary, metadata, write_latex):
     help="Update the labelled table in the report appendix.",
 )
 def main(refresh, write_latex):
-    parent = json.loads((PARENT / "analysis.json").read_text())
-    frozen_path = PARENT / "cutoff-order-lines.parquet"
-    parent_hash = opportunity.digest(frozen_path)
-    if parent["files"]["cutoff-order-lines.parquet"] != parent_hash:
-        raise click.ClickException("frozen membership fingerprint mismatch")
-    frozen = pd.read_parquet(frozen_path)
     sql = render_cohort_query(TEMPLATE)
     DIRECTORY.mkdir(parents=True, exist_ok=True)
     raw_path = DIRECTORY / "source.parquet"
     manifest = DIRECTORY / "source.json"
     if refresh:
-        manifest.unlink(missing_ok=True)
-        query = DIRECTORY / "query.sql"
-        write_text(query, sql + "\n")
-        engine = opportunity.extract(query, raw_path, DIRECTORY)
-        metadata = dict(
-            parent_membership_sha256=parent_hash,
-            sql_sha256=hashlib.sha256(sql.encode()).hexdigest(),
-            parquet_sha256=opportunity.digest(raw_path),
-            extracted_at_utc=datetime.now(UTC).isoformat(),
-            **engine,
-        )
+        parameters = {
+            "start_date": "2026-08-15",
+            "end_date": "2026-10-15",
+            "as_of_date": "2026-10-27",
+        }
+        run_id = os.environ.get("RXP_REFRESH_RUN_ID") or uuid4().hex
+        with TemporaryDirectory(
+            prefix=".study-population-refresh-", dir=DIRECTORY
+        ) as temporary:
+            stage = Path(temporary)
+            query = stage / "query.sql"
+            staged_raw = stage / "source.parquet"
+            write_text(query, sql + "\n")
+            engine = opportunity.extract(query, staged_raw, stage)
+            raw = pd.read_parquet(staged_raw)
+            frozen = derive_population(raw)
+            population_hash = validate_population_dependency(frozen, run_id)
+            ships, lines, summary = summarize(frozen, raw)
+            verification = verify(frozen, raw, summary)
+            staged_population = stage / "population.parquet"
+            frozen.to_parquet(staged_population, index=False)
+            metadata = {
+                "refresh_run_id": run_id,
+                "parameters": parameters,
+                "sql": sql,
+                "sql_sha256": hashlib.sha256(sql.encode()).hexdigest(),
+                "parquet_sha256": opportunity.digest(staged_raw),
+                "population_sha256": opportunity.digest(staged_population),
+                "population_dependency_sha256": population_hash,
+                "extracted_at_utc": datetime.now(UTC).isoformat(),
+                "query_id": engine.get("query_id"),
+                "engine": engine.get("engine"),
+                "independent_verification": verification,
+            }
+            promote_refresh(stage, metadata)
     else:
+        if not manifest.is_file() or not raw_path.is_file():
+            raise click.ClickException(
+                "No retained financial extract; run with REFRESH=1."
+            )
         metadata = json.loads(manifest.read_text())
+        frozen_path = DIRECTORY / "population.parquet"
         if (
-            metadata["parent_membership_sha256"] != parent_hash
-            or not query_matches(metadata, sql)
-            or metadata["parquet_sha256"] != opportunity.digest(raw_path)
+            metadata["parquet_sha256"] != opportunity.digest(raw_path)
+            or metadata.get("sql_sha256")
+            != hashlib.sha256(sql.encode()).hexdigest()
+            or not frozen_path.is_file()
+            or metadata.get("population_sha256")
+            != opportunity.digest(frozen_path)
         ):
             raise click.ClickException(
-                "cached financial extract or frozen membership "
-                "fingerprint differs; use --refresh"
+                "cached financial extract or derived membership fingerprint "
+                "differs; use REFRESH=1"
             )
-    raw = pd.read_parquet(raw_path)
-    ships, lines, summary = summarize(frozen, raw)
-    metadata["independent_verification"] = verify(frozen, raw, summary)
-    aged = summary.loc[summary.cancellation_reason.eq("Aged order")].iloc[0]
-    if (
-        int(aged.first_orders),
-        int(aged.first_lines),
-        int(aged.all_orders),
-        int(aged.all_lines),
-    ) != (24408, 26443, 24409, 26445):
-        raise click.ClickException(
-            "aged counts differ from the agreed cutoff comparison"
-        )
-    write_text(manifest, json.dumps(metadata, indent=2) + "\n")
+        frozen = pd.read_parquet(frozen_path)
+        raw = pd.read_parquet(raw_path)
+        validate_population_dependency(frozen, metadata.get("refresh_run_id"))
+        ships, lines, summary = summarize(frozen, raw)
+        metadata["independent_verification"] = verify(frozen, raw, summary)
     write_exports(ships, lines, summary, metadata, write_latex)
     print(summary.to_string(index=False))
 

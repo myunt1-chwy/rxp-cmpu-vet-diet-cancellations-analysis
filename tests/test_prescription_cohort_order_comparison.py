@@ -119,6 +119,29 @@ def test_missing_sales_stays_incomplete_and_zero_retained():
     m.verify(f, r, s)
 
 
+def test_database_derived_population_preserves_first_order_and_cutoff_flags():
+    _, raw = sample()
+    raw["first_order_line"] = [1, 1, 0]
+    population = m.derive_population(raw)
+    assert population.order_id.tolist() == ["1", "2"]
+    assert population.first_order_line.tolist() == [1, 0]
+    assert population.aged_by_prior_cutoff.tolist() == [1, 0]
+    assert population.report_reason.tolist() == [
+        "aged order",
+        "[Aged order outside cutoff]",
+    ]
+
+
+def test_database_derived_population_accepts_empty_extract():
+    _, raw = sample()
+    raw = raw.iloc[:0].copy()
+    raw["first_order_line"] = pd.Series(dtype="int64")
+    population = m.derive_population(raw)
+    _, _, summary = m.summarize(population, raw)
+    assert summary.iloc[-1].all_lines == 0
+    m.verify(population, raw, summary)
+
+
 @pytest.mark.parametrize(
     "change,match",
     [

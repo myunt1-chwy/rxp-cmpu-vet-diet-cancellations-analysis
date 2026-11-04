@@ -28,6 +28,7 @@ migration:
   build: active
 artifact: Table (one visual).
 sources:
+- targets/no-recorded-cancellation-upload-statuses/src/python/refresh_study_upload_statuses.py
 - targets/no-recorded-cancellation-upload-statuses/src/python/create_study_no_cancellation_upload_details.py
 - targets/no-recorded-cancellation-upload-statuses/src/sql/create_study_no_cancellation_upload_details-query-1.sql.j2
 - targets/no-recorded-cancellation-upload-statuses/src/sql/study_no_cancellation_upload_details.sql

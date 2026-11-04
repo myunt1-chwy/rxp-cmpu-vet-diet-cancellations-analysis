@@ -1,8 +1,10 @@
 """Run a declared legacy generator batch with explicit cache semantics."""
 
 import argparse
+import os
 import subprocess
 from pathlib import Path
+from uuid import uuid4
 
 import yaml
 
@@ -19,6 +21,7 @@ def main():
     )
     pipeline = pipelines[args.pipeline]
     refresh = args.refresh == "1"
+    run_id = os.environ.get("RXP_REFRESH_RUN_ID") or uuid4().hex
     if refresh and pipeline.get("refresh_error"):
         parser.exit(1, pipeline["refresh_error"] + "\n")
     commands = (
@@ -37,10 +40,15 @@ def main():
     print(
         (
             f"{'Refreshing' if refresh else 'Reproducing cached'} "
-            f"{args.pipeline}; log: {log.relative_to(ROOT)}"
+            f"{args.pipeline}"
+            + (f"; run: {run_id}" if refresh else "")
+            + f"; log: {log.relative_to(ROOT)}"
         ),
         flush=True,
     )
+    environment = os.environ.copy()
+    if refresh:
+        environment["RXP_REFRESH_RUN_ID"] = run_id
     with log.open("w") as stream:
         for command in commands:
             argv = [
@@ -55,6 +63,7 @@ def main():
                 argv,
                 check=False,
                 cwd=ROOT,
+                env=environment,
                 stdout=stream,
                 stderr=subprocess.STDOUT,
             )

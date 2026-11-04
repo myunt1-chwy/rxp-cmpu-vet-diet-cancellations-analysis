@@ -14,7 +14,7 @@ make report REFRESH=1
 #+end_src
 Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
-The report is a draft by default (FINAL=0). Use =make report FINAL=1= to omit the watermark and opening DRAFT text. REPRO=1 includes the target reproduction instructions. The published copy is =outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf=. A graph-wide refresh stops for the frozen-study workflows described below.
+The report is a draft by default (FINAL=0). Use =make report FINAL=1= to omit the watermark and opening DRAFT text. REPRO=1 includes the target reproduction instructions. The published copy is =outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf=. Study-population and upload-coverage refreshes now use coordinated inputs with membership and status reconciliation. Full-report refresh and staged publication still require end-to-end verification.
 
 * Inputs and dependencies
 The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.

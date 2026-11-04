@@ -13,6 +13,7 @@ shared_dependencies:
 - source-ownership.yaml
 - sql_templates.py
 - runtime.py
+- prescription_uploads.py
 - upload_entities.py
 - python/financial_values.py
 - python/opportunity_report_tables.py
@@ -24,8 +25,10 @@ migration:
   build: active
 artifact: Table (one visual).
 sources:
+- targets/study-population-counts/src/python/refresh_study_population_inputs.py
 - targets/study-population-counts/src/python/summarize_study_population_uploaded_documents.py
 - targets/study-population-counts/src/sql/cmpu_study_population_uploaded_documents.sql
+- targets/study-population-counts/src/sql/refresh_study_population_uploaded_documents.sql.j2
 - targets/study-population-counts/src/sql/summarize_study_population_uploaded_documents-query-1.sql.j2
 - targets/study-population-counts/src/python/create_study_population_report_tables.py
 code_dependencies:

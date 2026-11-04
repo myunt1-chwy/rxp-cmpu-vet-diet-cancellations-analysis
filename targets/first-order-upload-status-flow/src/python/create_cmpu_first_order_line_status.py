@@ -5,6 +5,7 @@ REFNUM 14: count first-order lines using the certified shipment/line view.
 import hashlib
 import itertools
 import json
+import os
 import subprocess
 import sys
 from datetime import UTC, date, datetime, timedelta
@@ -689,6 +690,7 @@ def main(start_date, end_date, upload_start_date, cached, print_sql):
                 "upload_start_date": upload_start_date,
                 "upload_end_date_exclusive": upload_end,
                 "upload_followup_days": UPLOAD_FOLLOWUP_DAYS,
+                "refresh_run_id": os.environ.get("RXP_REFRESH_RUN_ID"),
                 "extracted_at_utc": datetime.now(UTC).isoformat(),
                 (
                     "source_extracted_at"

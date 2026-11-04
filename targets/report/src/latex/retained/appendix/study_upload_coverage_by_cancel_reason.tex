@@ -14,29 +14,27 @@ for the study's first orders and first-order lines, by cancellation reason and l
 \toprule
 Cancellation reason & \shortstack{Line-item\\status} & \shortstack{First\\orders} & Prescriptions & \shortstack{First-order\\line items} & \shortstack{Line items\\with upload} & \shortstack{Upload\\coverage (\%)} & \shortstack{Total\\uploads} & \shortstack{Accepted\\uploads} & \shortstack{Rejected\\uploads} \\
 \midrule
-{[Aged order outside cutoff]} & C & 31 & 32 & 32 & 0 & 0.00\% & 0 & 0 & 0 \\
-{[Aged order outside cutoff]} & X & 341 & 366 & 366 & 14 & 3.83\% & 14 & 0 & 9 \\
-{[No recorded cancellation reason]} & C & 20 & 24 & 24 & 3 & 12.50\% & 3 & 1 & 0 \\
-{[No recorded cancellation reason]} & D & 28,953 & 29,929 & 29,929 & 24,949 & 83.36\% & 25,027 & 24,921 & 94 \\
-{[No recorded cancellation reason]} & R & 5 & 5 & 5 & 5 & 100.00\% & 5 & 5 & 0 \\
-{[No recorded cancellation reason]} & S & 26 & 29 & 29 & 27 & 93.10\% & 27 & 27 & 0 \\
-{[No recorded cancellation reason]} & X & 9,781 & 10,877 & 10,877 & 1,288 & 11.84\% & 1,295 & 88 & 247 \\
+{[Aged order outside cutoff]} & X & 372 & 398 & 398 & 14 & 3.52\% & 14 & 0 & 9 \\
+{[No recorded cancellation reason]} & D & 28,996 & 29,972 & 29,972 & 24,991 & 83.38\% & 25,069 & 24,962 & 94 \\
+{[No recorded cancellation reason]} & R & 4 & 4 & 4 & 4 & 100.00\% & 4 & 4 & 0 \\
+{[No recorded cancellation reason]} & S & 16 & 19 & 19 & 17 & 89.47\% & 17 & 17 & 0 \\
+{[No recorded cancellation reason]} & X & 9,780 & 10,875 & 10,875 & 1,290 & 11.86\% & 1,299 & 92 & 251 \\
 \rowcolor{yellow!35}
-{Aged order} & X & 24,408 & 26,443 & 26,443 & 777 & 2.94\% & 782 & 52 & 188 \\
-{Customer initiated cancellation} & X & 11,601 & 13,127 & 13,127 & 1,159 & 8.83\% & 1,159 & 307 & 148 \\
-{Customer request} & X & 4,890 & 5,486 & 5,486 & 1,081 & 19.70\% & 1,082 & 143 & 173 \\
+{Aged order} & X & 24,408 & 26,443 & 26,443 & 777 & 2.94\% & 782 & 52 & 194 \\
+{Customer initiated cancellation} & X & 11,603 & 13,129 & 13,129 & 1,160 & 8.84\% & 1,161 & 311 & 150 \\
+{Customer request} & X & 4,891 & 5,487 & 5,487 & 1,082 & 19.72\% & 1,083 & 145 & 174 \\
 {Duplicate order} & X & 61 & 64 & 64 & 14 & 21.88\% & 14 & 6 & 2 \\
 {Fraud} & X & 13 & 15 & 15 & 0 & 0.00\% & 0 & 0 & 0 \\
 {Inventory issue} & X & 3 & 3 & 3 & 0 & 0.00\% & 0 & 0 & 0 \\
 {No response} & X & 541 & 575 & 575 & 9 & 1.57\% & 9 & 8 & 0 \\
 {Other} & X & 302 & 336 & 336 & 74 & 22.02\% & 74 & 16 & 8 \\
-{Payment declined} & X & 2,443 & 2,678 & 2,678 & 15 & 0.56\% & 15 & 13 & 1 \\
+{Payment declined} & X & 2,449 & 2,688 & 2,688 & 15 & 0.56\% & 15 & 13 & 1 \\
 {Payment issue} & X & 15 & 17 & 17 & 1 & 5.88\% & 1 & 1 & 0 \\
-{Pharmacy rejection} & X & 137 & 157 & 157 & 14 & 8.92\% & 14 & 3 & 1 \\
-{Prescription issue} & X & 4,524 & 4,909 & 4,909 & 193 & 3.93\% & 194 & 15 & 43 \\
+{Pharmacy rejection} & X & 150 & 171 & 171 & 14 & 8.19\% & 14 & 3 & 1 \\
+{Prescription issue} & X & 4,524 & 4,909 & 4,909 & 193 & 3.93\% & 194 & 15 & 47 \\
 {Reseller} & X & 1 & 1 & 1 & 0 & 0.00\% & 0 & 0 & 0 \\
 \midrule
-{TOTAL} & All & 87,724 & 95,073 & 95,073 & 29,623 & 31.16\% & 29,715 & 25,606 & 914 \\
+{TOTAL} & All & 87,757 & 95,106 & 95,106 & 29,655 & 31.18\% & 29,750 & 25,645 & 931 \\
 \bottomrule
 \end{tabular}
 \begin{minipage}{\linewidth}
@@ -44,10 +42,10 @@ Cancellation reason & \shortstack{Line-item\\status} & \shortstack{First\\orders
 \textit{Notes:} Coverage = 100 $\times$ distinct first-order lines with at least
 one matched upload $\div$ all study first-order lines in that reason/status group, including
 lines without uploads. Prescriptions count distinct \texttt{RX\_ID}s and equal
-line-item counts in this frozen one-prescription-per-first-order-line cohort.
+line-item counts in this validated one-prescription-per-first-order-line cohort.
 Orders and physical order/line pairs count distinctly;
-shipment rows cannot multiply counts. The frozen population is the same as
-Table~\ref{tab:study-population-counts}, not the later financial comparison snapshot.
+shipment rows cannot multiply counts. The validated population is the same as
+Table~\ref{tab:study-population-counts}.
 Uploads are distinct \texttt{UPLOAD\_ID}s from HCDM
 \texttt{rxp\_upload\_entity}, restricted to \texttt{DIET\_PRESCRIPTION} entities.
 Expand prescription IDs and match both prescription and numeric customer IDs,
@@ -60,8 +58,7 @@ remain in Total uploads, so Accepted plus Rejected need not equal Total.
 Reasons are trimmed and case-insensitive. Aged order uses the inclusive
 October 27, 2026, 00:00 UTC cancellation cutoff; later or undated aged reasons
 remain in the outside-cutoff row. Missing/blank reasons do not prove an uncancelled
-order. Line-item status is \texttt{ORDER\_ORDER\_LINE\_STATUS} from the frozen
-October 28, 2026 first-order-line extract, with shipment-row consistency checked.
+order. Line-item status is \texttt{ORDER\_ORDER\_LINE\_STATUS} from the coordinated first-order-line extract, with shipment-row consistency checked.
 Codes are shown as recorded; missing status is explicit. Table~\ref{tab:study-no-cancellation-upload-details}
 uses a later status/reason extraction, so its counts can differ.
 An entity may match multiple prescriptions/lines and reason/status groups;

@@ -12,7 +12,9 @@ from shared.python.markdown_tables import markdown_table, write_text
 from shared.sql_templates import module_sql
 
 ROOT = repository_root()
-DATA = artifact_path(ROOT / "data")
+# Keep the legacy root path unresolved until each dataset name is appended;
+# resolving the directory first routes its children into report/retained.
+DATA = ROOT / "data"
 LABELS = [
     "All approval channels, matched to first-order lines",
     r"\texttt{CUSTOMER\_UPLOAD}, matched to first-order lines",
@@ -25,16 +27,42 @@ def main():
         DATA / "cmpu-study-population-prescription-decisions"
     )
     uploads = artifact_path(DATA / "cmpu-study-population-uploaded-documents")
+    receipts = []
     # These summaries are regenerated and independently checked by the Make
     # recipe.
     for directory in [decisions, uploads]:
         receipt = json.loads((directory / "analysis.json").read_text())
+        receipts.append(receipt)
         for name, sha in receipt["exports"].items():
             if digest(directory / name) != sha:
                 raise ValueError(
                     f"Validated study export fingerprint differs: "
                     f"{directory / name}"
                 )
+    line_period = (
+        "2026-08-15_2026-10-15_uploads-from-2026-08-01_"
+        "uploads-end-2026-10-26_accepted-state-change_order-placed_"
+        "block-reasons"
+    )
+    line_directory = artifact_path(
+        ROOT / "data/cmpu-first-order-line-status" / line_period
+    )
+    line_manifest = json.loads((line_directory / "source.json").read_text())
+    financial_directory = artifact_path(
+        ROOT / "data/opportunity/prescription-cohort-order-comparison/2026-"
+        "08-15_2026-10-15_as-of-2026-10-27"
+    )
+    financial_manifest = json.loads(
+        (financial_directory / "source.json").read_text()
+    )
+    run_ids = {
+        receipts[0].get("refresh_run_id"),
+        receipts[1].get("refresh_run_id"),
+        line_manifest.get("refresh_run_id"),
+        financial_manifest.get("refresh_run_id"),
+    }
+    if len(run_ids) != 1 or None in run_ids:
+        raise ValueError("Study population inputs mix refresh runs")
     details = pd.read_parquet(decisions / "prescriptions.parquet")
     documents = pd.read_parquet(uploads / "summary.parquet")
     decision_counts = pd.read_parquet(decisions / "summary.parquet")

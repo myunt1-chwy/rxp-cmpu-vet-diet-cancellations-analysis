@@ -24,7 +24,7 @@ analysis-pipeline-contact-window: analysis-pipeline-contact-frequency
 	$(PYTHON) shared/analysis/run_pipeline.py contact-window --refresh $(REFRESH)
 
 .PHONY: analysis-pipeline-study-population
-analysis-pipeline-study-population:
+analysis-pipeline-study-population: analysis-pipeline-first-order-status
 	$(PYTHON) shared/analysis/run_pipeline.py study-population --refresh $(REFRESH)
 
 .PHONY: analysis-pipeline-upload-coverage
