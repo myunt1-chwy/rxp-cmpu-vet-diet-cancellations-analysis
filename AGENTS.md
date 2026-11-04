@@ -3,7 +3,7 @@
 - Prefer existing package patterns over new abstractions
 - If something is not clear
 ## Development Loop
-- TODO.org contains the tasks that need to get done.
+- ai-workspace/todo.org contains the tasks that need to get done.
 - Once a task is done, stop so that the user can check the work.
 - Read before editing. Use rg/sed for fast context and avoid broad rewrites.
 - Run make setup when dependencies or hooks are missing. Do not use global Python tools for repo commands; the project sandbox is .venv.
@@ -13,8 +13,8 @@
 - Use Conventional Commits: feat: for minor, fix:/perf: for patch or hotfix, and ! or BREAKING CHANGE: for major.
 - After a task is done ask for approval to commit and make a commit.
 ## Repo Structure
-- Any plan accepted by the user should be in the todo.org file as an emacs todo item.
-- Log what is done in log.org after the user accepts the changes and code is committed.
+- Any plan accepted by the user should be in the ai-workspace/todo.org file as an emacs todo item.
+- Log what is done in ai-workspace/log.org after the user accepts the changes and code is committed.
 - Keep analysis sources, data and artifacts under their owning `targets/<id>/` directory. Reusable code belongs in `shared/`; do not recreate root `src/` or `data/`.
 - Store downloaded data and Parquet under `targets/<id>/data/`.
 - Store figures, diagrams and tables under `targets/<id>/outputs/figures/`, `outputs/diagrams/` and `outputs/tables/` respectively. Org tables are authoritative; Markdown exports may supplement them.

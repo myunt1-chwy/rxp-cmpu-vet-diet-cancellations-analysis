@@ -2,7 +2,7 @@
   :PROPERTIES:
   :REFNUM:   1.
   :END:
-  - Reviewed: [[file:outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf][Published draft PDF]], its LaTeX sources and supporting table/figure definitions at commit c498386. These are review comments and proposed follow-up tasks, not changes to the report or authorization to execute new research.
+  - Reviewed: [[file:../outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf][Published draft PDF]], its LaTeX sources and supporting table/figure definitions at commit c498386. These are review comments and proposed follow-up tasks, not changes to the report or authorization to execute new research.
   - Second review: reread the current 66-page PDF (built November 3, 2026 at 11:10 EST), checked the narrative against source definitions and retained statistics, and visually inspected pages 1, 40 and 43. The previous 12 items remain open; added two specific upload-timing findings and refined the existing evidence/actions below. No warehouse refresh or report rebuild was performed.
   - PM assessment: the report supports prioritizing customer discovery and a controlled reminder experiment. It does not yet establish the incremental sales benefit of reminders or a validated day-three cancellation-risk rule. Keep the cohort breakdowns, reproducible tables and explicit source caveats; bring the material caveats into the executive conclusions.
   - Priority A: address before decision-making circulation. Priority B: specify before committing to a pilot or broader product investment. Priority C: publication/readability cleanup.
@@ -51,7 +51,7 @@
    :REFNUM:   1.5.
    :END:
    - Comment: the report suggests an operational delay caused cancellation, but time since upload and time since order placement are different clocks. Entering a review state also does not mean the document is ready for approval.
-   - Evidence: section 2.3 (page 36) says the median acceptance delay was ten days after upload, "as a result" missing the deadline. The retained Figure 4 [[file:outputs/tables/2026-08-15_2026-10-14/cmpu-upload-entity-state-change-distributions/aged-order-statistics.md][aged-state statistics]] show 318.79 hours, or 13.28 days, for the 52 currently ACCEPTED entities. Figure 4 measures creation to current state change, is not capped at cancellation, and includes 538 REVIEW_REQUIRED entities whose time to that state is not time spent waiting in review.
+   - Evidence: section 2.3 (page 36) says the median acceptance delay was ten days after upload, "as a result" missing the deadline. The retained Figure 4 [[file:../outputs/tables/2026-08-15_2026-10-14/cmpu-upload-entity-state-change-distributions/aged-order-statistics.md][aged-state statistics]] show 318.79 hours, or 13.28 days, for the 52 currently ACCEPTED entities. Figure 4 measures creation to current state change, is not capped at cancellation, and includes 538 REVIEW_REQUIRED entities whose time to that state is not time spent waiting in review.
    - Action / done when: reconcile the stated median with the retained figure data. Compare upload and acceptance timestamps with each matched order's actual cancellation timestamp to report how many documents were submitted before cancellation but accepted afterward, versus submitted afterward or still unresolved. Define review entry, review completion and pending time separately; describe deadline timing as an association until an operational trace supports the cause. Do not attribute all aged cancellations to processing delays among this small observed-upload subset.
 
    :PROPERTIES:
@@ -1474,3 +1474,7 @@
     Updated target READMEs, generated HOWTO and ownership validation.
   - All 682 tests and 16 subtests, Ruff, SQLFluff, hierarchy/ownership and diff
     checks pass. No warehouse refresh or further PDF rebuild was needed.
+
+* DONE Move task and completion records into ai-workspace
+  - Moved todo.org and log.org under ai-workspace, updated AGENTS.md paths,
+    and adjusted relative Org file links for the new location.
