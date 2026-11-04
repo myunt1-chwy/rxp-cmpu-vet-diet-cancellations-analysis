@@ -9,3 +9,13 @@ Run =make aged-order-reorder-prescription-sankeys CACHED=1= to reuse retained in
 - =targets/aged-order-reorder-prescription-sankeys/src/sql/aged_order_reorder_prescription_sankeys.sql=
 
 Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.
+
+* Cohort definition
+The query derives selected same-pet reorder pairs with mature 7/14/21-day
+windows. Prescription and customer keys for the original and reordered lines
+come from database records before prescription-state evidence is joined.
+
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned =src/sql/= source;
+=make cohort-sql-review= renders the registered cohort queries and
+=make cohort-sql-check= lints them without warehouse access.

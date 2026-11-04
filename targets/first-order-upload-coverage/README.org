@@ -14,7 +14,6 @@ make first-order-upload-coverage REFRESH=1
 #+end_src
 Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
-Refresh limitation: The retained upload tables use frozen prescription/reason membership and upload snapshots. The new SQL derives membership from current database tables; coordinate a full cohort refresh and reconcile membership before replacing the historical report.
 
 * Inputs and dependencies
 Generator batch: =upload-coverage=, defined in =shared/analysis/pipelines.yaml=. The batch is shared by related paragraphs and runs once per make invocation.

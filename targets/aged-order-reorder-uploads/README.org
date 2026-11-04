@@ -9,3 +9,15 @@ Run =make aged-order-reorder-uploads CACHED=1= to reuse retained inputs. Existin
 - =targets/aged-order-reorder-uploads/src/sql/aged_order_reorder_uploads.sql=
 
 Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.
+
+* Cohort definition
+Upload enrichment requires exactly one populated prescription on each side
+of the eligible original/reorder pair, with different prescription IDs.
+Warehouse upload entities match both prescription and customer IDs. Preserve
+the query's upload cutoff and source audits. Expanding prescription IDs already
+stored in warehouse upload entities does not supply an external cohort.
+
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned =src/sql/= source;
+=make cohort-sql-review= renders the registered cohort queries and
+=make cohort-sql-check= lints them without warehouse access.

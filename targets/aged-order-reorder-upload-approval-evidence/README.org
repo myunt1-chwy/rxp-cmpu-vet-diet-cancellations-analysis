@@ -9,3 +9,14 @@ Run =make aged-order-reorder-upload-approval-evidence CACHED=1= to reuse retaine
 - =targets/aged-order-reorder-upload-approval-evidence/src/sql/aged_order_reorder_upload_approval_evidence.sql=
 
 Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.
+
+* Cohort definition
+Selected upload/decision evidence uses the selected same-pet 7/14/21-day
+reorder pairs. SQL derives prescription, customer and both physical order/line
+keys before joining upload and prescription-decision evidence. The query's
+upload cutoff and source consistency checks remain part of the definition.
+
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned =src/sql/= source;
+=make cohort-sql-review= renders the registered cohort queries and
+=make cohort-sql-check= lints them without warehouse access.

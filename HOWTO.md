@@ -1,64 +1,105 @@
 # Reproducing the analysis
 
-Run `make setup` to install the project environment and commit hooks. All commands below run from the repository root. Default target builds reuse cached data; `REFRESH=1` explicitly requests refresh where supported.
+Run `make setup` to install the project environment and commit hooks. All
+commands below run from the repository root. Default target builds reuse cached
+data; `REFRESH=1` explicitly requests refresh where supported.
 
-Checks: `make validate-analysis-structure`, `make validate-analysis-sources`, `make sql-lint`, and `make sql-lint-staged`. SQL formatting is available through `make sql-format SQL_PATH=<file>`. Warehouse queries use Snowflake; local audit templates declare their DuckDB dialect. No lint rules are disabled.
+Checks: `make validate-analysis-structure`, `make validate-analysis-sources`,
+`make sql-lint`, and `make sql-lint-staged`. SQL formatting is available through
+`make sql-format SQL_PATH=<file>`. Warehouse queries use Snowflake; local audit
+templates declare their DuckDB dialect. No lint rules are disabled.
 
-Retained standalone computations: `make opportunity-same-pet-part-auto-reorder CACHED=1`; `make opportunity-reorder-customer-counts` reproduces the retained 42-day order-frequency exports. These command sources and instructions are under their corresponding `targets/<command>/` directories.
+Retained standalone computations: `make opportunity-same-pet-part-auto-reorder
+CACHED=1`; `make opportunity-reorder-customer-counts` reproduces the retained
+42-day order-frequency exports. These command sources and instructions are under
+their corresponding `targets/<command>/` directories.
 
-## report: CMPU aged-order analysis
-
-
+CMPU aged-order analysis (`report`)
+---
 
 ### Ownership
 
-Target: `report`. Level: `document`.
-Parent: `None`.
-Ordered children: `executive-summary`, `next-steps`, `appendix`.
-
+Target: `report`. Level: `document`. Parent: `None`. Ordered children:
+`executive-summary`, `next-steps`, `appendix`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make report
 make report REPRO=1
 make report REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
-The report is a draft by default (FINAL=0). Use `make report FINAL=1` to omit the watermark and opening DRAFT text. REPRO=1 includes the target reproduction instructions. The published copy is `outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf`. Study-population and upload-coverage refreshes now use coordinated inputs with membership and status reconciliation. Full-report refresh and subsequent cached reproduction passed on November 4, 2026. Isolated staged publication remains a separate improvement.
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
+The report is a draft by default (FINAL=0). Use `make report FINAL=1` to omit
+the watermark and opening DRAFT text. REPRO=1 includes the target reproduction
+instructions. The published copy is
+`outputs/reports/pdf/phds-cmpu-aged-orders-analysis.pdf`. Study-population and
+upload-coverage refreshes now use coordinated inputs with membership and status
+reconciliation. Full-report refresh and subsequent cached reproduction passed on
+November 4, 2026. Isolated staged publication remains a separate improvement.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/report/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
-
+Generated content: `targets/report/outputs/latex/content.tex`. Data and outputs
+are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset
+paths to target-owned locations. Historical path strings are resolved by the
+registry; root filesystem aliases have been removed.
 
 ### Review database-derived cohort SQL
 
-`make cohort-sql-review` renders eleven self-contained cohort queries without
-warehouse access. `make cohort-sql-check` lints both their templates and rendered
-SQL with Snowflake defaults. Inputs are scalar dates/timezone; identifiers come
-from database CTEs. See `docs/database-derived-cohorts.org` for cohort definitions,
-key-set reconciliation and frozen-snapshot limitations. Cached builds identify
-historical replay explicitly; replay does not establish current warehouse totals.
+The registered cohort queries derive membership and matching keys from warehouse
+tables. Python supplies validated scalar dates and, where applicable, a contact
+timezone. Saved identifiers, row payloads and SQL fragments are not query
+inputs. Each query contains its cohort definition; Jinja defaults document study
+dates. Warehouse expansion of identifiers stored in upload entities remains
+valid.
 
+`make cohort-sql-review` renders executable SQL under each query owner's
+`src/autogenerated/`. `make cohort-sql-check` renders and lints both templates
+and rendered SQL. Neither command accesses the warehouse. The registered query
+list and canonical paths are in `shared/source-ownership.yaml`; cohort-specific
+matching and counting rules are in the owning targets' `README.org` files. `make
+validate-analysis-sources` checks ownership and rejects identifier-payload query
+templates.
+
+Fresh queries read current warehouse records: membership, statuses and reasons
+may differ from historical results. Exact historical re-extraction requires the
+original warehouse snapshot or history, not saved identifiers supplied to SQL.
+Identity, membership and source-fingerprint checks must pass before results are
+used. The full report refresh and cached replay succeeded November 4, 2026.
+
+Where supported by a consumer, `shared/retained-query-snapshots.yaml` permits
+explicit replay of named historical query/Parquet fingerprint pairs. The actual
+source bytes and cohort dependencies must still match. Historical replay emits a
+warning and does not relabel the metadata as a fresh extraction. This registry
+does not restore deleted source files or override coordinated-run checks.
 
 ### Python lint and formatting
 
-`make setup` installs Ruff and the repository pre-commit hook. The hook checks staged Python (.py and .pyi) for lint and formatting using the staged pyproject.toml configuration. It preserves both the index and unstaged edits; fix failures locally and stage the corrected files. SQLFluff checks remain enabled.
+`make setup` installs Ruff and the repository pre-commit hook. The hook checks
+staged Python (.py and .pyi) for lint and formatting using the staged
+pyproject.toml configuration. It preserves both the index and unstaged edits;
+fix failures locally and stage the corrected files. SQLFluff checks remain
+enabled.
 
 - `make python-lint` checks Python lint.
 - `make python-format` formats Python with a 79-column target.
@@ -66,42 +107,56 @@ historical replay explicitly; replay does not establish current warehouse totals
 - `make python-lint-staged` runs both staged Python checks.
 - Add `PYTHON_PATH=path/to/file.py` to scope the first three commands.
 
-Ruff's E501 rule checks overlong lines the formatter cannot wrap automatically. Long strings and comments may need manual wrapping; Ruff retains its standard exceptions for URLs, single words and pragma comments. See https://docs.astral.sh/ruff/rules/line-too-long/. Playground, generated, vendored skill and environment files are excluded. Maintained source files have been formatted. Staged files are checked on each commit. SQL formatting changes query fingerprints; retained manifests are not rewritten to pretend the new query was executed.
+Ruff's E501 rule checks overlong lines the formatter cannot wrap automatically.
+Long strings and comments may need manual wrapping; Ruff retains its standard
+exceptions for URLs, single words and pragma comments. See
+https://docs.astral.sh/ruff/rules/line-too-long/. Playground, generated,
+vendored skill and environment files are excluded. Maintained source files have
+been formatted. Staged files are checked on each commit. SQL formatting changes
+query fingerprints; retained manifests are not rewritten to pretend the new
+query was executed.
 
+### Shared Python ownership
 
-### Shared Python ownership audit
-
-See `docs/shared-python-audit.org` for the file-by-file review of all original shared/python modules. Analysis entry points now have target owners; shared/python contains reusable libraries and import compatibility only. Run `make validate-analysis-sources` to check this boundary and canonical source dependencies. Existing reproduction commands are preserved.
-
+Analysis entry points now have target owners; shared/python contains reusable
+libraries and import compatibility only. Run `make validate-analysis-sources` to
+check this boundary and canonical source dependencies. Existing reproduction
+commands are preserved.
 
 ### SQL line length
 
-SQLFluff explicitly sets `max_line_length = 80` in `.sqlfluff`. The existing `make sql-lint`, `make sql-format` and staged pre-commit checks use this limit for SQL and SQL templates. To work on one file, use `make sql-format SQL_PATH=path/to/query.sql` followed by `make sql-lint SQL_PATH=path/to/query.sql`.
+SQLFluff explicitly sets `max_line_length = 80` in `.sqlfluff`. The existing
+`make sql-lint`, `make sql-format` and staged pre-commit checks use this limit
+for SQL and SQL templates. To work on one file, use `make sql-format
+SQL_PATH=path/to/query.sql` followed by `make sql-lint
+SQL_PATH=path/to/query.sql`.
 
+### Source formatting and cached inputs
 
-### Source lint cleanup and retained snapshots
-
-Warehouse SQL uses Snowflake. Local audit templates declare DuckDB inline so
-its row counting, timestamp and bound-parameter syntax is checked correctly.
-SQLFluff checks 80-column SQL, including large queries; no rules are disabled.
-Ruff checks 79-column Python. Long report strings preserve their emitted bytes.
-
-The lint cleanup changes SQL and implementation fingerprints. The existing
-cached financial baseline therefore stops `make report` before rendering. No
-warehouse data has been refreshed and retained manifests have not been relabeled.
-See `docs/lint-cleanup-validation.org` for the validation record and completed
-migration-era test repairs. A report rebuild needs an explicitly reviewed snapshot
-transition or authorized refresh; refreshing historical cohorts may change results.
-
+Warehouse queries use Snowflake; local audit templates declare DuckDB
+explicitly. Formatting SQL changes its fingerprint. Cached consumers reject
+unknown query/data combinations; do not rewrite manifests to claim that a
+changed query was executed. Refresh explicitly when new SQL needs warehouse
+execution.
 
 ### Repository layout
 
-The root `src/` and `data/` directories are retired. Retained datasets and generated artifacts live under their target owners. Historical migration audits live in `targets/report/data/`; existing source/cache fingerprints are preserved. The former `src/ignore/` playground is now `playground/` and is excluded from maintained-code checks.
+The root `src/` and `data/` directories are retired. Retained datasets and
+generated artifacts live under their target owners. Historical migration audits
+live in `targets/report/data/`; existing source/cache fingerprints are
+preserved. The former `src/ignore/` playground is now `playground/` and is
+excluded from maintained-code checks.
 
-The report's retained LaTeX assembly fragments live in `targets/report/src/latex/retained/`. Paragraph adapters still read these fragments to reproduce the authoritative Org tables. Current authored target prose remains in each target's `src/latex/`. `make legacy-report` delegates to `make report`.
+The report's retained LaTeX assembly fragments live in
+`targets/report/src/latex/retained/`. Paragraph adapters still read these
+fragments to reproduce the authoritative Org tables. Current authored target
+prose remains in each target's `src/latex/`. `make legacy-report` delegates to
+`make report`.
 
-`make validate-analysis-sources validate-analysis-structure` checks ownership and the target graph. `make preview-target-report` renders retained presentation snapshots without warehouse access or replacing the published PDF. This preview does not certify the query cache or replace a successful `make report`.
-
+`make validate-analysis-sources validate-analysis-structure` checks ownership
+and the target graph. `make preview-target-report` renders retained presentation
+snapshots without warehouse access or replacing the published PDF. This preview
+does not certify the query cache or replace a successful `make report`.
 
 ### SQL execution history
 
@@ -109,230 +164,489 @@ The SQL runner records executed queries under ignored `.cache/sql-history/`.
 Legacy target-local history arguments are redirected there; execution logs are
 not committed. Reviewed SQL sources remain under their owning target.
 
-## executive-summary: Executive summary
+### How do I scaffold a paragraph, subsubsection or subsection?
 
+Run the scaffold command from the repository root with the unit level, a unique
+ID, the existing parent ID and the agreed question. Sections are not supported.
+The question is required, must occupy one line and must end with a question
+mark. IDs use lowercase words separated by hyphens.
 
+For example, these commands create a complete empty analysis subtree:
+
+```sh
+.venv/bin/python shared/analysis/scaffold.py subsection \
+  --id example-topic --parent appendix \
+  --question 'What explains the outcome?'
+.venv/bin/python shared/analysis/scaffold.py subsubsection \
+  --id example-detail --parent example-topic \
+  --question 'How does the outcome vary?'
+.venv/bin/python shared/analysis/scaffold.py paragraph \
+  --id example-result --parent example-detail \
+  --question 'How does the outcome vary by group?'
+```
+
+Use your own IDs and questions. A subsection requires `appendix` as parent; a
+subsubsection requires a subsection, and a paragraph requires a subsubsection.
+The command refuses existing paths and Make target names.
+
+It creates `target.yaml`, `Makefile`, `README.org` and `src/latex/body.tex`.
+Paragraphs also receive an empty `src/latex/visual.tex`. It appends the child to
+its parent's YAML children, Make prerequisites and LaTeX body, preserving the
+existing child order. Parent files are restored if creation fails.
+
+The generated Makefile lives at `targets/<id>/Makefile`. The root Makefile
+includes it automatically, so run `make <id>` from the repository root. For
+`example-result`, the generated recipe is:
+
+```makefile
+# Included by the root Makefile.
+.PHONY: example-result
+example-result:
+	$(PYTHON) shared/analysis/build_target.py example-result \
+		--refresh $(REFRESH) --repro $(REPRO) --final $(FINAL)
+```
+
+When a child is scaffolded, the command also adds a prerequisite rule to the
+parent's Makefile, such as `example-detail: example-result`. Make combines this
+with the parent's existing recipe, so children build before their parent. The
+generated Makefiles use root-defined variables and paths; invoke them through
+the root Makefile rather than running Make inside the target folder.
+
+The scaffold builds placeholder prose and has no data extraction or visual.
+Replace the prose and add analysis code and dependencies as described below. No
+warehouse queries or report publication run during scaffolding. To check the
+example subtree and regenerate the instructions:
+
+```sh
+make example-topic
+make validate-analysis-structure validate-analysis-sources
+make analysis-howto
+```
+
+### How do I add a new analysis unit?
+
+Use the hierarchy `report -> section -> subsection -> subsubsection ->
+paragraph`. Detailed analyses belong beneath `appendix`. Agree on the question
+first, then choose a stable descriptive ID without numbering. Examples below
+illustrate the wiring; replace their IDs and questions with the agreed ones.
+
+Every unit lives directly in `targets/<id>/` and owns `target.yaml`, `Makefile`,
+`README.org` and `src/latex/body.tex`. Create only the directories it needs. The
+root Makefile automatically includes `targets/*/Makefile`.
+
+For every new child, update three things in its immediate parent: the ordered
+`children` list in `target.yaml`, the Make target's prerequisites, and the
+`\AnalysisChild{child-id}` entries in `src/latex/body.tex`. Their order must
+match the metadata. Parent prose may appear before, between or after children.
+The renderer supplies headings from metadata; do not duplicate them in the body.
+
+### How do I add a paragraph?
+
+A paragraph answers one question with one prose paragraph and at most one
+figure, diagram or table. Choose an existing subsubsection as its parent, or
+create the missing parent levels using the instructions below.
+
+For example, create `targets/example-result/target.yaml`:
+
+```yaml
+id: example-result
+level: paragraph
+parent: example-detail
+children: []
+question: "How does the outcome vary by group?"
+shared_dependencies:
+  - analysis
+```
+
+Write the prose in `src/latex/body.tex` and create `src/latex/visual.tex`. The
+visual file is required even for a text-only paragraph; leave it empty in that
+case. For a figure or diagram, put its LaTeX inclusion in that file and have the
+build generate the referenced target-owned image first. Optional `images`
+metadata copies assets using repository-relative `source` and owner-relative
+`output` paths; omit it when no copying is needed.
+
+Create a Makefile using a literal tab before recipe lines:
+
+```makefile
+.PHONY: example-result
+example-result:
+	$(PYTHON) shared/analysis/build_target.py example-result \
+		--refresh $(REFRESH) --repro $(REPRO) --final $(FINAL)
+```
+
+A text-only paragraph needs no extraction pipeline. For computed results, add
+the appropriate `analysis-pipeline-<name>` prerequisite and `pipeline: <name>`
+metadata. Reuse an existing pipeline when it supplies the required inputs. For a
+new pipeline, register commands and data owners in
+`shared/analysis/pipelines.yaml` and its Make recipe in
+`shared/analysis/Makefile`. Follow the existing `run_pipeline.py` invocation,
+include it in refresh preflight prerequisites, and declare upstream pipelines as
+real Make prerequisites so shared extraction runs once. Register separate
+`refresh_commands` if refresh requires different steps. Do not force cached
+execution in a refresh recipe.
+
+Keep Python and SQL under the paragraph's `src/python/` and `src/sql/`. Declare
+`sources`, `code_dependencies`, `shared_dependencies` and `data_dependencies` as
+appropriate. Register canonical SQL and shared import compatibility in
+`shared/source-ownership.yaml` when using those interfaces. Add
+`shared/artifact-ownership.yaml` mappings only for legacy artifact routing. SQL
+must derive cohorts itself and accept scalar parameters. Write data under
+`data/`, figures under `outputs/figures/`, diagrams under `outputs/diagrams/`
+and authoritative Org tables under `outputs/tables/`. Generated source belongs
+in `src/autogenerated/`; keep generated files out of Git.
+
+Tables need an explicit rendering path. The existing
+`shared/analysis/paragraph_artifacts.py` adapter detects `table-layout.json`,
+reads the current table at `migration.source`, matches the label in
+`src/latex/visual.tex`, and uses `table_columns` metadata to export and read
+back `outputs/tables/table.org`. See `targets/cancellation-sales-baseline/` for
+this existing pattern. Do not copy its migration source or labels unchanged. A
+new Org-first generator must render its visual from the Org data and wire that
+output into the build; metadata alone does not create a table generator.
+
+Finally, link the paragraph into its parent in all three places described above
+and document its inputs, commands, outputs and limitations in README.org.
+
+### How do I add a subsubsection?
+
+Choose a subsection parent, such as `financial-impact`. Create a flat target
+folder with `level: subsubsection`, that parent's ID, the agreed `question`,
+`shared_dependencies: [analysis]` and an ordered list of paragraph `children`.
+Use `targets/estimated-sales-loss/` as the assembly example.
+
+The Make target depends on every child and then calls `build_target.py`:
+
+```makefile
+.PHONY: example-detail
+example-detail: example-result
+	$(PYTHON) shared/analysis/build_target.py example-detail \
+		--refresh $(REFRESH) --repro $(REPRO) --final $(FINAL)
+```
+
+Its `src/latex/body.tex` includes children in metadata order:
+
+```latex
+\AnalysisChild{example-result}
+```
+
+Add the subsubsection to its subsection parent's metadata, Make prerequisites
+and LaTeX body. Keep computations and visuals in the paragraph children.
+
+### How do I add a subsection?
+
+Follow the same parent assembly pattern with `level: subsection`, `parent:
+appendix` and subsubsection IDs as ordered `children`. Use
+`targets/financial-impact/` as the example. Create its README, Makefile and
+LaTeX body, then add its ID to the Appendix's metadata, Make prerequisites and
+LaTeX body. Do not skip the subsubsection level when attaching paragraphs.
+
+### How do I add a section?
+
+The current report contract fixes three sections: `executive-summary`,
+`next-steps` and `appendix`. New detailed analysis goes in an Appendix
+subsection using the preceding instructions.
+
+If the report design explicitly changes to require another section, create a
+flat target with `level: section`, `parent: report`, an agreed question and
+subsection children. Use `targets/appendix/` as the assembly pattern. Update
+`analysis.yaml` sections and `targets/report/target.yaml` children in the same
+order, and add the section to the report Make prerequisites. Report assembly
+reads this list directly; do not edit generated `main.tex`.
+
+Also revise the fixed-section contract in `shared/analysis/graph.py` and its
+relevant tests and documentation. Simply adding a folder or editing YAML will
+fail validation while that contract still requires exactly three sections.
+
+### How do I check and document the new unit?
+
+Write reproduction instructions in the new target's `README.org`; do not edit
+HOWTO directly. Include the question, input owners, dependencies, parameters,
+cached and explicit refresh commands, output paths and limitations. Use Org
+source blocks for commands and keep their lines within 80 columns.
+
+Run these commands from the repository root, replacing `example-result`:
+
+```sh
+make validate-analysis-structure validate-analysis-sources
+make analysis-howto
+make example-result REFRESH=0
+make report REFRESH=0 FINAL=0
+make report REFRESH=0 REPRO=1 FINAL=0
+make report REFRESH=0 REPRO=0 FINAL=0
+git diff --check
+```
+
+Check the new unit and its ancestors in the PDF: question headings, ordering,
+prose and the one-visual limit. The REPRO build checks that instructions appear;
+the last build restores the normal draft. If new or changed warehouse inputs are
+needed, run `make report REFRESH=1 FINAL=0` for a coordinated refresh, then
+repeat cached replay. A default build must not silently query the warehouse. Run
+relevant Python tests, Ruff and SQLFluff when adding code or SQL, and check that
+missing or outdated caches produce an actionable refresh error.
+
+Executive summary (`executive-summary`)
+---
 
 ### Ownership
 
-Target: `executive-summary`. Level: `section`.
-Parent: `report`.
-Ordered children: none.
-
+Target: `executive-summary`. Level: `section`. Parent: `report`. Ordered
+children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make executive-summary
 make executive-summary REPRO=1
 make executive-summary REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/executive-summary/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content: `targets/executive-summary/outputs/latex/content.tex`. Data
+and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## next-steps: What are the next steps?
-
-
+What are the next steps? (`next-steps`)
+---
 
 ### Ownership
 
-Target: `next-steps`. Level: `section`.
-Parent: `report`.
-Ordered children: none.
-
+Target: `next-steps`. Level: `section`. Parent: `report`. Ordered children:
+none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make next-steps
 make next-steps REPRO=1
 make next-steps REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/next-steps/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content: `targets/next-steps/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## appendix: Appendix
-
-
+Appendix (`appendix`)
+---
 
 ### Ownership
 
-Target: `appendix`. Level: `section`.
-Parent: `report`.
-Ordered children: `financial-impact`, `customer-contact-patterns`, `upload-processing-delays`, `aged-order-risk`, `data-verification`.
-
+Target: `appendix`. Level: `section`. Parent: `report`. Ordered children:
+`financial-impact`, `customer-contact-patterns`, `upload-processing-delays`,
+`aged-order-risk`, `data-verification`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make appendix
 make appendix REPRO=1
 make appendix REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/appendix/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content: `targets/appendix/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## financial-impact: What is the financial impact of CMPU aged orders?
-
-
+What is the financial impact of CMPU aged orders? (`financial-impact`)
+---
 
 ### Ownership
 
-Target: `financial-impact`. Level: `subsection`.
-Parent: `appendix`.
-Ordered children: `estimated-sales-loss`, `same-pet-product-returns`, `same-pet-other-product-returns`, `any-vet-diet-returns`, `any-chewy-returns`.
-
+Target: `financial-impact`. Level: `subsection`. Parent: `appendix`. Ordered
+children: `estimated-sales-loss`, `same-pet-product-returns`,
+`same-pet-other-product-returns`, `any-vet-diet-returns`, `any-chewy-returns`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make financial-impact
 make financial-impact REPRO=1
 make financial-impact REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/financial-impact/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content: `targets/financial-impact/outputs/latex/content.tex`. Data
+and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## estimated-sales-loss: What is the estimated net sales lost from CMPU aged orders?
-
-
+What is the estimated net sales lost from CMPU aged orders?
+(`estimated-sales-loss`)
+---
 
 ### Ownership
 
-Target: `estimated-sales-loss`. Level: `subsubsection`.
-Parent: `financial-impact`.
-Ordered children: `cancellation-sales-baseline`.
-
+Target: `estimated-sales-loss`. Level: `subsubsection`. Parent:
+`financial-impact`. Ordered children: `cancellation-sales-baseline`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make estimated-sales-loss
 make estimated-sales-loss REPRO=1
 make estimated-sales-loss REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
 Generated content: `targets/estimated-sales-loss/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## cancellation-sales-baseline: How do customer counts, order counts, and estimated net sales vary by cancellation reason and line-item status?
-
-
+How do customer counts, order counts, and estimated net sales vary by
+cancellation reason and line-item status? (`cancellation-sales-baseline`)
+---
 
 ### Ownership
 
-Target: `cancellation-sales-baseline`. Level: `paragraph`.
-Parent: `estimated-sales-loss`.
-Ordered children: none.
-
+Target: `cancellation-sales-baseline`. Level: `paragraph`. Parent:
+`estimated-sales-loss`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make cancellation-sales-baseline
 make cancellation-sales-baseline REPRO=1
 make cancellation-sales-baseline REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `financial-baseline`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
-- `make opportunity-order-cancellation-summary WRITE_LATEX=1 DATE_BASIS=shipped-or-cancelled CACHED=1`
+Generator batch: `financial-baseline`, defined in
+`shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and
+runs once per make invocation. Existing generator commands (the batch explicitly
+sets CACHED=1 by default):
+
+- `make opportunity-order-cancellation-summary WRITE_LATEX=1
+  DATE_BASIS=shipped-or-cancelled CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/cancellation-sales-baseline/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
-- `targets/cancellation-sales-baseline/src/sql/create_opportunity_order_cancellation_summary-query-1.sql.j2`
-- `targets/cancellation-sales-baseline/src/sql/opportunity_order_cancellation_summary.sql`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
+- `create_opportunity_order_cancellation_summary-query-1.sql.j2` (in
+  `targets/cancellation-sales-baseline/src/sql/`)
+- `opportunity_order_cancellation_summary.sql` (in
+  `targets/cancellation-sales-baseline/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -342,479 +656,618 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/cancellation-sales-baseline/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/cancellation-sales-baseline/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## same-pet-product-returns: What percentage of customers come back and place a successful vet diet order for the same pet and part number after an aged order in the next 70 days?
-
-
+What percentage of customers come back and place a successful vet diet order for
+the same pet and part number after an aged order in the next 70 days?
+(`same-pet-product-returns`)
+---
 
 ### Ownership
 
-Target: `same-pet-product-returns`. Level: `subsubsection`.
-Parent: `financial-impact`.
-Ordered children: `same-pet-product-return-comparison`.
-
+Target: `same-pet-product-returns`. Level: `subsubsection`. Parent:
+`financial-impact`. Ordered children: `same-pet-product-return-comparison`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make same-pet-product-returns
 make same-pet-product-returns REPRO=1
 make same-pet-product-returns REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
 Generated content: `targets/same-pet-product-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## same-pet-product-return-comparison: How do same-pet, same-product return rates and net sales compare across the three customer cohorts over 70 days?
-
-
+How do same-pet, same-product return rates and net sales compare across the
+three customer cohorts over 70 days? (`same-pet-product-return-comparison`)
+---
 
 ### Ownership
 
-Target: `same-pet-product-return-comparison`. Level: `paragraph`.
-Parent: `same-pet-product-returns`.
-Ordered children: none.
-
+Target: `same-pet-product-return-comparison`. Level: `paragraph`. Parent:
+`same-pet-product-returns`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make same-pet-product-return-comparison
 make same-pet-product-return-comparison REPRO=1
 make same-pet-product-return-comparison REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `financial-returns`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
+Generator batch: `financial-returns`, defined in
+`shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and
+runs once per make invocation. Existing generator commands (the batch explicitly
+sets CACHED=1 by default):
+
 - `make opportunity-follow-up-sales CACHED=1`
 - `make opportunity-new-upload-customer-follow-up CACHED=1`
 - `make opportunity-new-vet-diet-customer-follow-up CACHED=1`
 - `make combined-follow-up-table CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/cancellation-sales-baseline/data/`
 - `targets/same-pet-product-return-comparison/data/`
 - `targets/any-chewy-return-comparison/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/same-pet-product-return-comparison/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/same-pet-product-return-comparison/outputs/latex/content.tex`. Tables
+are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-The financial-returns refresh first regenerates the first CUSTOMER_UPLOAD vet-diet and first vet-diet customer cohorts. Both follow-up families then validate those cohort fingerprints before extracting outcomes; cached replay performs no cohort extraction.
+The financial-returns refresh first regenerates the first CUSTOMER_UPLOAD
+vet-diet and first vet-diet customer cohorts. Both follow-up families then
+validate those cohort fingerprints before extracting outcomes; cached replay
+performs no cohort extraction.
 
-## same-pet-other-product-returns: What percentage of customers come back and place a successful order for the same pet but different product after an aged order in the next 70 days?
-
-
+What percentage of customers come back and place a successful order for the same
+pet but different product after an aged order in the next 70 days?
+(`same-pet-other-product-returns`)
+---
 
 ### Ownership
 
-Target: `same-pet-other-product-returns`. Level: `subsubsection`.
-Parent: `financial-impact`.
-Ordered children: `same-pet-other-product-return-comparison`.
-
+Target: `same-pet-other-product-returns`. Level: `subsubsection`. Parent:
+`financial-impact`. Ordered children:
+`same-pet-other-product-return-comparison`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make same-pet-other-product-returns
 make same-pet-other-product-returns REPRO=1
 make same-pet-other-product-returns REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/same-pet-other-product-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/same-pet-other-product-returns/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## same-pet-other-product-return-comparison: How do same-pet, different-product return rates and net sales compare across the three customer cohorts over 70 days?
-
-
+How do same-pet, different-product return rates and net sales compare across the
+three customer cohorts over 70 days?
+(`same-pet-other-product-return-comparison`)
+---
 
 ### Ownership
 
-Target: `same-pet-other-product-return-comparison`. Level: `paragraph`.
-Parent: `same-pet-other-product-returns`.
-Ordered children: none.
-
+Target: `same-pet-other-product-return-comparison`. Level: `paragraph`. Parent:
+`same-pet-other-product-returns`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make same-pet-other-product-return-comparison
 make same-pet-other-product-return-comparison REPRO=1
 make same-pet-other-product-return-comparison REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `financial-returns`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
+Generator batch: `financial-returns`, defined in
+`shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and
+runs once per make invocation. Existing generator commands (the batch explicitly
+sets CACHED=1 by default):
+
 - `make opportunity-follow-up-sales CACHED=1`
 - `make opportunity-new-upload-customer-follow-up CACHED=1`
 - `make opportunity-new-vet-diet-customer-follow-up CACHED=1`
 - `make combined-follow-up-table CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/cancellation-sales-baseline/data/`
 - `targets/same-pet-product-return-comparison/data/`
 - `targets/any-chewy-return-comparison/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/same-pet-other-product-return-comparison/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/same-pet-other-product-return-comparison/outputs/latex/content.tex`.
+Tables are exported to `outputs/tables/table.org` and read back to assemble
+LaTeX. The compatibility adapter retains cell formatting from the validated
+legacy renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## any-vet-diet-returns: What percentage of customers place a successful vet diet order after an aged order in the next 70 days?
-
-
+What percentage of customers place a successful vet diet order after an aged
+order in the next 70 days? (`any-vet-diet-returns`)
+---
 
 ### Ownership
 
-Target: `any-vet-diet-returns`. Level: `subsubsection`.
-Parent: `financial-impact`.
-Ordered children: `any-vet-diet-return-comparison`.
-
+Target: `any-vet-diet-returns`. Level: `subsubsection`. Parent:
+`financial-impact`. Ordered children: `any-vet-diet-return-comparison`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make any-vet-diet-returns
 make any-vet-diet-returns REPRO=1
 make any-vet-diet-returns REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
 Generated content: `targets/any-vet-diet-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## any-vet-diet-return-comparison: How do successful vet-diet return rates and net sales compare across the three customer cohorts over 70 days?
-
-
+How do successful vet-diet return rates and net sales compare across the three
+customer cohorts over 70 days? (`any-vet-diet-return-comparison`)
+---
 
 ### Ownership
 
-Target: `any-vet-diet-return-comparison`. Level: `paragraph`.
-Parent: `any-vet-diet-returns`.
-Ordered children: none.
-
+Target: `any-vet-diet-return-comparison`. Level: `paragraph`. Parent:
+`any-vet-diet-returns`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make any-vet-diet-return-comparison
 make any-vet-diet-return-comparison REPRO=1
 make any-vet-diet-return-comparison REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `financial-returns`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
+Generator batch: `financial-returns`, defined in
+`shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and
+runs once per make invocation. Existing generator commands (the batch explicitly
+sets CACHED=1 by default):
+
 - `make opportunity-follow-up-sales CACHED=1`
 - `make opportunity-new-upload-customer-follow-up CACHED=1`
 - `make opportunity-new-vet-diet-customer-follow-up CACHED=1`
 - `make combined-follow-up-table CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/cancellation-sales-baseline/data/`
 - `targets/same-pet-product-return-comparison/data/`
 - `targets/any-chewy-return-comparison/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/any-vet-diet-return-comparison/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/any-vet-diet-return-comparison/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## any-chewy-returns: What percentage of customers place a Chewy order successfully in the following 70 days after their aged order?
-
-
+What percentage of customers place a Chewy order successfully in the following
+70 days after their aged order? (`any-chewy-returns`)
+---
 
 ### Ownership
 
-Target: `any-chewy-returns`. Level: `subsubsection`.
-Parent: `financial-impact`.
+Target: `any-chewy-returns`. Level: `subsubsection`. Parent: `financial-impact`.
 Ordered children: `any-chewy-return-comparison`.
-
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make any-chewy-returns
 make any-chewy-returns REPRO=1
 make any-chewy-returns REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/any-chewy-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content: `targets/any-chewy-returns/outputs/latex/content.tex`. Data
+and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## any-chewy-return-comparison: How do successful Chewy return rates and net sales compare across the three customer cohorts over 70 days?
-
-
+How do successful Chewy return rates and net sales compare across the three
+customer cohorts over 70 days? (`any-chewy-return-comparison`)
+---
 
 ### Ownership
 
-Target: `any-chewy-return-comparison`. Level: `paragraph`.
-Parent: `any-chewy-returns`.
-Ordered children: none.
-
+Target: `any-chewy-return-comparison`. Level: `paragraph`. Parent:
+`any-chewy-returns`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make any-chewy-return-comparison
 make any-chewy-return-comparison REPRO=1
 make any-chewy-return-comparison REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `financial-returns`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
+Generator batch: `financial-returns`, defined in
+`shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and
+runs once per make invocation. Existing generator commands (the batch explicitly
+sets CACHED=1 by default):
+
 - `make opportunity-follow-up-sales CACHED=1`
 - `make opportunity-new-upload-customer-follow-up CACHED=1`
 - `make opportunity-new-vet-diet-customer-follow-up CACHED=1`
 - `make combined-follow-up-table CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/cancellation-sales-baseline/data/`
 - `targets/same-pet-product-return-comparison/data/`
 - `targets/any-chewy-return-comparison/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/any-chewy-return-comparison/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/any-chewy-return-comparison/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## customer-contact-patterns: What is the contact pattern of CMPU aged order customers?
-
-
+What is the contact pattern of CMPU aged order customers?
+(`customer-contact-patterns`)
+---
 
 ### Ownership
 
-Target: `customer-contact-patterns`. Level: `subsection`.
-Parent: `appendix`.
-Ordered children: `contacts-by-cancellation-reason`, `contact-timing`, `contact-frequency`, `contact-frequency-and-returns`, `contact-proximity-and-returns`.
-
+Target: `customer-contact-patterns`. Level: `subsection`. Parent: `appendix`.
+Ordered children: `contacts-by-cancellation-reason`, `contact-timing`,
+`contact-frequency`, `contact-frequency-and-returns`,
+`contact-proximity-and-returns`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make customer-contact-patterns
 make customer-contact-patterns REPRO=1
 make customer-contact-patterns REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/customer-contact-patterns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/customer-contact-patterns/outputs/latex/content.tex`. Data and outputs
+are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset
+paths to target-owned locations. Historical path strings are resolved by the
+registry; root filesystem aliases have been removed.
 
-## contacts-by-cancellation-reason: What is the distribution of CMPU customers with APPROVAL CHANNEL = CUSTOMER\_UPLOAD that contacted Chewy by cancellation reason?
-
-
+What is the distribution of CMPU customers with APPROVAL CHANNEL =
+CUSTOMER\_UPLOAD that contacted Chewy by cancellation reason?
+(`contacts-by-cancellation-reason`)
+---
 
 ### Ownership
 
-Target: `contacts-by-cancellation-reason`. Level: `subsubsection`.
-Parent: `customer-contact-patterns`.
-Ordered children: `contact-cancellation-distribution`.
-
+Target: `contacts-by-cancellation-reason`. Level: `subsubsection`. Parent:
+`customer-contact-patterns`. Ordered children:
+`contact-cancellation-distribution`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make contacts-by-cancellation-reason
 make contacts-by-cancellation-reason REPRO=1
 make contacts-by-cancellation-reason REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/contacts-by-cancellation-reason/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/contacts-by-cancellation-reason/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## contact-cancellation-distribution: What proportion of customers contacted Chewy for each order cancellation reason?
-
-
+What proportion of customers contacted Chewy for each order cancellation reason?
+(`contact-cancellation-distribution`)
+---
 
 ### Ownership
 
-Target: `contact-cancellation-distribution`. Level: `paragraph`.
-Parent: `contacts-by-cancellation-reason`.
-Ordered children: none.
-
+Target: `contact-cancellation-distribution`. Level: `paragraph`. Parent:
+`contacts-by-cancellation-reason`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make contact-cancellation-distribution
 make contact-cancellation-distribution REPRO=1
 make contact-cancellation-distribution REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `contact-reasons`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `contact-reasons`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make opportunity-customer-contacts-by-cancel-reason HANDLED_ONLY=0 CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/cancellation-sales-baseline/data/`
 - `targets/contact-cancellation-distribution/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/contact-cancellation-distribution/src/python/create_opportunity_contacts_by_cancel_reason.py`
-- `targets/contact-cancellation-distribution/src/sql/opportunity_customer_contacts_by_cancel_reason.sql`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_opportunity_contacts_by_cancel_reason.py` (in
+  `targets/contact-cancellation-distribution/src/python/`)
+- `opportunity_customer_contacts_by_cancel_reason.sql` (in
+  `targets/contact-cancellation-distribution/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -824,505 +1277,667 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/contact-cancellation-distribution/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/contact-cancellation-distribution/outputs/latex/content.tex`. Tables
+are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## contact-timing: When did the CMPU aged order customers contact Chewy relative to the cancellation date?
-
-
+When did the CMPU aged order customers contact Chewy relative to the
+cancellation date? (`contact-timing`)
+---
 
 ### Ownership
 
-Target: `contact-timing`. Level: `subsubsection`.
-Parent: `customer-contact-patterns`.
-Ordered children: `contact-days-relative-to-cancellation`.
-
+Target: `contact-timing`. Level: `subsubsection`. Parent:
+`customer-contact-patterns`. Ordered children:
+`contact-days-relative-to-cancellation`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make contact-timing
 make contact-timing REPRO=1
 make contact-timing REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/contact-timing/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content: `targets/contact-timing/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## contact-days-relative-to-cancellation: How many customers contacted Chewy on each day relative to aged-order cancellation?
-
-
+How many customers contacted Chewy on each day relative to aged-order
+cancellation? (`contact-days-relative-to-cancellation`)
+---
 
 ### Ownership
 
-Target: `contact-days-relative-to-cancellation`. Level: `paragraph`.
-Parent: `contact-timing`.
-Ordered children: none.
-
+Target: `contact-days-relative-to-cancellation`. Level: `paragraph`. Parent:
+`contact-timing`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make contact-days-relative-to-cancellation
 make contact-days-relative-to-cancellation REPRO=1
 make contact-days-relative-to-cancellation REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `contacts`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `contacts`, defined in `shared/analysis/pipelines.yaml`. The
+batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make opportunity-aged-customer-contacts HANDLED_ONLY=0 CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/cancellation-sales-baseline/data/`
 - `targets/contact-days-relative-to-cancellation/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/contact-days-relative-to-cancellation/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
-
+Generated content:
+`targets/contact-days-relative-to-cancellation/outputs/latex/content.tex`.
+Tables are exported to `outputs/tables/table.org` and read back to assemble
+LaTeX. The compatibility adapter retains cell formatting from the validated
+legacy renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
 ### Additional target-owned source
 
-- `targets/contact-days-relative-to-cancellation/src/sql/opportunity_aged_customer_contacts.sql`
+- `opportunity_aged_customer_contacts.sql` (in
+  `targets/contact-days-relative-to-cancellation/src/sql/`)
 
-## contact-frequency: What was the frequency of contacting Chewy for CMPU aged order customers?
-
-
+What was the frequency of contacting Chewy for CMPU aged order customers?
+(`contact-frequency`)
+---
 
 ### Ownership
 
-Target: `contact-frequency`. Level: `subsubsection`.
-Parent: `customer-contact-patterns`.
-Ordered children: `customer-contact-day-frequency`.
-
+Target: `contact-frequency`. Level: `subsubsection`. Parent:
+`customer-contact-patterns`. Ordered children: `customer-contact-day-frequency`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make contact-frequency
 make contact-frequency REPRO=1
 make contact-frequency REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/contact-frequency/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content: `targets/contact-frequency/outputs/latex/content.tex`. Data
+and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## customer-contact-day-frequency: How many distinct days did aged-order customers contact Chewy?
-
-
+How many distinct days did aged-order customers contact Chewy?
+(`customer-contact-day-frequency`)
+---
 
 ### Ownership
 
-Target: `customer-contact-day-frequency`. Level: `paragraph`.
-Parent: `contact-frequency`.
-Ordered children: none.
-
+Target: `customer-contact-day-frequency`. Level: `paragraph`. Parent:
+`contact-frequency`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make customer-contact-day-frequency
 make customer-contact-day-frequency REPRO=1
 make customer-contact-day-frequency REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `contacts`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `contacts`, defined in `shared/analysis/pipelines.yaml`. The
+batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make opportunity-aged-customer-contacts HANDLED_ONLY=0 CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/cancellation-sales-baseline/data/`
 - `targets/contact-days-relative-to-cancellation/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/customer-contact-day-frequency/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/customer-contact-day-frequency/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## contact-frequency-and-returns: Does more frequent contact imply higher propensity to re-order successfully for the same pet and part number in 14 days?
-
-
+Does more frequent contact imply higher propensity to re-order successfully for
+the same pet and part number in 14 days? (`contact-frequency-and-returns`)
+---
 
 ### Ownership
 
-Target: `contact-frequency-and-returns`. Level: `subsubsection`.
-Parent: `customer-contact-patterns`.
-Ordered children: `return-rates-by-contact-frequency`.
-
+Target: `contact-frequency-and-returns`. Level: `subsubsection`. Parent:
+`customer-contact-patterns`. Ordered children:
+`return-rates-by-contact-frequency`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make contact-frequency-and-returns
 make contact-frequency-and-returns REPRO=1
 make contact-frequency-and-returns REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/contact-frequency-and-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/contact-frequency-and-returns/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## return-rates-by-contact-frequency: How do 14-day same-pet, same-product return rates vary with contact-day frequency?
-
-
+How do 14-day same-pet, same-product return rates vary with contact-day
+frequency? (`return-rates-by-contact-frequency`)
+---
 
 ### Ownership
 
-Target: `return-rates-by-contact-frequency`. Level: `paragraph`.
-Parent: `contact-frequency-and-returns`.
-Ordered children: none.
-
+Target: `return-rates-by-contact-frequency`. Level: `paragraph`. Parent:
+`contact-frequency-and-returns`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make return-rates-by-contact-frequency
 make return-rates-by-contact-frequency REPRO=1
 make return-rates-by-contact-frequency REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `contact-frequency`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
-- `make opportunity-contact-frequency-reorders FOLLOWUP_DAYS=14 HANDLED_ONLY=0 CACHED=1`
+Generator batch: `contact-frequency`, defined in
+`shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and
+runs once per make invocation. Existing generator commands (the batch explicitly
+sets CACHED=1 by default):
+
+- `make opportunity-contact-frequency-reorders FOLLOWUP_DAYS=14 HANDLED_ONLY=0
+  CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/contact-days-relative-to-cancellation/data/`
 - `targets/return-rates-by-contact-frequency/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/return-rates-by-contact-frequency/src/python/create_opportunity_contact_frequency_reorders.py`
-- `targets/return-rates-by-contact-frequency/src/sql/create_opportunity_contact_frequency_reorders-query-1.sql.j2`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_opportunity_contact_frequency_reorders.py` (in
+  `targets/return-rates-by-contact-frequency/src/python/`)
+- `create_opportunity_contact_frequency_reorders-query-1.sql.j2` (in
+  `targets/return-rates-by-contact-frequency/src/sql/`)
 
 Imported analysis dependencies:
-- `targets/contact-days-relative-to-cancellation/src/python/create_opportunity_aged_customer_contacts.py`
-- `targets/opportunity-aged-reorders/src/python/create_opportunity_aged_reorders.py`
+
+- `create_opportunity_aged_customer_contacts.py` (in
+  `targets/contact-days-relative-to-cancellation/src/python/`)
+- `create_opportunity_aged_reorders.py` (in
+  `targets/opportunity-aged-reorders/src/python/`)
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 - `shared/python/__init__.py`
-- `targets/contact-days-relative-to-cancellation/src/python/create_opportunity_aged_customer_contacts.py`
-- `targets/opportunity-aged-reorders/src/python/create_opportunity_aged_reorders.py`
+- `create_opportunity_aged_customer_contacts.py` (in
+  `targets/contact-days-relative-to-cancellation/src/python/`)
+- `create_opportunity_aged_reorders.py` (in
+  `targets/opportunity-aged-reorders/src/python/`)
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/return-rates-by-contact-frequency/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/return-rates-by-contact-frequency/outputs/latex/content.tex`. Tables
+are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## contact-proximity-and-returns: Does contact closer to cancellation imply higher propensity to re-order successfully in 14 days for the same pet and part number?
-
-
+Does contact closer to cancellation imply higher propensity to re-order
+successfully in 14 days for the same pet and part number?
+(`contact-proximity-and-returns`)
+---
 
 ### Ownership
 
-Target: `contact-proximity-and-returns`. Level: `subsubsection`.
-Parent: `customer-contact-patterns`.
-Ordered children: `return-rates-by-contact-window`.
-
+Target: `contact-proximity-and-returns`. Level: `subsubsection`. Parent:
+`customer-contact-patterns`. Ordered children: `return-rates-by-contact-window`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make contact-proximity-and-returns
 make contact-proximity-and-returns REPRO=1
 make contact-proximity-and-returns REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/contact-proximity-and-returns/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/contact-proximity-and-returns/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## return-rates-by-contact-window: How do 14-day same-pet, same-product return rates compare for customers contacting on days -7 through +3 and other customers?
-
-
+How do 14-day same-pet, same-product return rates compare for customers
+contacting on days -7 through +3 and other customers?
+(`return-rates-by-contact-window`)
+---
 
 ### Ownership
 
-Target: `return-rates-by-contact-window`. Level: `paragraph`.
-Parent: `contact-proximity-and-returns`.
-Ordered children: none.
-
+Target: `return-rates-by-contact-window`. Level: `paragraph`. Parent:
+`contact-proximity-and-returns`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make return-rates-by-contact-window
 make return-rates-by-contact-window REPRO=1
 make return-rates-by-contact-window REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `contact-window`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `contact-window`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make opportunity-contact-window-reorders CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/return-rates-by-contact-frequency/data/`
 - `targets/return-rates-by-contact-window/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/return-rates-by-contact-window/src/python/create_opportunity_contact_window_reorders.py`
-- `targets/return-rates-by-contact-window/src/sql/create_opportunity_contact_window_reorders-query-1.sql.j2`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_opportunity_contact_window_reorders.py` (in
+  `targets/return-rates-by-contact-window/src/python/`)
+- `create_opportunity_contact_window_reorders-query-1.sql.j2` (in
+  `targets/return-rates-by-contact-window/src/sql/`)
 
 Imported analysis dependencies:
-- `targets/contact-days-relative-to-cancellation/src/python/create_opportunity_aged_customer_contacts.py`
-- `targets/opportunity-aged-reorders/src/python/create_opportunity_aged_reorders.py`
-- `targets/study-population-counts/src/python/create_study_population_report_tables.py`
+
+- `create_opportunity_aged_customer_contacts.py` (in
+  `targets/contact-days-relative-to-cancellation/src/python/`)
+- `create_opportunity_aged_reorders.py` (in
+  `targets/opportunity-aged-reorders/src/python/`)
+- `create_study_population_report_tables.py` (in
+  `targets/study-population-counts/src/python/`)
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
-- `targets/return-rates-by-contact-frequency/src/python/create_opportunity_contact_frequency_reorders.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
+- `create_opportunity_contact_frequency_reorders.py` (in
+  `targets/return-rates-by-contact-frequency/src/python/`)
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 - `shared/python/__init__.py`
-- `targets/contact-days-relative-to-cancellation/src/python/create_opportunity_aged_customer_contacts.py`
-- `targets/opportunity-aged-reorders/src/python/create_opportunity_aged_reorders.py`
-- `targets/study-population-counts/src/python/create_study_population_report_tables.py`
+- `create_opportunity_aged_customer_contacts.py` (in
+  `targets/contact-days-relative-to-cancellation/src/python/`)
+- `create_opportunity_aged_reorders.py` (in
+  `targets/opportunity-aged-reorders/src/python/`)
+- `create_study_population_report_tables.py` (in
+  `targets/study-population-counts/src/python/`)
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/return-rates-by-contact-window/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/return-rates-by-contact-window/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## upload-processing-delays: What are the delays in processing uploaded prescriptions?
-
-
+What are the delays in processing uploaded prescriptions?
+(`upload-processing-delays`)
+---
 
 ### Ownership
 
-Target: `upload-processing-delays`. Level: `subsection`.
-Parent: `appendix`.
-Ordered children: `study-population-context`, `prescription-upload-coverage`, `customer-upload-delay`, `upload-processing-time`, `accepted-upload-approval-time`.
-
+Target: `upload-processing-delays`. Level: `subsection`. Parent: `appendix`.
+Ordered children: `study-population-context`, `prescription-upload-coverage`,
+`customer-upload-delay`, `upload-processing-time`,
+`accepted-upload-approval-time`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make upload-processing-delays
 make upload-processing-delays REPRO=1
 make upload-processing-delays REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
 Generated content: `targets/upload-processing-delays/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## study-population-context: Which prescriptions, orders, customers, and uploads are included in the study?
-
-
+Which prescriptions, orders, customers, and uploads are included in the study?
+(`study-population-context`)
+---
 
 ### Ownership
 
-Target: `study-population-context`. Level: `subsubsection`.
-Parent: `upload-processing-delays`.
-Ordered children: `study-population-counts`, `study-prescription-decisions`, `study-order-cancellation-sales`, `first-order-upload-status-flow`.
-
+Target: `study-population-context`. Level: `subsubsection`. Parent:
+`upload-processing-delays`. Ordered children: `study-population-counts`,
+`study-prescription-decisions`, `study-order-cancellation-sales`,
+`first-order-upload-status-flow`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make study-population-context
 make study-population-context REPRO=1
 make study-population-context REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
 Generated content: `targets/study-population-context/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## study-population-counts: How many prescriptions, orders, lines, customers, and uploaded documents are in each study population?
-
-
+How many prescriptions, orders, lines, customers, and uploaded documents are in
+each study population? (`study-population-counts`)
+---
 
 ### Ownership
 
-Target: `study-population-counts`. Level: `paragraph`.
-Parent: `study-population-context`.
-Ordered children: none.
-
+Target: `study-population-counts`. Level: `paragraph`. Parent:
+`study-population-context`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make study-population-counts
 make study-population-counts REPRO=1
 make study-population-counts REFRESH=1
 ```
-Default builds reuse retained source data and rerun validation and presentation. `REFRESH=1` runs the study-population extraction workflow: the first-order population, decision evidence, uploaded-document associations, and financial evidence are refreshed with the existing study windows and cutoffs. The extracts are separate warehouse queries, not one warehouse snapshot. The workflow records one refresh-run ID and checks membership, customer/order keys, cancellation reasons, and financial membership before rendering.
 
+Default builds reuse retained source data and rerun validation and presentation.
+`REFRESH=1` runs the study-population extraction workflow: the first-order
+population, decision evidence, uploaded-document associations, and financial
+evidence are refreshed with the existing study windows and cutoffs. The extracts
+are separate warehouse queries, not one warehouse snapshot. The workflow records
+one refresh-run ID and checks membership, customer/order keys, cancellation
+reasons, and financial membership before rendering.
 
 ### Inputs and dependencies
 
-Generator batch: `study-population`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-The shared `study-population` pipeline runs once for the population paragraphs. Its refresh sequence is `study-population-refresh-inputs`, `prescription-cohort-order-comparison`, then `study-population-tables`. The first-order status query is regenerated with the same run ID before the other population extracts.
+Generator batch: `study-population`, defined in
+`shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and
+runs once per make invocation. The shared `study-population` pipeline runs once
+for the population paragraphs. Its refresh sequence is
+`study-population-refresh-inputs`, `prescription-cohort-order-comparison`, then
+`study-population-tables`. The first-order status query is regenerated with the
+same run ID before the other population extracts.
 
 Retained input folders and ownership:
+
 - `targets/first-order-upload-status-flow/data/`
 - `targets/study-population-counts/data/`
 - `targets/study-prescription-decisions/data/`
 - `targets/study-order-cancellation-sales/data/`
 
-The study window remains August 15 through October 14, 2026 UTC; upload creation remains August 1 through October 25 inclusive; aged cancellation remains through October 27, 2026 at 00:00 UTC. A failed membership or evidence reconciliation stops the pipeline.
-- `targets/study-population-counts/src/python/refresh_study_population_inputs.py`
-- `targets/study-population-counts/src/sql/refresh_study_population_uploaded_documents.sql.j2`
-- `targets/study-prescription-decisions/src/sql/refresh_study_population_prescription_decisions.sql.j2`
-- `targets/study-population-counts/src/python/summarize_study_population_uploaded_documents.py`
-- `targets/study-population-counts/src/sql/cmpu_study_population_uploaded_documents.sql`
-- `targets/study-population-counts/src/sql/summarize_study_population_uploaded_documents-query-1.sql.j2`
+The study window remains August 15 through October 14, 2026 UTC; upload creation
+remains August 1 through October 25 inclusive; aged cancellation remains through
+October 27, 2026 at 00:00 UTC. A failed membership or evidence reconciliation
+stops the pipeline.
+
+- `refresh_study_population_inputs.py` (in
+  `targets/study-population-counts/src/python/`)
+- `refresh_study_population_uploaded_documents.sql.j2` (in
+  `targets/study-population-counts/src/sql/`)
+- `refresh_study_population_prescription_decisions.sql.j2` (in
+  `targets/study-prescription-decisions/src/sql/`)
+- `summarize_study_population_uploaded_documents.py` (in
+  `targets/study-population-counts/src/python/`)
+- `cmpu_study_population_uploaded_documents.sql` (in
+  `targets/study-population-counts/src/sql/`)
+- `summarize_study_population_uploaded_documents-query-1.sql.j2` (in
+  `targets/study-population-counts/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/upload_entities.py` and `shared/runtime.py`
 - `shared/python/markdown_tables.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -1332,57 +1947,79 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
 Generated content: `targets/study-population-counts/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Tables are exported to `outputs/tables/table.org` and read back to assemble
+LaTeX. The compatibility adapter retains cell formatting from the validated
+legacy renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## study-prescription-decisions: How are prescription approval decisions distributed across the study populations?
-
-
+How are prescription approval decisions distributed across the study
+populations? (`study-prescription-decisions`)
+---
 
 ### Ownership
 
-Target: `study-prescription-decisions`. Level: `paragraph`.
-Parent: `study-population-context`.
-Ordered children: none.
-
+Target: `study-prescription-decisions`. Level: `paragraph`. Parent:
+`study-population-context`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make study-prescription-decisions
 make study-prescription-decisions REPRO=1
 make study-prescription-decisions REFRESH=1
 ```
-Default builds reuse the validated population inputs. `REFRESH=1` runs the shared `study-population` pipeline, which refreshes the first-order population, decision evidence, uploaded-document associations, and financial evidence with one run ID. These are separate warehouse queries; the workflow does not claim a shared warehouse snapshot. Membership, customer, both first-order keys, and cancellation reasons are reconciled before presentation.
 
+Default builds reuse the validated population inputs. `REFRESH=1` runs the
+shared `study-population` pipeline, which refreshes the first-order population,
+decision evidence, uploaded-document associations, and financial evidence with
+one run ID. These are separate warehouse queries; the workflow does not claim a
+shared warehouse snapshot. Membership, customer, both first-order keys, and
+cancellation reasons are reconciled before presentation.
 
 ### Inputs and dependencies
 
-Generator batch: `study-population`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-The shared `study-population` pipeline is defined in `shared/analysis/pipelines.yaml` and runs once for the population paragraphs.
+Generator batch: `study-population`, defined in
+`shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and
+runs once per make invocation. The shared `study-population` pipeline is defined
+in `shared/analysis/pipelines.yaml` and runs once for the population paragraphs.
 
 Retained input folders and ownership:
+
 - `targets/first-order-upload-status-flow/data/`
 - `targets/study-population-counts/data/`
 - `targets/study-prescription-decisions/data/`
 - `targets/study-order-cancellation-sales/data/`
 
-The prescription window remains August 15 through October 14, 2026 UTC; the aged-cancellation cutoff remains October 27, 2026 at 00:00 UTC. Run manifests record dates, SQL hashes, source hashes, extraction times, and the shared run ID.
-- `targets/study-prescription-decisions/src/sql/refresh_study_population_prescription_decisions.sql.j2`
-- `targets/study-prescription-decisions/src/python/summarize_study_population_prescription_decisions.py`
-- `targets/study-prescription-decisions/src/sql/cmpu_study_population_prescription_decisions.sql`
-- `targets/study-prescription-decisions/src/sql/summarize_study_population_prescription_decisions-query-1.sql.j2`
+The prescription window remains August 15 through October 14, 2026 UTC; the
+aged-cancellation cutoff remains October 27, 2026 at 00:00 UTC. Run manifests
+record dates, SQL hashes, source hashes, extraction times, and the shared run
+ID.
+
+- `refresh_study_population_prescription_decisions.sql.j2` (in
+  `targets/study-prescription-decisions/src/sql/`)
+- `summarize_study_population_prescription_decisions.py` (in
+  `targets/study-prescription-decisions/src/python/`)
+- `cmpu_study_population_prescription_decisions.sql` (in
+  `targets/study-prescription-decisions/src/sql/`)
+- `summarize_study_population_prescription_decisions-query-1.sql.j2` (in
+  `targets/study-prescription-decisions/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/upload_entities.py` and `shared/runtime.py`
 - `shared/python/markdown_tables.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -1392,57 +2029,78 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/study-prescription-decisions/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/study-prescription-decisions/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## study-order-cancellation-sales: How do cancellation reasons, order counts, and net sales compare between first orders and all linked orders?
-
-
+How do cancellation reasons, order counts, and net sales compare between first
+orders and all linked orders? (`study-order-cancellation-sales`)
+---
 
 ### Ownership
 
-Target: `study-order-cancellation-sales`. Level: `paragraph`.
-Parent: `study-population-context`.
-Ordered children: none.
-
+Target: `study-order-cancellation-sales`. Level: `paragraph`. Parent:
+`study-population-context`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make study-order-cancellation-sales
 make study-order-cancellation-sales REPRO=1
 make study-order-cancellation-sales REFRESH=1
 ```
-Default builds replay the validated extract and derived membership. `REFRESH=1` derives prescription and first-order membership in SQL and fetches current shipment/line evidence. Its first-order key set is reconciled to the first-order population refreshed by the shared `study-population` pipeline. Study dates and the October 27, 2026 00:00 UTC aged cutoff remain unchanged.
 
+Default builds replay the validated extract and derived membership. `REFRESH=1`
+derives prescription and first-order membership in SQL and fetches current
+shipment/line evidence. Its first-order key set is reconciled to the first-order
+population refreshed by the shared `study-population` pipeline. Study dates and
+the October 27, 2026 00:00 UTC aged cutoff remain unchanged.
 
 ### Inputs and dependencies
 
-Generator batch: `study-population`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-The shared `study-population` pipeline runs this extraction and the population summaries once per make invocation.
+Generator batch: `study-population`, defined in
+`shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and
+runs once per make invocation. The shared `study-population` pipeline runs this
+extraction and the population summaries once per make invocation.
 
 Retained input folders and ownership:
+
 - `targets/first-order-upload-status-flow/data/`
 - `targets/study-population-counts/data/`
 - `targets/study-prescription-decisions/data/`
 - `targets/study-order-cancellation-sales/data/`
 
-The cohort uses CMPU vet-diet CUSTOMER_UPLOAD prescriptions created August 15 through October 14, 2026 UTC. SQL derives prescription and first-order membership; it does not load saved identifier lists.
-- `targets/study-order-cancellation-sales/src/python/summarize_prescription_cohort_order_comparison.py`
-- `targets/study-order-cancellation-sales/src/sql/prescription_cohort_order_sales.sql`
-- `targets/study-order-cancellation-sales/src/sql/summarize_prescription_cohort_order_comparison-query-1.sql.j2`
+The cohort uses CMPU vet-diet CUSTOMER_UPLOAD prescriptions created August 15
+through October 14, 2026 UTC. SQL derives prescription and first-order
+membership; it does not load saved identifier lists.
+
+- `summarize_prescription_cohort_order_comparison.py` (in
+  `targets/study-order-cancellation-sales/src/python/`)
+- `prescription_cohort_order_sales.sql` (in
+  `targets/study-order-cancellation-sales/src/sql/`)
+- `summarize_prescription_cohort_order_comparison-query-1.sql.j2` (in
+  `targets/study-order-cancellation-sales/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -1452,53 +2110,88 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/study-order-cancellation-sales/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/study-order-cancellation-sales/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## first-order-upload-status-flow: How do first-order line statuses relate to accepted prescription uploads?
+### Cohort definition
 
+SQL derives the prescription creation cohort, converts numeric first-order item
+IDs to line keys, and selects both first-order keys and all linked vet-diet
+lines matching prescription and customer. Physical order/line keys are unioned
+and deduplicated before shipment evidence is selected. Sales retain the
+shipment-level source grain; shipment aggregation and distinct physical
+line/order counts are validated before presentation.
 
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned `src/sql/` source; `make
+cohort-sql-review` renders the registered cohort queries and `make
+cohort-sql-check` lints them without warehouse access.
+
+How do first-order line statuses relate to accepted prescription uploads?
+(`first-order-upload-status-flow`)
+---
 
 ### Ownership
 
-Target: `first-order-upload-status-flow`. Level: `paragraph`.
-Parent: `study-population-context`.
-Ordered children: none.
-
+Target: `first-order-upload-status-flow`. Level: `paragraph`. Parent:
+`study-population-context`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make first-order-upload-status-flow
 make first-order-upload-status-flow REPRO=1
 make first-order-upload-status-flow REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `first-order-status`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
+Generator batch: `first-order-status`, defined in
+`shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and
+runs once per make invocation. Existing generator commands (the batch explicitly
+sets CACHED=1 by default):
+
 - `make cmpu-first-order-line-status CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/first-order-upload-status-flow/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/first-order-upload-status-flow/src/python/create_cmpu_first_order_line_status.py`
-- `targets/first-order-upload-status-flow/src/sql/cmpu_first_order_line_status.sql`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_cmpu_first_order_line_status.py` (in
+  `targets/first-order-upload-status-flow/src/python/`)
+- `cmpu_first_order_line_status.sql` (in
+  `targets/first-order-upload-status-flow/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/runtime.py`, `shared/prescription_uploads.py` and `shared/sankey.py`
 - `shared/python/markdown_tables.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -1508,90 +2201,112 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/first-order-upload-status-flow/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
-
+Generated content:
+`targets/first-order-upload-status-flow/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
 ### Prescription-status source ownership
 
 The prescription-level generator and its query belong to this target:
+
 - `src/python/create_cmpu_prescription_first_order_status.py`
 - `src/sql/cmpu_prescription_first_order_status.sql`
 
-The line-status generator calls `shared/prescription_uploads.py` for source validation and normalization, `shared/runtime.py` for paths and file fingerprints, and `shared/sankey.py` for diagram rendering. It no longer imports the prescription-level generator or runs that generator's grouping logic just to validate input. The historical Python module name remains available through the source registry. The existing target Make command still builds the line-status analysis used in the report.
+The line-status generator calls `shared/prescription_uploads.py` for source
+validation and normalization, `shared/runtime.py` for paths and file
+fingerprints, and `shared/sankey.py` for diagram rendering. It no longer imports
+the prescription-level generator or runs that generator's grouping logic just to
+validate input. The historical Python module name remains available through the
+source registry. The existing target Make command still builds the line-status
+analysis used in the report.
 
-## prescription-upload-coverage: What is the percentage of prescription upload?
-
-
+What is the percentage of prescription upload? (`prescription-upload-coverage`)
+---
 
 ### Ownership
 
-Target: `prescription-upload-coverage`. Level: `subsubsection`.
-Parent: `upload-processing-delays`.
-Ordered children: `first-order-upload-coverage`, `no-recorded-cancellation-upload-statuses`, `aged-line-upload-statuses`.
-
+Target: `prescription-upload-coverage`. Level: `subsubsection`. Parent:
+`upload-processing-delays`. Ordered children: `first-order-upload-coverage`,
+`no-recorded-cancellation-upload-statuses`, `aged-line-upload-statuses`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make prescription-upload-coverage
 make prescription-upload-coverage REPRO=1
 make prescription-upload-coverage REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/prescription-upload-coverage/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/prescription-upload-coverage/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## first-order-upload-coverage: What proportion of first-order lines have prescription uploads by cancellation reason and line-item status?
-
-
+What proportion of first-order lines have prescription uploads by cancellation
+reason and line-item status? (`first-order-upload-coverage`)
+---
 
 ### Ownership
 
-Target: `first-order-upload-coverage`. Level: `paragraph`.
-Parent: `prescription-upload-coverage`.
-Ordered children: none.
-
+Target: `first-order-upload-coverage`. Level: `paragraph`. Parent:
+`prescription-upload-coverage`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make first-order-upload-coverage
 make first-order-upload-coverage REPRO=1
 make first-order-upload-coverage REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
-Refresh limitation: The retained upload tables use frozen prescription/reason membership and upload snapshots. The new SQL derives membership from current database tables; coordinate a full cohort refresh and reconcile membership before replacing the historical report.
-
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `upload-coverage`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `upload-coverage`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make study-upload-tables CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/first-order-upload-status-flow/data/`
 - `targets/study-population-counts/data/`
 - `targets/study-prescription-decisions/data/`
@@ -1599,18 +2314,29 @@ Retained input folders and ownership:
 - `targets/no-recorded-cancellation-upload-statuses/data/`
 - `targets/aged-line-upload-statuses/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/first-order-upload-coverage/src/python/create_study_upload_coverage_by_cancel_reason.py`
-- `targets/first-order-upload-coverage/src/sql/create_study_upload_coverage_by_cancel_reason-query-1.sql.j2`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_study_upload_coverage_by_cancel_reason.py` (in
+  `targets/first-order-upload-coverage/src/python/`)
+- `create_study_upload_coverage_by_cancel_reason-query-1.sql.j2` (in
+  `targets/first-order-upload-coverage/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/upload_entities.py` and `shared/runtime.py`
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
-- `targets/study-prescription-decisions/src/python/summarize_study_population_prescription_decisions.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
+- `summarize_study_population_prescription_decisions.py` (in
+  `targets/study-prescription-decisions/src/python/`)
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -1621,62 +2347,70 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/first-order-upload-coverage/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
-
+Generated content:
+`targets/first-order-upload-coverage/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
 ### Coordinated coverage refresh
 
 Run `make first-order-upload-coverage REFRESH=1` to refresh the population,
-upload associations, and shared status evidence before building the tables.
-The status query derives all eligible CUSTOMER_UPLOAD first-order lines in SQL;
-it accepts scalar dates only and runs once for both status-detail tables.
-Every extracted identity, customer, cancellation reason, prescription status,
-order status, and line status must reconcile with the refreshed population.
-Distinct shipment rows are aggregated; duplicate shipment keys fail validation.
+upload associations, and shared status evidence before building the tables. The
+status query derives all eligible CUSTOMER_UPLOAD first-order lines in SQL; it
+accepts scalar dates only and runs once for both status-detail tables. Every
+extracted identity, customer, cancellation reason, prescription status, order
+status, and line status must reconcile with the refreshed population. Distinct
+shipment rows are aggregated; duplicate shipment keys fail validation.
 
 Coverage inherits the population run identifier and records input and SQL hashes
-and extraction time. Separate queries are not a single warehouse snapshot.
-A mismatch stops the build before either status subset is installed.
-`make study-upload-tables` replays validated inputs without warehouse access.
-Empty status subgroups produce zero totals. Study dates, upload discovery dates,
-and the aged-cancellation cutoff remain unchanged.
+and extraction time. Separate queries are not a single warehouse snapshot. A
+mismatch stops the build before either status subset is installed. `make
+study-upload-tables` replays validated inputs without warehouse access. Empty
+status subgroups produce zero totals. Study dates, upload discovery dates, and
+the aged-cancellation cutoff remain unchanged.
 
-## no-recorded-cancellation-upload-statuses: How do prescription, order, and line-item statuses vary by upload coverage when no cancellation reason is recorded?
-
-
+How do prescription, order, and line-item statuses vary by upload coverage when
+no cancellation reason is recorded? (`no-recorded-cancellation-upload-statuses`)
+---
 
 ### Ownership
 
-Target: `no-recorded-cancellation-upload-statuses`. Level: `paragraph`.
-Parent: `prescription-upload-coverage`.
-Ordered children: none.
-
+Target: `no-recorded-cancellation-upload-statuses`. Level: `paragraph`. Parent:
+`prescription-upload-coverage`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make no-recorded-cancellation-upload-statuses
 make no-recorded-cancellation-upload-statuses REPRO=1
 make no-recorded-cancellation-upload-statuses REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
-Refresh limitation: The retained upload tables use frozen prescription/reason membership and upload snapshots. The new SQL derives membership from current database tables; coordinate a full cohort refresh and reconcile membership before replacing the historical report.
-
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `upload-coverage`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `upload-coverage`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make study-upload-tables CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/first-order-upload-status-flow/data/`
 - `targets/study-population-counts/data/`
 - `targets/study-prescription-decisions/data/`
@@ -1684,20 +2418,33 @@ Retained input folders and ownership:
 - `targets/no-recorded-cancellation-upload-statuses/data/`
 - `targets/aged-line-upload-statuses/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/no-recorded-cancellation-upload-statuses/src/python/create_study_no_cancellation_upload_details.py`
-- `targets/no-recorded-cancellation-upload-statuses/src/sql/create_study_no_cancellation_upload_details-query-1.sql.j2`
-- `targets/no-recorded-cancellation-upload-statuses/src/sql/study_no_cancellation_upload_details.sql`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_study_no_cancellation_upload_details.py` (in
+  `targets/no-recorded-cancellation-upload-statuses/src/python/`)
+- `create_study_no_cancellation_upload_details-query-1.sql.j2` (in
+  `targets/no-recorded-cancellation-upload-statuses/src/sql/`)
+- `study_no_cancellation_upload_details.sql` (in
+  `targets/no-recorded-cancellation-upload-statuses/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/upload_entities.py` and `shared/runtime.py`
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
-- `targets/first-order-upload-coverage/src/python/create_study_upload_coverage_by_cancel_reason.py`
-- `targets/study-prescription-decisions/src/python/summarize_study_population_prescription_decisions.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
+- `create_study_upload_coverage_by_cancel_reason.py` (in
+  `targets/first-order-upload-coverage/src/python/`)
+- `summarize_study_population_prescription_decisions.py` (in
+  `targets/study-prescription-decisions/src/python/`)
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -1708,62 +2455,86 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/no-recorded-cancellation-upload-statuses/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
-
+Generated content:
+`targets/no-recorded-cancellation-upload-statuses/outputs/latex/content.tex`.
+Tables are exported to `outputs/tables/table.org` and read back to assemble
+LaTeX. The compatibility adapter retains cell formatting from the validated
+legacy renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
 ### Coordinated coverage refresh
 
 Run `make first-order-upload-coverage REFRESH=1` to refresh the population,
-upload associations, and shared status evidence before building the tables.
-The status query derives all eligible CUSTOMER_UPLOAD first-order lines in SQL;
-it accepts scalar dates only and runs once for both status-detail tables.
-Every extracted identity, customer, cancellation reason, prescription status,
-order status, and line status must reconcile with the refreshed population.
-Distinct shipment rows are aggregated; duplicate shipment keys fail validation.
+upload associations, and shared status evidence before building the tables. The
+status query derives all eligible CUSTOMER_UPLOAD first-order lines in SQL; it
+accepts scalar dates only and runs once for both status-detail tables. Every
+extracted identity, customer, cancellation reason, prescription status, order
+status, and line status must reconcile with the refreshed population. Distinct
+shipment rows are aggregated; duplicate shipment keys fail validation.
 
 Coverage inherits the population run identifier and records input and SQL hashes
-and extraction time. Separate queries are not a single warehouse snapshot.
-A mismatch stops the build before either status subset is installed.
-`make study-upload-tables` replays validated inputs without warehouse access.
-Empty status subgroups produce zero totals. Study dates, upload discovery dates,
-and the aged-cancellation cutoff remain unchanged.
+and extraction time. Separate queries are not a single warehouse snapshot. A
+mismatch stops the build before either status subset is installed. `make
+study-upload-tables` replays validated inputs without warehouse access. Empty
+status subgroups produce zero totals. Study dates, upload discovery dates, and
+the aged-cancellation cutoff remain unchanged.
 
-## aged-line-upload-statuses: How do prescription, order, and line-item statuses vary by upload coverage for aged orders?
+### Cohort definition
 
+The shared status query derives all matched CUSTOMER_UPLOAD study prescriptions
+and numeric first-order-item keys from the warehouse. It matches both
+first-order keys and customer, then aggregates shipment evidence while retaining
+customer/status/reason variant counts and duplicate-shipment checks. It extracts
+all eligible reasons, so the same validated extraction serves both status-detail
+tables. The no-recorded-reason table selects null/blank reasons only after exact
+reconciliation with the coverage population. The aged table uses the
+population's aged subset and its unchanged cancellation cutoff.
 
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned `src/sql/` source; `make
+cohort-sql-review` renders the registered cohort queries and `make
+cohort-sql-check` lints them without warehouse access.
+
+How do prescription, order, and line-item statuses vary by upload coverage for
+aged orders? (`aged-line-upload-statuses`)
+---
 
 ### Ownership
 
-Target: `aged-line-upload-statuses`. Level: `paragraph`.
-Parent: `prescription-upload-coverage`.
-Ordered children: none.
-
+Target: `aged-line-upload-statuses`. Level: `paragraph`. Parent:
+`prescription-upload-coverage`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make aged-line-upload-statuses
 make aged-line-upload-statuses REPRO=1
 make aged-line-upload-statuses REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
-Refresh limitation: The retained upload tables use frozen prescription/reason membership and upload snapshots. The new SQL derives membership from current database tables; coordinate a full cohort refresh and reconcile membership before replacing the historical report.
-
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `upload-coverage`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `upload-coverage`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make study-upload-tables CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/first-order-upload-status-flow/data/`
 - `targets/study-population-counts/data/`
 - `targets/study-prescription-decisions/data/`
@@ -1771,19 +2542,31 @@ Retained input folders and ownership:
 - `targets/no-recorded-cancellation-upload-statuses/data/`
 - `targets/aged-line-upload-statuses/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/aged-line-upload-statuses/src/python/create_study_aged_order_upload_coverage.py`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_study_aged_order_upload_coverage.py` (in
+  `targets/aged-line-upload-statuses/src/python/`)
 
 Imported analysis dependencies:
+
 - `shared/upload_entities.py` and `shared/runtime.py`
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
-- `targets/first-order-upload-coverage/src/python/create_study_upload_coverage_by_cancel_reason.py`
-- `targets/no-recorded-cancellation-upload-statuses/src/python/create_study_no_cancellation_upload_details.py`
-- `targets/study-prescription-decisions/src/python/summarize_study_population_prescription_decisions.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
+- `create_study_upload_coverage_by_cancel_reason.py` (in
+  `targets/first-order-upload-coverage/src/python/`)
+- `create_study_no_cancellation_upload_details.py` (in
+  `targets/no-recorded-cancellation-upload-statuses/src/python/`)
+- `summarize_study_population_prescription_decisions.py` (in
+  `targets/study-prescription-decisions/src/python/`)
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -1794,108 +2577,133 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/aged-line-upload-statuses/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
-
+Generated content:
+`targets/aged-line-upload-statuses/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
 ### Coordinated coverage refresh
 
 Run `make first-order-upload-coverage REFRESH=1` to refresh the population,
-upload associations, and shared status evidence before building the tables.
-The status query derives all eligible CUSTOMER_UPLOAD first-order lines in SQL;
-it accepts scalar dates only and runs once for both status-detail tables.
-Every extracted identity, customer, cancellation reason, prescription status,
-order status, and line status must reconcile with the refreshed population.
-Distinct shipment rows are aggregated; duplicate shipment keys fail validation.
+upload associations, and shared status evidence before building the tables. The
+status query derives all eligible CUSTOMER_UPLOAD first-order lines in SQL; it
+accepts scalar dates only and runs once for both status-detail tables. Every
+extracted identity, customer, cancellation reason, prescription status, order
+status, and line status must reconcile with the refreshed population. Distinct
+shipment rows are aggregated; duplicate shipment keys fail validation.
 
 Coverage inherits the population run identifier and records input and SQL hashes
-and extraction time. Separate queries are not a single warehouse snapshot.
-A mismatch stops the build before either status subset is installed.
-`make study-upload-tables` replays validated inputs without warehouse access.
-Empty status subgroups produce zero totals. Study dates, upload discovery dates,
-and the aged-cancellation cutoff remain unchanged.
+and extraction time. Separate queries are not a single warehouse snapshot. A
+mismatch stops the build before either status subset is installed. `make
+study-upload-tables` replays validated inputs without warehouse access. Empty
+status subgroups produce zero totals. Study dates, upload discovery dates, and
+the aged-cancellation cutoff remain unchanged.
 
-## customer-upload-delay: How long do customers wait to upload a prescription?
-
-
+How long do customers wait to upload a prescription? (`customer-upload-delay`)
+---
 
 ### Ownership
 
-Target: `customer-upload-delay`. Level: `subsubsection`.
-Parent: `upload-processing-delays`.
-Ordered children: `upload-delay-from-order-creation`.
-
+Target: `customer-upload-delay`. Level: `subsubsection`. Parent:
+`upload-processing-delays`. Ordered children:
+`upload-delay-from-order-creation`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make customer-upload-delay
 make customer-upload-delay REPRO=1
 make customer-upload-delay REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
 Generated content: `targets/customer-upload-delay/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## upload-delay-from-order-creation: How does time from order creation to upload compare between all study uploads and aged-order uploads?
-
-
+How does time from order creation to upload compare between all study uploads
+and aged-order uploads? (`upload-delay-from-order-creation`)
+---
 
 ### Ownership
 
-Target: `upload-delay-from-order-creation`. Level: `paragraph`.
-Parent: `customer-upload-delay`.
-Ordered children: none.
-
+Target: `upload-delay-from-order-creation`. Level: `paragraph`. Parent:
+`customer-upload-delay`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make upload-delay-from-order-creation
 make upload-delay-from-order-creation REPRO=1
 make upload-delay-from-order-creation REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `upload-creation`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `upload-creation`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make cmpu-upload-entity-order-creation-distributions CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/upload-delay-from-order-creation/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/upload-delay-from-order-creation/src/python/create_cmpu_upload_entity_order_creation_distributions.py`
-- `targets/upload-delay-from-order-creation/src/sql/cmpu_upload_entity_order_creation_distributions.sql`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_cmpu_upload_entity_order_creation_distributions.py` (in
+  `targets/upload-delay-from-order-creation/src/python/`)
+- `cmpu_upload_entity_order_creation_distributions.sql` (in
+  `targets/upload-delay-from-order-creation/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/upload_entities.py` and `shared/runtime.py`
 - `shared/python/markdown_tables.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -1905,230 +2713,303 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/upload-delay-from-order-creation/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/upload-delay-from-order-creation/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## upload-processing-time: How long does it take for an uploaded prescription to be ready for approval?
-
-
+How long does it take for an uploaded prescription to be ready for approval?
+(`upload-processing-time`)
+---
 
 ### Ownership
 
-Target: `upload-processing-time`. Level: `subsubsection`.
-Parent: `upload-processing-delays`.
-Ordered children: `all-upload-state-change-delays`, `aged-upload-state-change-delays`.
-
+Target: `upload-processing-time`. Level: `subsubsection`. Parent:
+`upload-processing-delays`. Ordered children: `all-upload-state-change-delays`,
+`aged-upload-state-change-delays`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make upload-processing-time
 make upload-processing-time REPRO=1
 make upload-processing-time REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
 Generated content: `targets/upload-processing-time/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## all-upload-state-change-delays: How long does it take study uploads to reach their recorded states?
-
-
+How long does it take study uploads to reach their recorded states?
+(`all-upload-state-change-delays`)
+---
 
 ### Ownership
 
-Target: `all-upload-state-change-delays`. Level: `paragraph`.
-Parent: `upload-processing-time`.
-Ordered children: none.
-
+Target: `all-upload-state-change-delays`. Level: `paragraph`. Parent:
+`upload-processing-time`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make all-upload-state-change-delays
 make all-upload-state-change-delays REPRO=1
 make all-upload-state-change-delays REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `upload-state`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `upload-state`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make cmpu-upload-entity-state-change-distributions CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/all-upload-state-change-delays/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/all-upload-state-change-delays/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
-
+Generated content:
+`targets/all-upload-state-change-delays/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
 ### Additional target-owned source
 
-- `targets/all-upload-state-change-delays/src/sql/cmpu_upload_entity_state_change_distributions.sql`
-
+- `cmpu_upload_entity_state_change_distributions.sql` (in
+  `targets/all-upload-state-change-delays/src/sql/`)
 
 ### Source ownership
 
-This target owns `src/python/create_cmpu_upload_entity_state_change_distributions.py` and `src/sql/cmpu_upload_entity_state_change_distributions.sql`. The generator produces the full-study and aged-order plots consumed by the two paragraph targets.
+This target owns
+`src/python/create_cmpu_upload_entity_state_change_distributions.py` and
+`src/sql/cmpu_upload_entity_state_change_distributions.sql`. The generator
+produces the full-study and aged-order plots consumed by the two paragraph
+targets.
 
-Other analyses import `shared/upload_entities.py` for date parameters and entity/association validation, `shared/duration_plots.py` for duration statistics and boxplots, and `shared/runtime.py` for file fingerprints. They no longer import this generator. Cached builds retain the existing recorded source-identity checks; this split does not refresh warehouse data.
+Other analyses import `shared/upload_entities.py` for date parameters and
+entity/association validation, `shared/duration_plots.py` for duration
+statistics and boxplots, and `shared/runtime.py` for file fingerprints. They no
+longer import this generator. Cached builds retain the existing recorded
+source-identity checks; this split does not refresh warehouse data.
 
-## aged-upload-state-change-delays: How long does it take aged-order uploads to reach their recorded states?
-
-
+How long does it take aged-order uploads to reach their recorded states?
+(`aged-upload-state-change-delays`)
+---
 
 ### Ownership
 
-Target: `aged-upload-state-change-delays`. Level: `paragraph`.
-Parent: `upload-processing-time`.
-Ordered children: none.
-
+Target: `aged-upload-state-change-delays`. Level: `paragraph`. Parent:
+`upload-processing-time`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make aged-upload-state-change-delays
 make aged-upload-state-change-delays REPRO=1
 make aged-upload-state-change-delays REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `upload-state`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `upload-state`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make cmpu-upload-entity-state-change-distributions CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/all-upload-state-change-delays/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/aged-upload-state-change-delays/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/aged-upload-state-change-delays/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## accepted-upload-approval-time: How long does it take for an accepted prescription document to get approved?
-
-
+How long does it take for an accepted prescription document to get approved?
+(`accepted-upload-approval-time`)
+---
 
 ### Ownership
 
-Target: `accepted-upload-approval-time`. Level: `subsubsection`.
-Parent: `upload-processing-delays`.
-Ordered children: `accepted-upload-approval-delay`.
-
+Target: `accepted-upload-approval-time`. Level: `subsubsection`. Parent:
+`upload-processing-delays`. Ordered children: `accepted-upload-approval-delay`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make accepted-upload-approval-time
 make accepted-upload-approval-time REPRO=1
 make accepted-upload-approval-time REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/accepted-upload-approval-time/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/accepted-upload-approval-time/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## accepted-upload-approval-delay: How long after an accepted upload is the prescription approved?
-
-
+How long after an accepted upload is the prescription approved?
+(`accepted-upload-approval-delay`)
+---
 
 ### Ownership
 
-Target: `accepted-upload-approval-delay`. Level: `paragraph`.
-Parent: `accepted-upload-approval-time`.
-Ordered children: none.
-
+Target: `accepted-upload-approval-delay`. Level: `paragraph`. Parent:
+`accepted-upload-approval-time`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make accepted-upload-approval-delay
 make accepted-upload-approval-delay REPRO=1
 make accepted-upload-approval-delay REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `upload-approval`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `upload-approval`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make cmpu-upload-to-approval-distribution CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/accepted-upload-approval-delay/data/`
 - `targets/first-order-upload-status-flow/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/accepted-upload-approval-delay/src/python/create_cmpu_first_order_line_approval_distribution.py`
-- `targets/accepted-upload-approval-delay/src/sql/cmpu_first_order_line_approval_distribution.sql`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_cmpu_first_order_line_approval_distribution.py` (in
+  `targets/accepted-upload-approval-delay/src/python/`)
+- `cmpu_first_order_line_approval_distribution.sql` (in
+  `targets/accepted-upload-approval-delay/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/runtime.py`, `shared/prescription_uploads.py` and `shared/sankey.py`
 - `shared/python/markdown_tables.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -2138,257 +3019,315 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/accepted-upload-approval-delay/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
-
+Generated content:
+`targets/accepted-upload-approval-delay/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
 ### Additional target-owned source
 
-- `targets/accepted-upload-approval-delay/src/sql/cmpu_upload_to_max_approval_extract.sql`
+- `cmpu_upload_to_max_approval_extract.sql` (in
+  `targets/accepted-upload-approval-delay/src/sql/`)
 
-## aged-order-risk: What is the probability that after X days the order will be an aged order?
-
-
+What is the probability that after X days the order will be an aged order?
+(`aged-order-risk`)
+---
 
 ### Ownership
 
-Target: `aged-order-risk`. Level: `subsection`.
-Parent: `appendix`.
-Ordered children: `first-order-event-free-survival`.
-
+Target: `aged-order-risk`. Level: `subsection`. Parent: `appendix`. Ordered
+children: `first-order-event-free-survival`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make aged-order-risk
 make aged-order-risk REPRO=1
 make aged-order-risk REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/aged-order-risk/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content: `targets/aged-order-risk/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## first-order-event-free-survival: How long do first-order lines remain without an accepted upload or cancellation?
-
-
+How long do first-order lines remain without an accepted upload or cancellation?
+(`first-order-event-free-survival`)
+---
 
 ### Ownership
 
-Target: `first-order-event-free-survival`. Level: `subsubsection`.
-Parent: `aged-order-risk`.
-Ordered children: `first-order-survival-curve`.
-
+Target: `first-order-event-free-survival`. Level: `subsubsection`. Parent:
+`aged-order-risk`. Ordered children: `first-order-survival-curve`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make first-order-event-free-survival
 make first-order-event-free-survival REPRO=1
 make first-order-event-free-survival REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/first-order-event-free-survival/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/first-order-event-free-survival/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## first-order-survival-curve: What proportion of first-order lines remain without an accepted upload or cancellation over time?
-
-
+What proportion of first-order lines remain without an accepted upload or
+cancellation over time? (`first-order-survival-curve`)
+---
 
 ### Ownership
 
-Target: `first-order-survival-curve`. Level: `paragraph`.
-Parent: `first-order-event-free-survival`.
-Ordered children: none.
-
+Target: `first-order-survival-curve`. Level: `paragraph`. Parent:
+`first-order-event-free-survival`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make first-order-survival-curve
 make first-order-survival-curve REPRO=1
 make first-order-survival-curve REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `survival`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `survival`, defined in `shared/analysis/pipelines.yaml`. The
+batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make cmpu-first-order-line-survival CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/first-order-survival-curve/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/first-order-survival-curve/src/python/create_cmpu_first_order_line_survival.py`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `create_cmpu_first_order_line_survival.py` (in
+  `targets/first-order-survival-curve/src/python/`)
 
 Imported analysis dependencies:
-- `targets/first-order-survival-curve/src/python/create_cmpu_first_order_line_event_times.py`
+
+- `create_cmpu_first_order_line_event_times.py` (in
+  `targets/first-order-survival-curve/src/python/`)
 - `shared/runtime.py`, `shared/prescription_uploads.py` and `shared/sankey.py`
 - `shared/python/markdown_tables.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 - `shared/python/__init__.py`
-- `targets/first-order-survival-curve/src/python/create_cmpu_first_order_line_event_times.py`
+- `create_cmpu_first_order_line_event_times.py` (in
+  `targets/first-order-survival-curve/src/python/`)
 - `shared/runtime.py`, `shared/prescription_uploads.py` and `shared/sankey.py`
 - `shared/python/markdown_tables.py`
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/first-order-survival-curve/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
-
+Generated content:
+`targets/first-order-survival-curve/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
 ### Additional target-owned source
 
-- `targets/first-order-survival-curve/src/sql/cmpu_first_order_line_event_times.sql`
+- `cmpu_first_order_line_event_times.sql` (in
+  `targets/first-order-survival-curve/src/sql/`)
 
-## data-verification: How did we verify the data?
-
-
+How did we verify the data? (`data-verification`)
+---
 
 ### Ownership
 
-Target: `data-verification`. Level: `subsection`.
-Parent: `appendix`.
-Ordered children: `upload-source-origins`, `upload-approval-channel-distribution`, `upload-coverage-by-rx-status`, `upload-order-cancellation-distribution`, `null-resource-order-cancellations`, `data-source-connections`.
-
+Target: `data-verification`. Level: `subsection`. Parent: `appendix`. Ordered
+children: `upload-source-origins`, `upload-approval-channel-distribution`,
+`upload-coverage-by-rx-status`, `upload-order-cancellation-distribution`,
+`null-resource-order-cancellations`, `data-source-connections`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make data-verification
 make data-verification REPRO=1
 make data-verification REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/data-verification/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content: `targets/data-verification/outputs/latex/content.tex`. Data
+and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## upload-source-origins: Where is the prescription upload data coming from?
-
-
+Where is the prescription upload data coming from? (`upload-source-origins`)
+---
 
 ### Ownership
 
-Target: `upload-source-origins`. Level: `subsubsection`.
-Parent: `data-verification`.
-Ordered children: `upload-resource-types`, `upload-source-date-coverage`.
-
+Target: `upload-source-origins`. Level: `subsubsection`. Parent:
+`data-verification`. Ordered children: `upload-resource-types`,
+`upload-source-date-coverage`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make upload-source-origins
 make upload-source-origins REPRO=1
 make upload-source-origins REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
 Generated content: `targets/upload-source-origins/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## upload-resource-types: How many upload-source entries have prescription IDs for each associated resource type?
-
-
+How many upload-source entries have prescription IDs for each associated
+resource type? (`upload-resource-types`)
+---
 
 ### Ownership
 
-Target: `upload-resource-types`. Level: `paragraph`.
-Parent: `upload-source-origins`.
-Ordered children: none.
-
+Target: `upload-resource-types`. Level: `paragraph`. Parent:
+`upload-source-origins`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make upload-resource-types
 make upload-resource-types REPRO=1
 make upload-resource-types REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make upload-data-verification-all CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/upload-resource-types/data/`
 - `targets/upload-source-date-coverage/data/`
 - `targets/uploaded-prescription-approval-channels/data/`
@@ -2396,17 +3335,26 @@ Retained input folders and ownership:
 - `targets/uploaded-order-cancellation-reasons/data/`
 - `targets/null-resource-cancellation-reasons/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
 - `targets/upload-resource-types/src/python/create_upload_data_verification.py`
 - `targets/upload-resource-types/src/sql/upload_data_verification.sql`
-- `targets/upload-resource-types/src/sql/upload_data_verification_rx_ids_validation.sql`
+- `upload_data_verification_rx_ids_validation.sql` (in
+  `targets/upload-resource-types/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -2416,42 +3364,52 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
 Generated content: `targets/upload-resource-types/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Tables are exported to `outputs/tables/table.org` and read back to assemble
+LaTeX. The compatibility adapter retains cell formatting from the validated
+legacy renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## upload-source-date-coverage: What creation-date ranges do the upload sources cover?
-
-
+What creation-date ranges do the upload sources cover?
+(`upload-source-date-coverage`)
+---
 
 ### Ownership
 
-Target: `upload-source-date-coverage`. Level: `paragraph`.
-Parent: `upload-source-origins`.
-Ordered children: none.
-
+Target: `upload-source-date-coverage`. Level: `paragraph`. Parent:
+`upload-source-origins`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make upload-source-date-coverage
 make upload-source-date-coverage REPRO=1
 make upload-source-date-coverage REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make upload-data-verification-all CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/upload-resource-types/data/`
 - `targets/upload-source-date-coverage/data/`
 - `targets/uploaded-prescription-approval-channels/data/`
@@ -2459,17 +3417,26 @@ Retained input folders and ownership:
 - `targets/uploaded-order-cancellation-reasons/data/`
 - `targets/null-resource-cancellation-reasons/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/upload-source-date-coverage/src/python/analyze_upload_source_time_coverage.py`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `analyze_upload_source_time_coverage.py` (in
+  `targets/upload-source-date-coverage/src/python/`)
 - `targets/upload-source-date-coverage/src/sql/upload_source_time_coverage.sql`
 
 Imported analysis dependencies:
+
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
 - `targets/upload-resource-types/src/python/create_upload_data_verification.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -2479,79 +3446,99 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/upload-source-date-coverage/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/upload-source-date-coverage/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## upload-approval-channel-distribution: What's the distribution of all the vet diet prescriptions in the prescription upload tables by \texttt{APPROVAL\_CHANNEL} ?
-
-
+What's the distribution of all the vet diet prescriptions in the prescription
+upload tables by \texttt{APPROVAL\_CHANNEL} ?
+(`upload-approval-channel-distribution`)
+---
 
 ### Ownership
 
-Target: `upload-approval-channel-distribution`. Level: `subsubsection`.
-Parent: `data-verification`.
-Ordered children: `uploaded-prescription-approval-channels`.
-
+Target: `upload-approval-channel-distribution`. Level: `subsubsection`. Parent:
+`data-verification`. Ordered children:
+`uploaded-prescription-approval-channels`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make upload-approval-channel-distribution
 make upload-approval-channel-distribution REPRO=1
 make upload-approval-channel-distribution REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/upload-approval-channel-distribution/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/upload-approval-channel-distribution/outputs/latex/content.tex`. Data
+and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## uploaded-prescription-approval-channels: How are approval channels distributed among distinct uploaded vet-diet prescriptions?
-
-
+How are approval channels distributed among distinct uploaded vet-diet
+prescriptions? (`uploaded-prescription-approval-channels`)
+---
 
 ### Ownership
 
-Target: `uploaded-prescription-approval-channels`. Level: `paragraph`.
-Parent: `upload-approval-channel-distribution`.
-Ordered children: none.
-
+Target: `uploaded-prescription-approval-channels`. Level: `paragraph`. Parent:
+`upload-approval-channel-distribution`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make uploaded-prescription-approval-channels
 make uploaded-prescription-approval-channels REPRO=1
 make uploaded-prescription-approval-channels REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make upload-data-verification-all CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/upload-resource-types/data/`
 - `targets/upload-source-date-coverage/data/`
 - `targets/uploaded-prescription-approval-channels/data/`
@@ -2559,18 +3546,29 @@ Retained input folders and ownership:
 - `targets/uploaded-order-cancellation-reasons/data/`
 - `targets/null-resource-cancellation-reasons/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/uploaded-prescription-approval-channels/src/python/analyze_upload_vet_diet_approval_channels.py`
-- `targets/uploaded-prescription-approval-channels/src/sql/upload_vet_diet_approval_channels.sql`
-- `targets/uploaded-prescription-approval-channels/src/sql/upload_vet_diet_approval_channels_validation.sql`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `analyze_upload_vet_diet_approval_channels.py` (in
+  `targets/uploaded-prescription-approval-channels/src/python/`)
+- `upload_vet_diet_approval_channels.sql` (in
+  `targets/uploaded-prescription-approval-channels/src/sql/`)
+- `upload_vet_diet_approval_channels_validation.sql` (in
+  `targets/uploaded-prescription-approval-channels/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
 - `targets/upload-resource-types/src/python/create_upload_data_verification.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -2580,79 +3578,97 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/uploaded-prescription-approval-channels/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/uploaded-prescription-approval-channels/outputs/latex/content.tex`.
+Tables are exported to `outputs/tables/table.org` and read back to assemble
+LaTeX. The compatibility adapter retains cell formatting from the validated
+legacy renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## upload-coverage-by-rx-status: What is the coverage of vet diet prescriptions with \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD}, by \texttt{RX\_STATUS}?
-
-
+What is the coverage of vet diet prescriptions with \texttt{APPROVAL\_CHANNEL =
+CUSTOMER\_UPLOAD}, by \texttt{RX\_STATUS}? (`upload-coverage-by-rx-status`)
+---
 
 ### Ownership
 
-Target: `upload-coverage-by-rx-status`. Level: `subsubsection`.
-Parent: `data-verification`.
-Ordered children: `customer-upload-rx-status-coverage`.
-
+Target: `upload-coverage-by-rx-status`. Level: `subsubsection`. Parent:
+`data-verification`. Ordered children: `customer-upload-rx-status-coverage`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make upload-coverage-by-rx-status
 make upload-coverage-by-rx-status REPRO=1
 make upload-coverage-by-rx-status REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/upload-coverage-by-rx-status/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/upload-coverage-by-rx-status/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## customer-upload-rx-status-coverage: How does upload-source coverage vary by prescription source and status for customer-upload vet-diet prescriptions?
-
-
+How does upload-source coverage vary by prescription source and status for
+customer-upload vet-diet prescriptions? (`customer-upload-rx-status-coverage`)
+---
 
 ### Ownership
 
-Target: `customer-upload-rx-status-coverage`. Level: `paragraph`.
-Parent: `upload-coverage-by-rx-status`.
-Ordered children: none.
-
+Target: `customer-upload-rx-status-coverage`. Level: `paragraph`. Parent:
+`upload-coverage-by-rx-status`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make customer-upload-rx-status-coverage
 make customer-upload-rx-status-coverage REPRO=1
 make customer-upload-rx-status-coverage REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make upload-data-verification-all CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/upload-resource-types/data/`
 - `targets/upload-source-date-coverage/data/`
 - `targets/uploaded-prescription-approval-channels/data/`
@@ -2660,18 +3676,29 @@ Retained input folders and ownership:
 - `targets/uploaded-order-cancellation-reasons/data/`
 - `targets/null-resource-cancellation-reasons/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/customer-upload-rx-status-coverage/src/python/analyze_cmpu_approved_prescription_upload_coverage.py`
-- `targets/customer-upload-rx-status-coverage/src/sql/cmpu_approved_prescription_upload_coverage.sql`
-- `targets/customer-upload-rx-status-coverage/src/sql/cmpu_approved_prescription_upload_coverage_validation.sql`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `analyze_cmpu_approved_prescription_upload_coverage.py` (in
+  `targets/customer-upload-rx-status-coverage/src/python/`)
+- `cmpu_approved_prescription_upload_coverage.sql` (in
+  `targets/customer-upload-rx-status-coverage/src/sql/`)
+- `cmpu_approved_prescription_upload_coverage_validation.sql` (in
+  `targets/customer-upload-rx-status-coverage/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
 - `targets/upload-resource-types/src/python/create_upload_data_verification.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -2681,79 +3708,98 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/customer-upload-rx-status-coverage/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/customer-upload-rx-status-coverage/outputs/latex/content.tex`. Tables
+are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## upload-order-cancellation-distribution: What is the distribution of order cancellation reasons in the prescription upload tables?
-
-
+What is the distribution of order cancellation reasons in the prescription
+upload tables? (`upload-order-cancellation-distribution`)
+---
 
 ### Ownership
 
 Target: `upload-order-cancellation-distribution`. Level: `subsubsection`.
-Parent: `data-verification`.
-Ordered children: `uploaded-order-cancellation-reasons`.
-
+Parent: `data-verification`. Ordered children:
+`uploaded-order-cancellation-reasons`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make upload-order-cancellation-distribution
 make upload-order-cancellation-distribution REPRO=1
 make upload-order-cancellation-distribution REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/upload-order-cancellation-distribution/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/upload-order-cancellation-distribution/outputs/latex/content.tex`. Data
+and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## uploaded-order-cancellation-reasons: How are cancellation reasons distributed among orders associated with vet-diet uploads?
-
-
+How are cancellation reasons distributed among orders associated with vet-diet
+uploads? (`uploaded-order-cancellation-reasons`)
+---
 
 ### Ownership
 
-Target: `uploaded-order-cancellation-reasons`. Level: `paragraph`.
-Parent: `upload-order-cancellation-distribution`.
-Ordered children: none.
-
+Target: `uploaded-order-cancellation-reasons`. Level: `paragraph`. Parent:
+`upload-order-cancellation-distribution`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make uploaded-order-cancellation-reasons
 make uploaded-order-cancellation-reasons REPRO=1
 make uploaded-order-cancellation-reasons REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make upload-data-verification-all CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/upload-resource-types/data/`
 - `targets/upload-source-date-coverage/data/`
 - `targets/uploaded-prescription-approval-channels/data/`
@@ -2761,20 +3807,33 @@ Retained input folders and ownership:
 - `targets/uploaded-order-cancellation-reasons/data/`
 - `targets/null-resource-cancellation-reasons/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/uploaded-order-cancellation-reasons/src/python/analyze_diet_upload_source_orders.py`
-- `targets/uploaded-order-cancellation-reasons/src/sql/diet_upload_linked_orders.sql`
-- `targets/uploaded-order-cancellation-reasons/src/sql/diet_upload_source_orders.sql`
-- `targets/uploaded-order-cancellation-reasons/src/sql/diet_upload_source_orders_validation.sql`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `analyze_diet_upload_source_orders.py` (in
+  `targets/uploaded-order-cancellation-reasons/src/python/`)
+- `diet_upload_linked_orders.sql` (in
+  `targets/uploaded-order-cancellation-reasons/src/sql/`)
+- `diet_upload_source_orders.sql` (in
+  `targets/uploaded-order-cancellation-reasons/src/sql/`)
+- `diet_upload_source_orders_validation.sql` (in
+  `targets/uploaded-order-cancellation-reasons/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
-- `targets/null-resource-cancellation-reasons/src/python/analyze_null_resource_uploads.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
+- `analyze_null_resource_uploads.py` (in
+  `targets/null-resource-cancellation-reasons/src/python/`)
 - `targets/upload-resource-types/src/python/create_upload_data_verification.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -2784,79 +3843,99 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/uploaded-order-cancellation-reasons/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/uploaded-order-cancellation-reasons/outputs/latex/content.tex`. Tables
+are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## null-resource-order-cancellations: What are the order cancellation reasons for null associated resource type entries in the rxp\_notification\_service.\texorpdfstring{\allowbreak}{}upload\_entity table?
-
-
+What are the order cancellation reasons for null associated resource type
+entries in the
+rxp\_notification\_service.\texorpdfstring{\allowbreak}{}upload\_entity table?
+(`null-resource-order-cancellations`)
+---
 
 ### Ownership
 
-Target: `null-resource-order-cancellations`. Level: `subsubsection`.
-Parent: `data-verification`.
-Ordered children: `null-resource-cancellation-reasons`.
-
+Target: `null-resource-order-cancellations`. Level: `subsubsection`. Parent:
+`data-verification`. Ordered children: `null-resource-cancellation-reasons`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make null-resource-order-cancellations
 make null-resource-order-cancellations REPRO=1
 make null-resource-order-cancellations REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/null-resource-order-cancellations/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/null-resource-order-cancellations/outputs/latex/content.tex`. Data and
+outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical
+dataset paths to target-owned locations. Historical path strings are resolved by
+the registry; root filesystem aliases have been removed.
 
-## null-resource-cancellation-reasons: How are cancellation reasons distributed among orders referenced by uploads with no associated resource type?
-
-
+How are cancellation reasons distributed among orders referenced by uploads with
+no associated resource type? (`null-resource-cancellation-reasons`)
+---
 
 ### Ownership
 
-Target: `null-resource-cancellation-reasons`. Level: `paragraph`.
-Parent: `null-resource-order-cancellations`.
-Ordered children: none.
-
+Target: `null-resource-cancellation-reasons`. Level: `paragraph`. Parent:
+`null-resource-order-cancellations`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make null-resource-cancellation-reasons
 make null-resource-cancellation-reasons REPRO=1
 make null-resource-cancellation-reasons REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `verification`, defined in `shared/analysis/pipelines.yaml`.
+The batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make upload-data-verification-all CACHED=1`
 
 Retained input folders and ownership:
+
 - `targets/upload-resource-types/data/`
 - `targets/upload-source-date-coverage/data/`
 - `targets/uploaded-prescription-approval-channels/data/`
@@ -2864,19 +3943,31 @@ Retained input folders and ownership:
 - `targets/uploaded-order-cancellation-reasons/data/`
 - `targets/null-resource-cancellation-reasons/data/`
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-- `targets/null-resource-cancellation-reasons/src/python/analyze_null_resource_uploads.py`
-- `targets/null-resource-cancellation-reasons/src/sql/null_resource_upload_context.sql`
-- `targets/null-resource-cancellation-reasons/src/sql/null_resource_upload_orders.sql`
-- `targets/null-resource-cancellation-reasons/src/sql/null_resource_upload_validation.sql`
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
+- `analyze_null_resource_uploads.py` (in
+  `targets/null-resource-cancellation-reasons/src/python/`)
+- `null_resource_upload_context.sql` (in
+  `targets/null-resource-cancellation-reasons/src/sql/`)
+- `null_resource_upload_orders.sql` (in
+  `targets/null-resource-cancellation-reasons/src/sql/`)
+- `null_resource_upload_validation.sql` (in
+  `targets/null-resource-cancellation-reasons/src/sql/`)
 
 Imported analysis dependencies:
+
 - `shared/python/markdown_tables.py`
 - `shared/python/opportunity_report_tables.py`
-- `targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py`
+- `create_opportunity_order_cancellation_summary.py` (in
+  `targets/cancellation-sales-baseline/src/python/`)
 - `targets/upload-resource-types/src/python/create_upload_data_verification.py`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -2886,84 +3977,108 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/null-resource-cancellation-reasons/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/null-resource-cancellation-reasons/outputs/latex/content.tex`. Tables
+are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## data-source-connections: How are data sources connected?
-
-
+How are data sources connected? (`data-source-connections`)
+---
 
 ### Ownership
 
-Target: `data-source-connections`. Level: `subsubsection`.
-Parent: `data-verification`.
-Ordered children: `report-source-overview`, `source-grains-and-counting`, `upload-verification-joins`, `prescription-first-order-joins`, `financial-reorder-contact-joins`, `contact-matching-rules`.
-
+Target: `data-source-connections`. Level: `subsubsection`. Parent:
+`data-verification`. Ordered children: `report-source-overview`,
+`source-grains-and-counting`, `upload-verification-joins`,
+`prescription-first-order-joins`, `financial-reorder-contact-joins`,
+`contact-matching-rules`.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make data-source-connections
 make data-source-connections REPRO=1
 make data-source-connections REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-The child make targets above are actual prerequisites. Parent prose is in `src/latex/body.tex` and may appear before, between and after the ordered children.
+The child make targets above are actual prerequisites. Parent prose is in
+`src/latex/body.tex` and may appear before, between and after the ordered
+children.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
 Generated content: `targets/data-source-connections/outputs/latex/content.tex`.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## report-source-overview: How do the report’s source tables and analyses connect?
-
-
+How do the report’s source tables and analyses connect?
+(`report-source-overview`)
+---
 
 ### Ownership
 
-Target: `report-source-overview`. Level: `paragraph`.
-Parent: `data-source-connections`.
-Ordered children: none.
-
+Target: `report-source-overview`. Level: `paragraph`. Parent:
+`data-source-connections`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make report-source-overview
 make report-source-overview REPRO=1
 make report-source-overview REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The
+batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make data-source-diagrams CACHED=1`
 
 Retained input folders and ownership:
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
 - `targets/report-source-overview/src/mermaid/connections.mmd`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -2971,91 +4086,121 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
 Generated content: `targets/report-source-overview/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Tables are exported to `outputs/tables/table.org` and read back to assemble
+LaTeX. The compatibility adapter retains cell formatting from the validated
+legacy renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## source-grains-and-counting: What is the grain and counting unit of each source?
-
-
+What is the grain and counting unit of each source?
+(`source-grains-and-counting`)
+---
 
 ### Ownership
 
-Target: `source-grains-and-counting`. Level: `paragraph`.
-Parent: `data-source-connections`.
-Ordered children: none.
-
+Target: `source-grains-and-counting`. Level: `paragraph`. Parent:
+`data-source-connections`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make source-grains-and-counting
 make source-grains-and-counting REPRO=1
 make source-grains-and-counting REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The
+batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make data-source-diagrams CACHED=1`
 
 Retained input folders and ownership:
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
 
-
 ### Outputs
 
-Generated content: `targets/source-grains-and-counting/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/source-grains-and-counting/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## upload-verification-joins: How are upload IDs expanded and matched to prescriptions and orders?
-
-
+How are upload IDs expanded and matched to prescriptions and orders?
+(`upload-verification-joins`)
+---
 
 ### Ownership
 
-Target: `upload-verification-joins`. Level: `paragraph`.
-Parent: `data-source-connections`.
-Ordered children: none.
-
+Target: `upload-verification-joins`. Level: `paragraph`. Parent:
+`data-source-connections`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make upload-verification-joins
 make upload-verification-joins REPRO=1
 make upload-verification-joins REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The
+batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make data-source-diagrams CACHED=1`
 
 Retained input folders and ownership:
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
 - `targets/upload-verification-joins/src/mermaid/connections.mmd`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -3063,47 +4208,63 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/upload-verification-joins/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/upload-verification-joins/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## prescription-first-order-joins: How are prescriptions matched to first-order lines and upload evidence?
-
-
+How are prescriptions matched to first-order lines and upload evidence?
+(`prescription-first-order-joins`)
+---
 
 ### Ownership
 
-Target: `prescription-first-order-joins`. Level: `paragraph`.
-Parent: `data-source-connections`.
-Ordered children: none.
-
+Target: `prescription-first-order-joins`. Level: `paragraph`. Parent:
+`data-source-connections`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make prescription-first-order-joins
 make prescription-first-order-joins REPRO=1
 make prescription-first-order-joins REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The
+batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make data-source-diagrams CACHED=1`
 
 Retained input folders and ownership:
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
 - `targets/prescription-first-order-joins/src/mermaid/connections.mmd`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -3111,47 +4272,63 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/prescription-first-order-joins/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/prescription-first-order-joins/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## financial-reorder-contact-joins: How are financial lines, later orders, and customer contacts connected?
-
-
+How are financial lines, later orders, and customer contacts connected?
+(`financial-reorder-contact-joins`)
+---
 
 ### Ownership
 
-Target: `financial-reorder-contact-joins`. Level: `paragraph`.
-Parent: `data-source-connections`.
-Ordered children: none.
-
+Target: `financial-reorder-contact-joins`. Level: `paragraph`. Parent:
+`data-source-connections`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make financial-reorder-contact-joins
 make financial-reorder-contact-joins REPRO=1
 make financial-reorder-contact-joins REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The
+batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make data-source-diagrams CACHED=1`
 
 Retained input folders and ownership:
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
 - `targets/financial-reorder-contact-joins/src/mermaid/connections.mmd`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -3159,47 +4336,63 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
-Generated content: `targets/financial-reorder-contact-joins/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Generated content:
+`targets/financial-reorder-contact-joins/outputs/latex/content.tex`. Tables are
+exported to `outputs/tables/table.org` and read back to assemble LaTeX. The
+compatibility adapter retains cell formatting from the validated legacy
+renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.
 
-## contact-matching-rules: How are customer contacts matched to aged orders and observation windows?
-
-
+How are customer contacts matched to aged orders and observation windows?
+(`contact-matching-rules`)
+---
 
 ### Ownership
 
-Target: `contact-matching-rules`. Level: `paragraph`.
-Parent: `data-source-connections`.
-Ordered children: none.
-
+Target: `contact-matching-rules`. Level: `paragraph`. Parent:
+`data-source-connections`. Ordered children: none.
 
 ### Reproduction commands
 
 Run from the repository root with the project environment installed:
+
 ```sh
 make contact-matching-rules
 make contact-matching-rules REPRO=1
 make contact-matching-rules REFRESH=1
 ```
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
+Default builds reuse retained source data and rerun the validation and
+presentation steps. They do not query the warehouse. Missing or stale inputs
+stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is
+explicit and may change results.
 
 ### Inputs and dependencies
 
-Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The batch is shared by related paragraphs and runs once per make invocation.
+Generator batch: `diagrams`, defined in `shared/analysis/pipelines.yaml`. The
+batch is shared by related paragraphs and runs once per make invocation.
 Existing generator commands (the batch explicitly sets CACHED=1 by default):
+
 - `make data-source-diagrams CACHED=1`
 
 Retained input folders and ownership:
 
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
+Dates and cohort parameters are preserved from the source manifests and the
+existing generator defaults. Financial/contact defaults use May 1 through July
+31, 2026, with follow-up observed through October 28; upload/prescription
+analyses retain their August 15 through October 14 study and documented
+upload/cancellation cutoffs. Do not mix source snapshots.
+
 - `targets/contact-matching-rules/src/mermaid/connections.mmd`
 
 Shared dependencies:
+
 - `shared/analysis`
 - `shared/artifact-ownership.yaml`
 - `shared/paths.py`
@@ -3207,9 +4400,14 @@ Shared dependencies:
 - `shared/source-ownership.yaml`
 - `shared/sql_templates.py`
 
-
 ### Outputs
 
 Generated content: `targets/contact-matching-rules/outputs/latex/content.tex`.
-Tables are exported to `outputs/tables/table.org` and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; `outputs/tables/provenance.json` records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's `outputs/build/` folder.
-Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+Tables are exported to `outputs/tables/table.org` and read back to assemble
+LaTeX. The compatibility adapter retains cell formatting from the validated
+legacy renderer; `outputs/tables/provenance.json` records the source and Org
+fingerprints. Figures and diagrams are copied from their newly regenerated
+canonical exports. Logs are under the batch owner's `outputs/build/` folder.
+Data and outputs are ignored by Git. `shared/artifact-ownership.yaml` maps
+historical dataset paths to target-owned locations. Historical path strings are
+resolved by the registry; root filesystem aliases have been removed.

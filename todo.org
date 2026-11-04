@@ -1313,20 +1313,20 @@
 * TODO Restructure the repository using my-analysis-structure
   - Preserve current analysis results and retained standalone computations while moving report units to flat first-class targets with stable IDs, YAML hierarchy, per-target Makefiles, target-local code/data/outputs, authoritative Org tables, and generated reproduction documentation.
   - User supplied the verification heading: How did we verify the data? User authorized drafting missing paragraph questions for review before moving files.
-  - Drafted docs/analysis-target-map.org from the 40 active LaTeX inputs: 1 document, 3 sections, 5 analytical subsections, 22 subsubsections and 34 paragraph targets. Included the uncaptioned source-grain table, preserved single multi-panel visuals and financial comparison tables, and mapped reproduction content to README/HOWTO/REPRO rather than analytical targets. Target questions/hierarchy await review; no source/data migration yet.
+  - Drafted the historical target-map record (preserved in Git history) from the 40 active LaTeX inputs: 1 document, 3 sections, 5 analytical subsections, 22 subsubsections and 34 paragraph targets. Included the uncaptioned source-grain table, preserved single multi-panel visuals and financial comparison tables, and mapped reproduction content to README/HOWTO/REPRO rather than analytical targets. Target questions/hierarchy await review; no source/data migration yet.
   - User approved all proposed questions. Created branch feat/analysis-target-structure and the 65-node metadata/Makefile/README skeleton. Split report content into target-local LaTeX and migrated 23 table bodies to retained Org presentation snapshots plus 11 byte-verified images. Added a graph validator and a separate PDF comparison build; original report workflow and published PDF remain intact.
-  - Migration remains incomplete: target-owned computational generators, SQL/Jinja refactoring, raw-data ownership, cache/refresh dispatch and generated HOWTO cutover are pending. See docs/analysis-migration-status.org. Target status intentionally remains pending and its build guard fails rather than claiming reproduction. No warehouse refresh or commit.
+  - Migration remains incomplete: target-owned computational generators, SQL/Jinja refactoring, raw-data ownership, cache/refresh dispatch and generated HOWTO cutover are pending. See the historical migration-status record (preserved in Git history). Target status intentionally remains pending and its build guard fails rather than claiming reproduction. No warehouse refresh or commit.
   - User requested migration of SQL, Python and related generators as well. Relocated 56 modules and 57 unchanged SQL files, extracted 21 SQL/Jinja expressions, and split five Mermaid definitions into target-owned sources. Added canonical ownership/dependency metadata and retained compatibility entry points. Updated the active Makefile and staged SQL checker for migrated paths.
   - Verified all module imports, source/graph validators, cached financial and six upload-verification analyses, study upload tables, state-change cache integrity, staged/unstaged SQL isolation and make report. No warehouse refresh or commit. Full target data/output/build cutover and remaining SQL modernization are still pending; moved SQL retains pre-existing SQLFluff violations.
   - Continued with operational target builds: moved 35 retained dataset directories and associated exports/materialized SQL to explicit target owners; added path routing independent of compatibility symlinks. Included all target Makefiles, wired 34 paragraphs through 15 shared generator batches, and switched make report to the approved graph. Newly generated table cells are exported to Org and read back into final LaTeX.
   - Generated HOWTO.md from 65 target README.org files and included their commands/caveats with REPRO=1. Added refresh preflight for unsupported frozen-study workflows; missing metadata and stale SQL identity fail without warehouse access.
-  - Exercised all cached batches and rebuilt the 40-page target report. All 23 Org table bodies match retained cells exactly; inspected financial, upload and diagram pages. Verified FINAL/REPRO presentation modes using the successfully reproduced results. No warehouse refresh or commit. Remaining compatibility cleanup (direct numeric Org, legacy rendering workspace, standalone paths, self-contained SQL and inherited SQLFluff violations) is explicitly recorded in docs/analysis-migration-status.org.
+  - Exercised all cached batches and rebuilt the 40-page target report. All 23 Org table bodies match retained cells exactly; inspected financial, upload and diagram pages. Verified FINAL/REPRO presentation modes using the successfully reproduced results. No warehouse refresh or commit. Remaining compatibility cleanup (direct numeric Org, legacy rendering workspace, standalone paths, self-contained SQL and inherited SQLFluff violations) is explicitly recorded in the historical migration-status record (preserved in Git history).
 
 * DONE Replace identifier-payload SQL with database-derived CTEs
   - Replaced all eleven JSON/identifier-fragment enrichment queries with complete source-derived CTEs, including contact intervals, prescription keys, different-prescription upload keys, auto-reorder flags and study-table inputs. Removed Python serialization and the obsolete JSON-only template; renderers accept scalar parameters only.
   - Preserved shortest-delay selection, 7/14/21-day maturity, customer/product/pet matching, deterministic interval numbering, null handling and shipment/physical-line grains. Nine selector audits match the retained inputs exactly: 5,986 intervals; 4,295/11,907 prescription line keys; 2,139 upload pairs; 2,143 approval-channel prescriptions; 5,978 upload/decision keys; and 16,677 auto-reorder keys.
   - Added explicit, fingerprint-checked historical snapshot replay without relabeling it as new SQL execution. Unknown query/data fingerprints and changed cohort dependencies remain rejected. Normalized moved auto-reorder input paths; all 36 file hashes are unchanged. Current-state study membership can differ from frozen report cohorts; no warehouse refresh was performed.
-  - Added make cohort-sql-review / cohort-sql-check and a source-contract regression guard. Cached contact, upload-evidence, auto-reorder and study-table workflows pass; the report rebuilds with retained results. See docs/database-derived-cohorts.org. No commit.
+  - Added make cohort-sql-review / cohort-sql-check and a source-contract regression guard. Cached contact, upload-evidence, auto-reorder and study-table workflows pass; the report rebuilds with retained results. See the historical database-cohort migration record (preserved in Git history). No commit.
 
 * DONE Localize single-target SQL, Python and Mermaid sources
   - Move single-analysis code into targets/<owner>/src/<language>, preserve shared helpers, update ownership and Make recipes, and verify cached reproduction without refreshing the warehouse.
@@ -1350,7 +1350,7 @@
 
 * DONE Audit every shared/python file and localize analysis generators
   - Review all 13 modules and consumers. Move nine entry points to explicit target owners; extract six reusable helper modules; retain the three reusable libraries and import registry. Update dependencies, Make recipes, SQL/template ownership and reproduction instructions. Verify existing cached outputs without warehouse refresh.
-  - Reviewed every original source file and recorded individual decisions in docs/shared-python-audit.org. Moved nine entry points, extracted seven shared helpers (including exact financial values), retained three genuinely reused libraries and the import registry. Updated Make recipes, canonical paths and transitive dependencies; source validation prevents new shared analysis CLIs.
+  - Reviewed every original source file and recorded individual decisions in the historical shared-Python audit record (preserved in Git history). Moved nine entry points, extracted seven shared helpers (including exact financial values), retained three genuinely reused libraries and the import registry. Updated Make recipes, canonical paths and transitive dependencies; source validation prevents new shared analysis CLIs.
   - Moved four exclusive source queries and four private templates with their owners. Removed embedded contact-summary SQL and Python reorder-predicate fragments in favor of file-based templates. Corrected obsolete report assertions and kept the existing excluded-frequency behavior.
   - Verified 102 focused tests, all new helper Ruff/79-column checks, changed SQLFluff templates, undefined-name checks and git diff --check. Affected cached pipelines and report assembly pass; all 23 Org table bodies match the pre-audit report. No warehouse refresh or commit. Legacy style debt in unchanged logic remains documented.
 
@@ -1363,7 +1363,7 @@
   - Preserve warehouse snapshots and stop on changed cache fingerprints; do not refresh or relabel retained data.
   - Ruff checks pass (141 maintained files formatted); staged Python/SQL checks retain all rules, include type changes, and parse local DuckDB audits in their actual dialect.
   - Full tests match the pre-cleanup baseline: 570 passed, 62 existing failures, 16 subtests passed. Focused financial/customer-upload checks: 36 passed. Source/hierarchy validators pass.
-  - make report correctly stops on the changed financial-query fingerprint. No refresh or manifest relabeling; details and remaining migration tests are in docs/lint-cleanup-validation.org.
+  - make report correctly stops on the changed financial-query fingerprint. No refresh or manifest relabeling; details and remaining migration tests are in the historical lint-cleanup validation record (preserved in Git history).
 
 * DONE Repair the 62 migration-era test failures
   - Commit the migration/lint baseline first (a178ef4), then repair stale renderer callers, test SQL adapters, moved imports and setup mocks.
@@ -1400,3 +1400,44 @@
 * DONE Keep SQL execution history outside targets and Git
   - User requested committing the build fixes and refreshed report without SQL-history files. No history files were tracked.
   - Centralized history routing under ignored .cache/sql-history and moved 263 existing history files out of targets. Added explicit legacy-history ignore rules and tests for cache placement and path boundaries.
+
+* DONE Put questions before target IDs in HOWTO headings
+  - Updated the generator to emit question/title followed by the target ID in
+    parentheses. Regenerated HOWTO in the existing document order.
+
+* DONE Consolidate methodology into target READMEs and retire docs
+  - User approved moving useful methodology to target READMEs and removing the
+    seven migration/audit documents. Their original content remains in Git history.
+  - Preserved cohort selection, matching, counting, scalar SQL and historical
+    replay rules in the relevant target READMEs. Corrected stale coverage-status
+    query documentation and removed obsolete refresh-blocker notices.
+  - Replaced current report-documentation links and marked old task references
+    as historical. Regenerated HOWTO from the target READMEs.
+
+* DONE Compact HOWTO and wrap it to 80 columns
+  - Updated the generator to collapse excess blank lines and wrap prose/list
+    items. Wrapped section headings use Markdown setext syntax; questions
+    still precede target IDs. Long paths show filename and directory separately.
+  - Preserved fenced commands; reject overlong output rather than silently
+    splitting commands or path tokens. Formatting tests and generated-file
+    width/heading checks pass.
+
+* DONE Document how to add each analysis hierarchy level
+  - Added paragraph, subsubsection, subsection and section instructions to the
+    report README and generated HOWTO, including Make/LaTeX wiring, pipeline
+    ownership, table adaptation and validation. Documented the fixed-section
+    contract and preserved the 80-column HOWTO format.
+
+* DONE Add a command to scaffold analysis units
+  - Added shared/analysis/scaffold.py for paragraphs, subsubsections and
+    subsections, requiring an ID, valid parent and question. Creates target
+    boilerplate and appends parent metadata, Make and LaTeX wiring.
+  - Rejects sections, invalid input and existing targets before writing;
+    restores parent files on failure. Documented usage in generated HOWTO.
+  - Tests build a scaffold subtree without warehouse access and verify invalid
+    inputs and rollback; Ruff and hierarchy/ownership checks pass.
+
+* DONE Explain generated target Makefiles
+  - Confirmed scaffolding generates targets/<id>/Makefile and wires parent
+    prerequisites. Added the recipe and root invocation instructions to HOWTO
+    and root invocation guidance to each generated target README.

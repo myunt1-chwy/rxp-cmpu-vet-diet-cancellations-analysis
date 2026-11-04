@@ -48,3 +48,16 @@ Shared dependencies:
 Generated content: =targets/study-order-cancellation-sales/outputs/latex/content.tex=.
 Tables are exported to =outputs/tables/table.org= and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; =outputs/tables/provenance.json= records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's =outputs/build/= folder.
 Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+
+* Cohort definition
+SQL derives the prescription creation cohort, converts numeric first-order
+item IDs to line keys, and selects both first-order keys and all linked vet-diet
+lines matching prescription and customer. Physical order/line keys are
+unioned and deduplicated before shipment evidence is selected. Sales retain
+the shipment-level source grain; shipment aggregation and distinct physical
+line/order counts are validated before presentation.
+
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned =src/sql/= source;
+=make cohort-sql-review= renders the registered cohort queries and
+=make cohort-sql-check= lints them without warehouse access.

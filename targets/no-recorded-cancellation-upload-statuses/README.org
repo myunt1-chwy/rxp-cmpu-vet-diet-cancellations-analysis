@@ -14,7 +14,6 @@ make no-recorded-cancellation-upload-statuses REFRESH=1
 #+end_src
 Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
 
-Refresh limitation: The retained upload tables use frozen prescription/reason membership and upload snapshots. The new SQL derives membership from current database tables; coordinate a full cohort refresh and reconcile membership before replacing the historical report.
 
 * Inputs and dependencies
 Generator batch: =upload-coverage=, defined in =shared/analysis/pipelines.yaml=. The batch is shared by related paragraphs and runs once per make invocation.
@@ -73,3 +72,18 @@ A mismatch stops the build before either status subset is installed.
 =make study-upload-tables= replays validated inputs without warehouse access.
 Empty status subgroups produce zero totals. Study dates, upload discovery dates,
 and the aged-cancellation cutoff remain unchanged.
+
+* Cohort definition
+The shared status query derives all matched CUSTOMER_UPLOAD study
+prescriptions and numeric first-order-item keys from the warehouse. It matches
+both first-order keys and customer, then aggregates shipment evidence while
+retaining customer/status/reason variant counts and duplicate-shipment checks.
+It extracts all eligible reasons, so the same validated extraction serves both
+status-detail tables. The no-recorded-reason table selects null/blank reasons
+only after exact reconciliation with the coverage population. The aged table
+uses the population's aged subset and its unchanged cancellation cutoff.
+
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned =src/sql/= source;
+=make cohort-sql-review= renders the registered cohort queries and
+=make cohort-sql-check= lints them without warehouse access.

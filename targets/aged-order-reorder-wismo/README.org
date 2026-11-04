@@ -11,3 +11,19 @@ Run =make aged-order-reorder-wismo CACHED=1= to reuse retained inputs. Existing 
 - =targets/aged-order-reorder-wismo/src/sql/aged_order_reorder_all_order_contacts.sql=
 
 Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.
+
+* Cohort definition
+The contact queries derive CMPU vet-diet CUSTOMER_UPLOAD first-order
+prescriptions in the creation window and aged cancellations with mature
+7/14/21-day follow-up windows. Reorders must match customer, product ID and an
+unambiguous pet. Select the shortest-delay reorder per customer and horizon;
+break ties by reorder timestamp, reorder order/line IDs and original order/line
+IDs. Deduplicate intervals and assign deterministic order/time sequence IDs.
+The WISMO query restricts contacts to handled WISMO records. The companion
+all-contact and all-order-history queries retain their own handled-contact and
+interval/history filters. Dates and contact timezone are scalar parameters.
+
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned =src/sql/= source;
+=make cohort-sql-review= renders the registered cohort queries and
+=make cohort-sql-check= lints them without warehouse access.
