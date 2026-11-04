@@ -306,3 +306,8 @@
   - Added my-sql-code-skill for database-side analytical computation, self-contained CLI-ready SQL, database-derived cohorts without uploaded row/identifier payloads, scalar templates, and human-reviewable query logic.
   - Skill validation and staged diff checks passed. Included only the skill and its task entry; pending report and auto-reorder analysis changes remain uncommitted. No warehouse queries, test suite, merge or push.
 
+* 2026-11-03 Require separate Jinja SQL templates
+  - User approved the skill update; committed as ac0befb on feat/financial-line-status.
+  - SQL and SQL fragments, including validation/DuckDB queries, must live in separate files. Python renders templates with Jinja2 and StrictUndefined; no embedded or concatenated SQL.
+  - Skill validation and staged diff checks passed; the pre-commit hook remained enabled. Pending SQLFluff configuration, hook setup, analysis and report changes were excluded. No warehouse access, merge or push.
+
