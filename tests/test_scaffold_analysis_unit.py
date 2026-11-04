@@ -14,8 +14,8 @@ ROOT = Path(__file__).parents[1]
 
 @pytest.fixture
 def workspace(tmp_path, monkeypatch):
-    monkeypatch.syspath_prepend(str(ROOT / "shared/analysis"))
-    module = runpy.run_path(str(ROOT / "shared/analysis/scaffold.py"))
+    monkeypatch.syspath_prepend(str(ROOT / "shared/python/analysis"))
+    module = runpy.run_path(str(ROOT / "shared/python/analysis/scaffold.py"))
     shutil.copy(ROOT / "analysis.yaml", tmp_path)
     shutil.copytree(
         ROOT / "shared",

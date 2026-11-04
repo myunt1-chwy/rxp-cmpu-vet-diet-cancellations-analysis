@@ -4,8 +4,8 @@ import hashlib
 
 from jinja2 import Environment, StrictUndefined
 
-from shared.paths import canonical_sql_path
 from shared.python import financial_values as base
+from shared.python.paths import canonical_sql_path
 
 STATUSES = [
     "First order in observed ECOM history",

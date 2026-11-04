@@ -8,15 +8,16 @@ title: How do cancellation reasons, order counts, and net sales compare between 
   orders?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- cohort_queries.py
-- paths.py
+- python/cohort_queries.py
+- python/paths.py
 - python/__init__.py
 - python/markdown_tables.py
 - python/opportunity_report_tables.py
 - retained-query-snapshots.yaml
 - source-ownership.yaml
-- sql_templates.py
+- python/sql_templates.py
 - python/financial_values.py
 migration:
   status: active
@@ -33,10 +34,10 @@ code_dependencies:
 - shared/python/markdown_tables.py
 - shared/python/opportunity_report_tables.py
 - targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
-- shared/cohort_queries.py
-- shared/paths.py
+- shared/python/cohort_queries.py
+- shared/python/paths.py
 - shared/python/financial_values.py
-- shared/sql_templates.py
+- shared/python/sql_templates.py
 - targets/study-population-counts/src/python/create_study_population_report_tables.py
 pipeline: study-population
 table_columns:

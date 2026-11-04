@@ -8,8 +8,9 @@ question: How long does it take for an uploaded prescription to be ready for app
 title: How long does it take for an uploaded prescription to be ready for approval?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/upload-processing-time/src/latex/entity_upload_analysis.tex

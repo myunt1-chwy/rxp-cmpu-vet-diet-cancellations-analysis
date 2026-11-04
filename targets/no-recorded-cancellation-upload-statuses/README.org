@@ -34,7 +34,7 @@ Dates and cohort parameters are preserved from the source manifests and the exis
 - =targets/no-recorded-cancellation-upload-statuses/src/sql/study_no_cancellation_upload_details.sql=
 
 Imported analysis dependencies:
-- =shared/upload_entities.py= and =shared/runtime.py=
+- =shared/python/upload_entities.py= and =shared/python/runtime.py=
 - =shared/python/markdown_tables.py=
 - =shared/python/opportunity_report_tables.py=
 - =targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py=
@@ -44,13 +44,13 @@ Imported analysis dependencies:
 Shared dependencies:
 - =shared/analysis=
 - =shared/artifact-ownership.yaml=
-- =shared/paths.py=
+- =shared/python/paths.py=
 - =shared/python/__init__.py=
-- =shared/upload_entities.py= and =shared/runtime.py=
+- =shared/python/upload_entities.py= and =shared/python/runtime.py=
 - =shared/python/markdown_tables.py=
 - =shared/python/opportunity_report_tables.py=
 - =shared/source-ownership.yaml=
-- =shared/sql_templates.py=
+- =shared/python/sql_templates.py=
 
 * Outputs
 Generated content: =targets/no-recorded-cancellation-upload-statuses/outputs/latex/content.tex=.

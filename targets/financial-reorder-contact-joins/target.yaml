@@ -6,11 +6,12 @@ question: How are financial lines, later orders, and customer contacts connected
 title: How are financial lines, later orders, and customer contacts connected?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/__init__.py
 - source-ownership.yaml
-- sql_templates.py
+- python/sql_templates.py
 - python/markdown_tables.py
 migration:
   status: active
@@ -22,7 +23,7 @@ artifact: Diagram (one visual).
 sources:
 - targets/financial-reorder-contact-joins/src/mermaid/connections.mmd
 code_dependencies:
-- shared/paths.py
+- shared/python/paths.py
 - shared/python/markdown_tables.py
 - targets/data-source-diagrams/src/python/create_data_source_diagrams.py
 pipeline: diagrams

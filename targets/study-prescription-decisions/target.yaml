@@ -6,13 +6,14 @@ question: How are prescription approval decisions distributed across the study p
 title: How are prescription approval decisions distributed across the study populations?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/__init__.py
 - python/markdown_tables.py
 - source-ownership.yaml
-- sql_templates.py
-- runtime.py
+- python/sql_templates.py
+- python/runtime.py
 - python/financial_values.py
 - python/opportunity_report_tables.py
 migration:
@@ -29,11 +30,11 @@ sources:
 - targets/study-prescription-decisions/src/sql/summarize_study_population_prescription_decisions-query-1.sql.j2
 code_dependencies:
 - shared/python/markdown_tables.py
-- shared/runtime.py
-- shared/paths.py
+- shared/python/runtime.py
+- shared/python/paths.py
 - shared/python/financial_values.py
 - shared/python/opportunity_report_tables.py
-- shared/sql_templates.py
+- shared/python/sql_templates.py
 - targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
 - targets/study-population-counts/src/python/create_study_population_report_tables.py
 pipeline: study-population

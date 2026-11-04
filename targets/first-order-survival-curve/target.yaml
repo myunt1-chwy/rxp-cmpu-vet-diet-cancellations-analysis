@@ -7,15 +7,16 @@ question: What proportion of first-order lines remain without an accepted upload
 title: What proportion of first-order lines remain without an accepted upload or cancellation over time?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/__init__.py
 - python/markdown_tables.py
 - source-ownership.yaml
-- sql_templates.py
-- runtime.py
-- prescription_uploads.py
-- sankey.py
+- python/sql_templates.py
+- python/runtime.py
+- python/prescription_uploads.py
+- python/sankey.py
 migration:
   status: active
   source: targets/first-order-survival-curve/src/latex/survival_analysis.tex
@@ -29,10 +30,10 @@ sources:
 - targets/first-order-survival-curve/src/sql/cmpu_first_order_line_event_times.sql
 code_dependencies:
 - shared/python/markdown_tables.py
-- shared/runtime.py
-- shared/prescription_uploads.py
-- shared/sankey.py
-- shared/paths.py
+- shared/python/runtime.py
+- shared/python/prescription_uploads.py
+- shared/python/sankey.py
+- shared/python/paths.py
 pipeline: survival
 images:
 - source: targets/first-order-survival-curve/outputs/figures/2026-08-15_2026-10-14/cmpu-first-order-line-survival_uploads-2026-08-01_2026-10-26_accepted-state-change_order-placed.png

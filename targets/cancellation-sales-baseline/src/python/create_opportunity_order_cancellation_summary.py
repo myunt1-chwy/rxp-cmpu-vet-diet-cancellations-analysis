@@ -17,7 +17,6 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from jinja2 import Environment, StrictUndefined
 
-from shared.paths import artifact_path, canonical_sql_path, repository_root
 from shared.python import opportunity_report_tables as report_tables
 from shared.python.financial_values import (
     SCALE,
@@ -28,7 +27,12 @@ from shared.python.financial_values import (
     parameters,
 )
 from shared.python.markdown_tables import markdown_table, write_text
-from shared.sql_templates import module_sql
+from shared.python.paths import (
+    artifact_path,
+    canonical_sql_path,
+    repository_root,
+)
+from shared.python.sql_templates import module_sql
 
 ROOT = repository_root()
 NAME = "opportunity-order-cancellation-summary"

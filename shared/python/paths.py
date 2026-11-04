@@ -7,7 +7,7 @@ import yaml
 
 
 def repository_root():
-    return Path(__file__).resolve().parents[1]
+    return Path(__file__).resolve().parents[2]
 
 
 @lru_cache(maxsize=1)

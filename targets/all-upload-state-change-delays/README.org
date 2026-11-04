@@ -27,7 +27,7 @@ Dates and cohort parameters are preserved from the source manifests and the exis
 Shared dependencies:
 - =shared/analysis=
 - =shared/artifact-ownership.yaml=
-- =shared/paths.py=
+- =shared/python/paths.py=
 
 * Outputs
 Generated content: =targets/all-upload-state-change-delays/outputs/latex/content.tex=.
@@ -40,4 +40,11 @@ Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps histo
 * Source ownership
 This target owns =src/python/create_cmpu_upload_entity_state_change_distributions.py= and =src/sql/cmpu_upload_entity_state_change_distributions.sql=. The generator produces the full-study and aged-order plots consumed by the two paragraph targets.
 
-Other analyses import =shared/upload_entities.py= for date parameters and entity/association validation, =shared/duration_plots.py= for duration statistics and boxplots, and =shared/runtime.py= for file fingerprints. They no longer import this generator. Cached builds retain the existing recorded source-identity checks; this split does not refresh warehouse data.
+Other analyses import =shared/python/upload_entities.py= for date parameters and entity/association validation, =shared/python/duration_plots.py= for duration statistics and boxplots, and =shared/python/runtime.py= for file fingerprints. They no longer import this generator. Cached builds retain the existing recorded source-identity checks; this split does not refresh warehouse data.
+
+* Python import relocation and cached replay
+This extractor historically included presentation-code hashes in cache keys.
+The source registry records the pre-relocation implementation hash under
+=cache_compatible_implementations=. Cached replay accepts that identity only
+when SQL, dates, populations, Parquet fingerprint and validation still match.
+It preserves the original extraction metadata and does not query the warehouse.

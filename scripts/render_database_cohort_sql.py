@@ -9,9 +9,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from shared.cohort_queries import render_cohort_query
-from shared.paths import canonical_sql_path, source_ownership
+from shared.python.cohort_queries import render_cohort_query
 from shared.python.markdown_tables import write_text
+from shared.python.paths import canonical_sql_path, source_ownership
 
 
 def main():

@@ -11,8 +11,9 @@ question: What is the financial impact of CMPU aged orders?
 title: What is the financial impact of CMPU aged orders?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/cancellation-sales-baseline/src/latex/financial_opportunity.tex

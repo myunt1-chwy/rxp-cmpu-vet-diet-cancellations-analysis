@@ -16,7 +16,7 @@ from pathlib import Path
 from preview import ROOT, write
 
 sys.path.insert(0, str(ROOT))
-from shared.paths import artifact_path
+from shared.python.paths import artifact_path
 
 
 def flatten(path, visited=None):

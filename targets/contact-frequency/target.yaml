@@ -7,8 +7,9 @@ question: What was the frequency of contacting Chewy for CMPU aged order custome
 title: What was the frequency of contacting Chewy for CMPU aged order customers?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/contact-days-relative-to-cancellation/src/latex/contact_analysis.tex

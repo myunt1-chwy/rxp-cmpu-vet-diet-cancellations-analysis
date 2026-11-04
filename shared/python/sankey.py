@@ -13,7 +13,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from shared.python.markdown_tables import write_text
-from shared.runtime import ROOT
+from shared.python.runtime import ROOT
 
 RENDERER = ROOT / ".agents/skills/mermaid-diagrams/scripts/render.py"
 SVG_RASTERIZER = ROOT / "scripts/render_sankey_svg.cjs"

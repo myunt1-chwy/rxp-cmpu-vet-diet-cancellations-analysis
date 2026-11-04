@@ -11,10 +11,10 @@ import click
 import duckdb
 import pandas as pd
 
-from shared.paths import artifact_path, latex_fragment_path
 from shared.python import create_opportunity_order_cancellation_summary as base
 from shared.python import opportunity_report_tables as report_tables
 from shared.python.markdown_tables import markdown_table, write_text
+from shared.python.paths import artifact_path, latex_fragment_path
 from shared.python.reorder_analysis import (
     KEYS,
     REORDER_KEYS,
@@ -23,7 +23,7 @@ from shared.python.reorder_analysis import (
     render_sql,
     scope_mask,
 )
-from shared.sql_templates import module_sql
+from shared.python.sql_templates import module_sql
 
 ROOT = base.ROOT
 

@@ -1,9 +1,9 @@
 import sys
 from pathlib import Path
 
-from shared.cohort_queries import render_cohort_query
-from shared.paths import artifact_path
-from shared.sql_templates import module_sql
+from shared.python.cohort_queries import render_cohort_query
+from shared.python.paths import artifact_path
+from shared.python.sql_templates import module_sql
 
 sys.path.insert(
     0,
@@ -27,7 +27,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from uuid import uuid4
 
-from shared.paths import canonical_sql_path, repository_root
+from shared.python.paths import canonical_sql_path, repository_root
 
 ROOT = repository_root()
 sys.path.insert(0, str(ROOT))

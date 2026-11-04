@@ -18,12 +18,12 @@ sys.path.insert(0, str(ROOT))
 
 import pandas as pd
 
-from shared import prescription_uploads
-from shared.paths import artifact_path
+from shared.python import prescription_uploads
 from shared.python.create_opportunity_order_cancellation_summary import extract
 from shared.python.financial_values import identifier
 from shared.python.markdown_tables import write_text
-from shared.runtime import digest
+from shared.python.paths import artifact_path
+from shared.python.runtime import digest
 
 START_DATE = "2026-08-15"
 END_DATE = "2026-10-15"

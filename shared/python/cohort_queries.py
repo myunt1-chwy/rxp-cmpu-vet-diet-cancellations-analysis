@@ -10,8 +10,8 @@ from pathlib import Path
 
 import yaml
 
-from shared.paths import repository_root
-from shared.sql_templates import render_sql
+from shared.python.paths import repository_root
+from shared.python.sql_templates import render_sql
 
 
 def render_cohort_query(

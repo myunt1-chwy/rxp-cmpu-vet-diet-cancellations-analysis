@@ -6,8 +6,9 @@ question: What are the next steps?
 title: What are the next steps?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/report/src/latex/assembly-source.tex

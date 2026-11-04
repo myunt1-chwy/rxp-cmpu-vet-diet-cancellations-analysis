@@ -7,8 +7,9 @@ question: How long do first-order lines remain without an accepted upload or can
 title: How long do first-order lines remain without an accepted upload or cancellation?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/first-order-survival-curve/src/latex/survival_analysis.tex

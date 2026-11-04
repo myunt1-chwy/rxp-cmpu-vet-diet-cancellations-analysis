@@ -13,7 +13,6 @@ import click
 import pandas as pd
 from jinja2 import Environment, StrictUndefined
 
-from shared.paths import artifact_path, canonical_sql_path
 from shared.python import (
     create_aged_order_all_contact_cancellation_distribution as cohort,
 )
@@ -22,8 +21,9 @@ from shared.python.markdown_tables import (
     table_layout,
     write_text,
 )
+from shared.python.paths import artifact_path, canonical_sql_path
 from shared.python.prior_shipment_history import summarize_history
-from shared.runtime import (
+from shared.python.runtime import (
     ROOT,
     RUNNER,
     digest,

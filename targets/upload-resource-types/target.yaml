@@ -6,13 +6,14 @@ question: How many upload-source entries have prescription IDs for each associat
 title: How many upload-source entries have prescription IDs for each associated resource type?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/__init__.py
 - python/markdown_tables.py
 - python/opportunity_report_tables.py
 - source-ownership.yaml
-- sql_templates.py
+- python/sql_templates.py
 - python/financial_values.py
 - python/sql_listing_format.py
 migration:
@@ -30,10 +31,10 @@ code_dependencies:
 - shared/python/markdown_tables.py
 - shared/python/opportunity_report_tables.py
 - targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
-- shared/paths.py
+- shared/python/paths.py
 - shared/python/financial_values.py
 - shared/python/sql_listing_format.py
-- shared/sql_templates.py
+- shared/python/sql_templates.py
 - targets/report-sql-listings/src/python/create_report_sql_listings.py
 - targets/upload-data-verification-all/src/python/recreate_upload_data_verification.py
 pipeline: verification

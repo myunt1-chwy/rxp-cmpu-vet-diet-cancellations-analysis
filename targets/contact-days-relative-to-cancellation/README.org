@@ -28,7 +28,7 @@ Dates and cohort parameters are preserved from the source manifests and the exis
 Shared dependencies:
 - =shared/analysis=
 - =shared/artifact-ownership.yaml=
-- =shared/paths.py=
+- =shared/python/paths.py=
 
 * Outputs
 Generated content: =targets/contact-days-relative-to-cancellation/outputs/latex/content.tex=.

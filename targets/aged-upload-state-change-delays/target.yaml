@@ -6,8 +6,9 @@ question: How long does it take aged-order uploads to reach their recorded state
 title: How long does it take aged-order uploads to reach their recorded states?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/upload-processing-time/src/latex/entity_upload_analysis.tex

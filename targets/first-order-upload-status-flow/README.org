@@ -27,18 +27,18 @@ Dates and cohort parameters are preserved from the source manifests and the exis
 - =targets/first-order-upload-status-flow/src/sql/cmpu_first_order_line_status.sql=
 
 Imported analysis dependencies:
-- =shared/runtime.py=, =shared/prescription_uploads.py= and =shared/sankey.py=
+- =shared/python/runtime.py=, =shared/python/prescription_uploads.py= and =shared/python/sankey.py=
 - =shared/python/markdown_tables.py=
 
 Shared dependencies:
 - =shared/analysis=
 - =shared/artifact-ownership.yaml=
-- =shared/paths.py=
+- =shared/python/paths.py=
 - =shared/python/__init__.py=
-- =shared/runtime.py=, =shared/prescription_uploads.py= and =shared/sankey.py=
+- =shared/python/runtime.py=, =shared/python/prescription_uploads.py= and =shared/python/sankey.py=
 - =shared/python/markdown_tables.py=
 - =shared/source-ownership.yaml=
-- =shared/sql_templates.py=
+- =shared/python/sql_templates.py=
 
 * Outputs
 Generated content: =targets/first-order-upload-status-flow/outputs/latex/content.tex=.
@@ -50,7 +50,7 @@ The prescription-level generator and its query belong to this target:
 - =src/python/create_cmpu_prescription_first_order_status.py=
 - =src/sql/cmpu_prescription_first_order_status.sql=
 
-The line-status generator calls =shared/prescription_uploads.py= for source validation and normalization, =shared/runtime.py= for paths and file fingerprints, and =shared/sankey.py= for diagram rendering. It no longer imports the prescription-level generator or runs that generator's grouping logic just to validate input. The historical Python module name remains available through the source registry. The existing target Make command still builds the line-status analysis used in the report.
+The line-status generator calls =shared/python/prescription_uploads.py= for source validation and normalization, =shared/python/runtime.py= for paths and file fingerprints, and =shared/python/sankey.py= for diagram rendering. It no longer imports the prescription-level generator or runs that generator's grouping logic just to validate input. The historical Python module name remains available through the source registry. The existing target Make command still builds the line-status analysis used in the report.
 
 * Target-owned SQL
 - =src/sql/cmpu_first_order_comparison.sql=

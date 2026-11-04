@@ -8,9 +8,9 @@ from test_opportunity_aged_first_vet_diet_customers import history
 from test_opportunity_new_upload_customer_follow_up import cohort_fixture
 from test_opportunity_new_upload_follow_up_studies import broad_raw, chewy_raw
 
-from shared.paths import canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_new_upload_customer_follow_up as a
 from shared.python.markdown_tables import write_text
+from shared.python.paths import canonical_sql_path, latex_fragment_path
 
 KIND = "first-vet-diet"
 

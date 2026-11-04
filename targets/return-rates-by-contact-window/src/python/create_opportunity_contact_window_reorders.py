@@ -10,7 +10,6 @@ import re
 import duckdb
 import pandas as pd
 
-from shared.paths import artifact_path
 from shared.python import contact_analysis as contacts
 from shared.python import (
     create_opportunity_contact_frequency_reorders as frequency,
@@ -18,7 +17,8 @@ from shared.python import (
 from shared.python import create_opportunity_order_cancellation_summary as base
 from shared.python.latex_table_rows import replace_rows
 from shared.python.markdown_tables import markdown_table, write_text
-from shared.sql_templates import module_sql
+from shared.python.paths import artifact_path
+from shared.python.sql_templates import module_sql
 
 ROOT = base.ROOT
 START, END, AS_OF, DAYS = "2026-05-01", "2026-08-01", "2026-10-28", 14

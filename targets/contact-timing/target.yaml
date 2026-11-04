@@ -7,8 +7,9 @@ question: When did the CMPU aged order customers contact Chewy relative to the c
 title: When did the CMPU aged order customers contact Chewy relative to the cancellation date?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/contact-days-relative-to-cancellation/src/latex/contact_analysis.tex

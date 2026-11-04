@@ -8,13 +8,13 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
-from shared.cohort_queries import render_cohort_query
-from shared.paths import artifact_path, canonical_sql_path
 from shared.python import (
     create_study_upload_coverage_by_cancel_reason as coverage,
 )
+from shared.python.cohort_queries import render_cohort_query
 from shared.python.markdown_tables import markdown_table, write_text
-from shared.sql_templates import module_sql
+from shared.python.paths import artifact_path, canonical_sql_path
+from shared.python.sql_templates import module_sql
 
 ROOT = coverage.ROOT
 NAME = "study-no-cancellation-upload-details"

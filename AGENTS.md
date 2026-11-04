@@ -15,7 +15,7 @@
 ## Repo Structure
 - Any plan accepted by the user should be in the ai-workspace/todo.org file as an emacs todo item.
 - Log what is done in ai-workspace/log.org after the user accepts the changes and code is committed.
-- Keep analysis sources, data and artifacts under their owning `targets/<id>/` directory. Reusable code belongs in `shared/`; do not recreate root `src/` or `data/`.
+- Keep analysis sources, data and artifacts under their owning `targets/<id>/` directory. Reusable code belongs in `shared/`, with all Python under `shared/python/`; do not recreate root `src/` or `data/`.
 - Store downloaded data and Parquet under `targets/<id>/data/`.
 - Store figures, diagrams and tables under `targets/<id>/outputs/figures/`, `outputs/diagrams/` and `outputs/tables/` respectively. Org tables are authoritative; Markdown exports may supplement them.
 - Keep generated Markdown at or below 1,000,000 bytes. Use `write_text` and `markdown_table` from `shared/python/markdown_tables.py`; large tables belong in target-owned Parquet with labeled previews or summaries.

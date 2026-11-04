@@ -7,7 +7,11 @@ import sys
 
 import click
 
-from shared.paths import artifact_path, canonical_sql_path, repository_root
+from shared.python.paths import (
+    artifact_path,
+    canonical_sql_path,
+    repository_root,
+)
 
 ROOT = repository_root()
 RUNNER = artifact_path(

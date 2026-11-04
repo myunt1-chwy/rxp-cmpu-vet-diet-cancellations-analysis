@@ -2,7 +2,7 @@
 
 import hashlib
 
-from shared.paths import repository_root
+from shared.python.paths import repository_root
 
 ROOT = repository_root()
 RUNNER = ROOT / ".agents/skills/rxp-sql/scripts/run_snowflake_query.py"

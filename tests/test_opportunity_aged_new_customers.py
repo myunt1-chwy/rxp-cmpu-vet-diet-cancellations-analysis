@@ -6,8 +6,8 @@ import pytest
 from click.testing import CliRunner
 from test_opportunity_aged_reorders import sql_sources
 
-from shared.paths import canonical_sql_path
 from shared.python import create_opportunity_aged_new_customers as a
+from shared.python.paths import canonical_sql_path
 
 
 def source():

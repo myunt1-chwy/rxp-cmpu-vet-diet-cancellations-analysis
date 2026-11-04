@@ -11,7 +11,6 @@ import altair as alt
 import click
 import pandas as pd
 
-from shared.paths import artifact_path, output_path
 from shared.python import (
     create_aged_order_reorder_prescription_sankeys as sankeys,
 )
@@ -21,7 +20,8 @@ from shared.python.markdown_tables import (
     table_layout,
     write_text,
 )
-from shared.runtime import (
+from shared.python.paths import artifact_path, output_path
+from shared.python.runtime import (
     ROOT,
     digest,
 )

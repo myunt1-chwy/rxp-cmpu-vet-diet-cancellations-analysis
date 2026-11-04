@@ -9,8 +9,9 @@ title: Does more frequent contact imply higher propensity to re-order successful
   part number in 14 days?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/return-rates-by-contact-frequency/src/latex/contact_frequency_reorders.tex

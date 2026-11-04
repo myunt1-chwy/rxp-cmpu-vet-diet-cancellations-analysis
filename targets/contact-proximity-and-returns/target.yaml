@@ -9,8 +9,9 @@ title: Does contact closer to cancellation imply higher propensity to re-order s
   for the same pet and part number?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/return-rates-by-contact-window/src/latex/contact_window_reorders.tex

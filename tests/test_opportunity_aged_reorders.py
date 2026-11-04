@@ -3,8 +3,8 @@ from decimal import Decimal
 import pandas as pd
 import pytest
 
-from shared.paths import canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_aged_reorders as a
+from shared.python.paths import canonical_sql_path, latex_fragment_path
 
 
 def sources():

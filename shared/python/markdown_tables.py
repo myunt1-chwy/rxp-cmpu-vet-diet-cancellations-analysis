@@ -56,7 +56,7 @@ def write_text(path, text, encoding=None, errors=None, newline=None):
     """
     from pathlib import Path
 
-    from shared.paths import artifact_path
+    from shared.python.paths import artifact_path
 
     path = artifact_path(Path(path))
     if path.suffix.lower() == ".md":

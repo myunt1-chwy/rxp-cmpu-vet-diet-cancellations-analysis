@@ -20,7 +20,7 @@ The child make targets above are actual prerequisites. Parent prose is in =src/l
 Shared dependencies:
 - =shared/analysis=
 - =shared/artifact-ownership.yaml=
-- =shared/paths.py=
+- =shared/python/paths.py=
 
 * Outputs
 Generated content: =targets/any-chewy-returns/outputs/latex/content.tex=.

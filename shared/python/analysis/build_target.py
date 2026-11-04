@@ -19,7 +19,7 @@ def main():
     parser.add_argument("--repro", choices=["0", "1"], default="0")
     parser.add_argument("--final", choices=["0", "1"], default="0")
     args = parser.parse_args()
-    root = Path(__file__).resolve().parents[2]
+    root = Path(__file__).resolve().parents[3]
     targets, _ = load_graph(root)
     metadata = targets[args.target]
     for child in metadata["children"]:

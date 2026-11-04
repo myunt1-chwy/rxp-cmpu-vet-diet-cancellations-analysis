@@ -34,12 +34,12 @@ Imported analysis dependencies:
 Shared dependencies:
 - =shared/analysis=
 - =shared/artifact-ownership.yaml=
-- =shared/paths.py=
+- =shared/python/paths.py=
 - =shared/python/__init__.py=
 - =shared/python/markdown_tables.py=
 - =shared/python/opportunity_report_tables.py=
 - =shared/source-ownership.yaml=
-- =shared/sql_templates.py=
+- =shared/python/sql_templates.py=
 
 * Outputs
 Generated content: =targets/cancellation-sales-baseline/outputs/latex/content.tex=.

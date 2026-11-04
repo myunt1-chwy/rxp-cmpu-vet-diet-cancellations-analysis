@@ -10,12 +10,19 @@ import click
 import duckdb
 import pandas as pd
 
-from shared.cohort_queries import cached_expectations, render_cohort_query
-from shared.paths import artifact_path, canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_order_cancellation_summary as base
+from shared.python.cohort_queries import (
+    cached_expectations,
+    render_cohort_query,
+)
 from shared.python.follow_up_tables import SOURCES, read_table
 from shared.python.markdown_tables import markdown_table, write_text
-from shared.sql_templates import module_sql
+from shared.python.paths import (
+    artifact_path,
+    canonical_sql_path,
+    latex_fragment_path,
+)
+from shared.python.sql_templates import module_sql
 
 ROOT = base.ROOT
 HORIZONS = list(range(7, 71, 7))

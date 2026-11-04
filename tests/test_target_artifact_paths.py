@@ -1,6 +1,6 @@
 """Target routing must work without root compatibility directories."""
 
-from shared.paths import artifact_path, repository_root
+from shared.python.paths import artifact_path, repository_root
 
 
 def test_export_filename_routes_after_shared_directory_resolution():
@@ -50,7 +50,7 @@ def test_prefixed_dataset_name_is_not_stripped_before_matching():
 
 
 def test_latex_fragments_resolve_individually_across_owners(tmp_path):
-    from shared.paths import latex_fragment_path
+    from shared.python.paths import latex_fragment_path
 
     paths = [
         latex_fragment_path(name, root=tmp_path)

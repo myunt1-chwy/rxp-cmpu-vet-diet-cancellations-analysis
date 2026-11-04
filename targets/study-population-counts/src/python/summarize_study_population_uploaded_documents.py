@@ -1,9 +1,9 @@
 import sys
 from pathlib import Path
 
-from shared.paths import artifact_path
-from shared.runtime import digest
-from shared.sql_templates import module_sql
+from shared.python.paths import artifact_path
+from shared.python.runtime import digest
+from shared.python.sql_templates import module_sql
 
 sys.path.insert(
     0,
@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path.cwd()))
 import duckdb
 import pandas as pd
 
-from shared import upload_entities as entity
+from shared.python import upload_entities as entity
 from shared.python.markdown_tables import markdown_table, write_text
 
 root = Path.cwd()

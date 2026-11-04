@@ -9,8 +9,9 @@ title: What is the distribution of CMPU customers with APPROVAL CHANNEL = CUSTOM
   Chewy by cancellation reason?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/contact-cancellation-distribution/src/latex/customer_contacts_by_cancellation_reason.tex

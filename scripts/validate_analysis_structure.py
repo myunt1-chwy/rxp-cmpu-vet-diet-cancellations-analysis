@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "shared/analysis"))
+sys.path.insert(0, str(ROOT / "shared/python/analysis"))
 from graph import load_graph
 
 if __name__ == "__main__":

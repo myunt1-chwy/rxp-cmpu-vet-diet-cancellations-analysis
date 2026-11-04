@@ -11,8 +11,9 @@ question: null
 title: Appendix
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/report/src/latex/assembly-source.tex

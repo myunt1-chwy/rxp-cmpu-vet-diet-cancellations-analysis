@@ -11,8 +11,9 @@ question: What is the contact pattern of CMPU aged order customers?
 title: What is the contact pattern of CMPU aged order customers?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/contact-days-relative-to-cancellation/src/latex/contact_analysis.tex

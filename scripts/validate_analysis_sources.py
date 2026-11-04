@@ -12,7 +12,7 @@ from jinja2 import Environment, StrictUndefined
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from shared.paths import (
+from shared.python.paths import (
     artifact_ownership,
     artifact_path,
     canonical_sql_path,
@@ -31,6 +31,11 @@ def main():
         if (ROOT / retired).exists():
             raise ValueError(
                 f"Retired source/data directory was recreated: {retired}"
+            )
+    for source in (ROOT / "shared").rglob("*.py"):
+        if not source.is_relative_to(ROOT / "shared/python"):
+            raise ValueError(
+                f"Shared Python belongs under shared/python: {source}"
             )
     registry = source_ownership()
     for shared_source in (ROOT / "shared/python").glob("*.py"):

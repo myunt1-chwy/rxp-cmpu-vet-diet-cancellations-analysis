@@ -9,8 +9,9 @@ title: What is the coverage of vet diet prescriptions with \texttt{APPROVAL\_CHA
   by \texttt{RX\_STATUS}?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/data-verification/src/latex/data_verification.tex

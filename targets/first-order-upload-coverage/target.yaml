@@ -8,15 +8,16 @@ title: What proportion of first-order lines have prescription uploads by cancell
   status?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/__init__.py
 - python/markdown_tables.py
 - python/opportunity_report_tables.py
 - source-ownership.yaml
-- sql_templates.py
-- runtime.py
-- upload_entities.py
+- python/sql_templates.py
+- python/runtime.py
+- python/upload_entities.py
 - python/financial_values.py
 migration:
   status: active
@@ -33,11 +34,11 @@ code_dependencies:
 - shared/python/opportunity_report_tables.py
 - targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
 - targets/study-prescription-decisions/src/python/summarize_study_population_prescription_decisions.py
-- shared/runtime.py
-- shared/upload_entities.py
-- shared/paths.py
+- shared/python/runtime.py
+- shared/python/upload_entities.py
+- shared/python/paths.py
 - shared/python/financial_values.py
-- shared/sql_templates.py
+- shared/python/sql_templates.py
 pipeline: upload-coverage
 table_columns:
 - Cancellation reason

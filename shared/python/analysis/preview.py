@@ -18,7 +18,7 @@ from pathlib import Path
 from graph import load_graph
 from jinja2 import Environment, StrictUndefined
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def digest(path):

@@ -1,7 +1,7 @@
 """Keep published financial follow-up tables grouped by study."""
 
-from shared.paths import latex_fragment_path
 from shared.python.markdown_tables import write_text
+from shared.python.paths import latex_fragment_path
 
 STUDIES = ["same-part-pet", "same-pet-different-part", "any-vet-diet"]
 WHOLE_FILES = {

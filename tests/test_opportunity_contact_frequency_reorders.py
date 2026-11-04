@@ -7,9 +7,9 @@ from test_opportunity_aged_customer_contacts import CANCEL
 from test_opportunity_aged_customer_contacts import source as contact_source
 from test_opportunity_aged_reorders import sources
 
-from shared.paths import latex_fragment_path
 from shared.python import create_opportunity_contact_frequency_reorders as a
 from shared.python.markdown_tables import write_text
+from shared.python.paths import latex_fragment_path
 
 
 def fixtures():

@@ -291,7 +291,7 @@ def test_fresh_cached_sql_only_fingerprint_and_exports(tmp_path):
 def test_optional_padding_keeps_last_channel_label_inside_canvas():
     import xml.etree.ElementTree as ET
 
-    from shared.sankey import add_title
+    from shared.python.sankey import add_title
 
     svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1000"/>'
     normal = ET.fromstring(add_title(svg, "Fixture"))

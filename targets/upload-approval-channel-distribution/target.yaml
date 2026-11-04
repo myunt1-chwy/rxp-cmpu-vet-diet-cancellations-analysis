@@ -9,8 +9,9 @@ title: What's the distribution of all the vet diet prescriptions in the prescrip
   \texttt{APPROVAL\_CHANNEL} ?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/data-verification/src/latex/data_verification.tex

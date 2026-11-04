@@ -10,14 +10,14 @@ import re
 import altair as alt
 import pandas as pd
 
-from shared.paths import (
+from shared.python.create_upload_data_verification import latex_escape
+from shared.python.markdown_tables import markdown_table, write_text
+from shared.python.paths import (
     artifact_path,
     canonical_sql_path,
     output_path,
     repository_root,
 )
-from shared.python.create_upload_data_verification import latex_escape
-from shared.python.markdown_tables import markdown_table, write_text
 
 ROOT = repository_root()
 DATA = artifact_path(ROOT / "data/null-resource-upload-analysis")

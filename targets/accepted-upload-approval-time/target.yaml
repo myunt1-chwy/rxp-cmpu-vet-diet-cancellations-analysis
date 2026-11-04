@@ -7,8 +7,9 @@ question: How long does it take for an accepted prescription document to get app
 title: How long does it take for an accepted prescription document to get approved?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/accepted-upload-approval-delay/src/latex/approval_analysis.tex

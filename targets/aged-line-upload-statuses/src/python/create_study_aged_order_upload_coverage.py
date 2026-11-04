@@ -5,11 +5,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from shared.paths import artifact_path
 from shared.python import (
     create_study_no_cancellation_upload_details as details,
 )
 from shared.python.markdown_tables import markdown_table, write_text
+from shared.python.paths import artifact_path
 
 ROOT = details.ROOT
 NAME = "study-aged-order-upload-coverage"

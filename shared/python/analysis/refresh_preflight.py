@@ -14,7 +14,7 @@ def main():
     args = parser.parse_args()
     if args.refresh == "0":
         return
-    root = Path(__file__).resolve().parents[2]
+    root = Path(__file__).resolve().parents[3]
     targets, _ = load_graph(root)
     pipelines = yaml.safe_load(
         (root / "shared/analysis/pipelines.yaml").read_text()

@@ -13,12 +13,16 @@ import click
 import pandas as pd
 from jinja2 import Environment, StrictUndefined
 
-from shared.paths import artifact_path, canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_order_cancellation_summary as base
 from shared.python import first_order_cohorts as first
 from shared.python import opportunity_report_tables as report_tables
 from shared.python import reorder_analysis as reorders
 from shared.python.markdown_tables import markdown_table, write_text
+from shared.python.paths import (
+    artifact_path,
+    canonical_sql_path,
+    latex_fragment_path,
+)
 
 ROOT = base.ROOT
 HORIZONS = list(range(7, 71, 7))

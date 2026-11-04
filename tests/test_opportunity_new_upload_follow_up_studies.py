@@ -14,8 +14,8 @@ from test_opportunity_aged_reorders import (
 from test_opportunity_chewy_follow_up import ecom_source
 from test_opportunity_new_upload_customer_follow_up import cohort_fixture
 
-from shared.paths import canonical_sql_path, latex_fragment_path
 from shared.python import create_opportunity_new_upload_customer_follow_up as a
+from shared.python.paths import canonical_sql_path, latex_fragment_path
 
 
 def broad_raw():

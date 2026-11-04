@@ -7,8 +7,9 @@ question: What is the probability that after X days the order will be an aged or
 title: What is the probability that after X days the order will be an aged order?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/first-order-survival-curve/src/latex/survival_analysis.tex

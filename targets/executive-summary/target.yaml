@@ -6,8 +6,9 @@ question: null
 title: Executive summary
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/report/src/latex/assembly-source.tex

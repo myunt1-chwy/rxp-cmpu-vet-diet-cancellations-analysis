@@ -6,8 +6,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from shared.paths import source_ownership
 from shared.python import markdown_tables as output
+from shared.python.paths import source_ownership
 
 
 def test_small_table_and_small_export_are_unchanged(tmp_path):

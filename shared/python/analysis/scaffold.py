@@ -62,7 +62,7 @@ def scaffold(root, level, target_id, parent, question):
         "parent": parent,
         "children": [],
         "question": question,
-        "shared_dependencies": ["analysis"],
+        "shared_dependencies": ["analysis", "python/analysis"],
         "data_dependencies": [],
     }
     files = {
@@ -70,7 +70,7 @@ def scaffold(root, level, target_id, parent, question):
         "Makefile": (
             "# Included by the root Makefile.\n"
             f".PHONY: {target_id}\n{target_id}:\n"
-            "\t$(PYTHON) shared/analysis/build_target.py "
+            "\t$(PYTHON) shared/python/analysis/build_target.py "
             f"{target_id} \\\n"
             "\t\t--refresh $(REFRESH) --repro $(REPRO) --final $(FINAL)\n"
         ),
@@ -79,7 +79,8 @@ def scaffold(root, level, target_id, parent, question):
             "* Question\n" + question + "\n\n"
             "* Inputs and dependencies\n"
             "Scaffold only: no data or extraction pipeline yet.\n"
-            f"Parent: ={parent}=. Shared renderer: =shared/analysis/=.\n\n"
+            f"Parent: ={parent}=. "
+            "Shared renderer: =shared/python/analysis/=.\n\n"
             "* Build\n"
             "Run from the repository root; it includes this target Makefile.\n"
             "#+begin_src sh\n"
@@ -136,7 +137,7 @@ def main():
     args = parser.parse_args()
     try:
         directory = scaffold(
-            Path(__file__).resolve().parents[2],
+            Path(__file__).resolve().parents[3],
             args.level,
             args.target_id,
             args.parent,

@@ -10,10 +10,10 @@ from unittest.mock import patch
 import pandas as pd
 from click.testing import CliRunner
 
-from shared import prescription_uploads, sankey
 from shared.python import (
     create_cmpu_prescription_first_order_status as analysis,
 )
+from shared.python import prescription_uploads, sankey
 
 LEGACY_ARGS = [
     "--start-date",

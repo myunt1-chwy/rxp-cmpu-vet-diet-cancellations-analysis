@@ -235,7 +235,7 @@ validate-analysis-structure:
 REPRO ?= 0
 .PHONY: preview-target-report
 preview-target-report:
-	.venv/bin/python shared/analysis/preview.py --repro $(REPRO) --final $(FINAL)
+	.venv/bin/python shared/python/analysis/preview.py --repro $(REPRO) --final $(FINAL)
 
 # Question-led target graph. Legacy recipes above remain compatibility commands.
 PYTHON ?= .venv/bin/python

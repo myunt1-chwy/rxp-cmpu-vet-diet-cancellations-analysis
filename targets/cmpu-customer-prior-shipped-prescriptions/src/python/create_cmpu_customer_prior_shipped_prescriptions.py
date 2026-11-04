@@ -14,7 +14,6 @@ import click
 import pandas as pd
 from jinja2 import Environment, StrictUndefined
 
-from shared.paths import artifact_path, canonical_sql_path
 from shared.python import (
     create_aged_customer_prior_shipped_prescriptions as prior,
 )
@@ -23,8 +22,9 @@ from shared.python.markdown_tables import (
     table_layout,
     write_text,
 )
+from shared.python.paths import artifact_path, canonical_sql_path
 from shared.python.prior_shipment_history import FLAGS, summarize_history
-from shared.runtime import (
+from shared.python.runtime import (
     ROOT,
     RUNNER,
     digest,

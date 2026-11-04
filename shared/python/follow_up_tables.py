@@ -2,7 +2,7 @@
 
 import re
 
-from shared.paths import repository_root
+from shared.python.paths import repository_root
 
 ROOT = repository_root()
 

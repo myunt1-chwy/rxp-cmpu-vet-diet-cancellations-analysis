@@ -1,8 +1,8 @@
 import sys
 from pathlib import Path
 
-from shared.paths import artifact_path
-from shared.sql_templates import module_sql
+from shared.python.paths import artifact_path
+from shared.python.sql_templates import module_sql
 
 sys.path.insert(
     0,
@@ -23,7 +23,7 @@ import click
 import duckdb
 import pandas as pd
 
-from shared.paths import repository_root
+from shared.python.paths import repository_root
 
 ROOT = repository_root()
 sys.path.insert(0, str(ROOT))

@@ -11,17 +11,17 @@ import click
 import pandas as pd
 from jinja2 import Environment, StrictUndefined
 
-from shared.duration_plots import boxplot, statistics
-from shared.paths import (
+from shared.python.duration_plots import boxplot, statistics
+from shared.python.markdown_tables import markdown_table, write_text
+from shared.python.paths import (
     artifact_path,
     canonical_sql_path,
     output_path,
     repository_root,
     source_ownership,
 )
-from shared.python.markdown_tables import markdown_table, write_text
-from shared.runtime import RUNNER, digest
-from shared.upload_entities import parameters, validate
+from shared.python.runtime import RUNNER, digest
+from shared.python.upload_entities import parameters, validate
 
 ROOT = repository_root()
 NAME = "cmpu-upload-entity-state-change-distributions"
@@ -237,7 +237,7 @@ def load_source(params, sql, cached):
     if cached:
         if not manifest.exists():
             # This one extraction historically keyed its cache on presentation
-            # code as well as SQL. Accept only the recorded pre-move identity;
+            # code as well as SQL. Accept only recorded pre-move identities;
             # query, parameters, source bytes and validation still must match.
             original = source_ownership()["original_sha256"][
                 (
@@ -245,21 +245,30 @@ def load_source(params, sql, cached):
                     "change_distributions.py"
                 )
             ]
-            previous_identity = dict(identity, implementation_sha256=original)
-            previous_key = hashlib.sha256(
-                json.dumps(previous_identity, sort_keys=True).encode()
-            ).hexdigest()[:16]
-            previous_period = period.rsplit("_", 1)[0] + "_" + previous_key
-            previous_directory = artifact_path(
-                ROOT / "data" / NAME / previous_period
+            compatible = (
+                source_ownership()
+                .get("cache_compatible_implementations", {})
+                .get(Path(__file__).stem, [])
             )
-            if (previous_directory / "source.json").exists():
-                identity = previous_identity
-                directory, period = previous_directory, previous_period
-                parquet, manifest = (
-                    directory / "source.parquet",
-                    directory / "source.json",
+            for previous_hash in [*compatible, original]:
+                previous_identity = dict(
+                    identity, implementation_sha256=previous_hash
                 )
+                previous_key = hashlib.sha256(
+                    json.dumps(previous_identity, sort_keys=True).encode()
+                ).hexdigest()[:16]
+                previous_period = period.rsplit("_", 1)[0] + "_" + previous_key
+                previous_directory = artifact_path(
+                    ROOT / "data" / NAME / previous_period
+                )
+                if (previous_directory / "source.json").exists():
+                    identity = previous_identity
+                    directory, period = previous_directory, previous_period
+                    parquet, manifest = (
+                        directory / "source.parquet",
+                        directory / "source.json",
+                    )
+                    break
         metadata = json.loads(manifest.read_text())
         if (
             metadata.get("identity") != json.loads(json.dumps(identity))

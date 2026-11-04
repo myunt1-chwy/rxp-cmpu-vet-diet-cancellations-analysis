@@ -13,12 +13,12 @@ sys.path.insert(0, str(ROOT))
 
 import pandas as pd
 
-from shared.cohort_queries import render_cohort_query
-from shared.paths import artifact_path
 from shared.python import (
     create_study_no_cancellation_upload_details as details,
 )
+from shared.python.cohort_queries import render_cohort_query
 from shared.python.markdown_tables import write_text
+from shared.python.paths import artifact_path
 
 coverage = details.coverage
 

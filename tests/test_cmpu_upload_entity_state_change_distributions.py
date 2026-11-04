@@ -378,3 +378,53 @@ def test_conflicting_prescription_values_and_missing_upload_id():
     u.loc[0, "upload_id"] = None
     with pytest.raises(ValueError, match="UPLOAD_ID"):
         result(p, l, u)
+
+
+def test_import_relocation_replays_only_registered_identity(
+    tmp_path, monkeypatch
+):
+    from pathlib import Path
+
+    monkeypatch.setattr(a, "ROOT", tmp_path)
+    sql = a.render_sql(*DATES)
+    frame = query(*sources())
+    real_digest = a.digest
+    implementation = "before-import-relocation"
+
+    def digest(path):
+        return (
+            implementation
+            if Path(path) == Path(a.__file__)
+            else real_digest(path)
+        )
+
+    def extract(args, **kwargs):
+        output = tmp_path / args[args.index("--output-parquet") + 1]
+        frame.to_parquet(output, index=False)
+
+    monkeypatch.setattr(a, "digest", digest)
+    with patch.object(a.subprocess, "run", side_effect=extract):
+        fresh, metadata, directory, _ = a.load_source(PARAMS, sql, False)
+    manifest = directory / "source.json"
+    original_bytes = manifest.read_bytes()
+    registry = dict(a.source_ownership())
+    registry["cache_compatible_implementations"] = {
+        Path(a.__file__).stem: [implementation]
+    }
+    monkeypatch.setattr(a, "source_ownership", lambda: registry)
+    implementation = "after-import-relocation"
+    with patch.object(
+        a.subprocess, "run", side_effect=AssertionError("extract")
+    ):
+        replay, replay_metadata, replay_directory, _ = a.load_source(
+            PARAMS, sql, True
+        )
+    pd.testing.assert_frame_equal(fresh, replay)
+    assert replay_metadata == json.loads(json.dumps(metadata))
+    assert replay_directory == directory
+    assert manifest.read_bytes() == original_bytes
+    with pytest.raises(FileNotFoundError):
+        a.load_source(PARAMS, sql + "\n", True)
+    registry["cache_compatible_implementations"] = {}
+    with pytest.raises(FileNotFoundError):
+        a.load_source(PARAMS, sql, True)

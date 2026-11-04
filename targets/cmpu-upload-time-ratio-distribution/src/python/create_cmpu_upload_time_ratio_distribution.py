@@ -10,11 +10,11 @@ import click
 import numpy as np
 import pandas as pd
 
-from shared.paths import artifact_path, output_path
 from shared.python import (
     create_cmpu_first_order_line_approval_distribution as timing,
 )
 from shared.python.markdown_tables import markdown_table, write_text
+from shared.python.paths import artifact_path, output_path
 
 ROOT = timing.ROOT
 NAME = "cmpu-upload-time-ratio-distribution"

@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from shared.paths import artifact_path, repository_root
 from shared.python.markdown_tables import markdown_table, write_text
+from shared.python.paths import artifact_path, repository_root
 
 ROOT = repository_root()
 OUTPUT = artifact_path(ROOT / "outputs/diagrams/data-source-connections")

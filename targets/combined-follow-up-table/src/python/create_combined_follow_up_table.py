@@ -2,13 +2,13 @@
 
 import pandas as pd
 
-from shared.paths import artifact_path, latex_fragment_path
 from shared.python.follow_up_tables import (
     ROOT,
     SOURCES,
     read_table,
 )
 from shared.python.markdown_tables import markdown_table, write_text
+from shared.python.paths import artifact_path, latex_fragment_path
 
 
 def render_comparison(study="same_part_pet"):

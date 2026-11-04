@@ -9,8 +9,9 @@ question: What is the percentage of prescription upload?
 title: What is the percentage of prescription upload?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/first-order-upload-coverage/src/latex/study_upload_coverage_by_cancel_reason.tex

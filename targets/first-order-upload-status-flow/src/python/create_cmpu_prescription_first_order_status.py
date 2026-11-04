@@ -10,19 +10,19 @@ import click
 import pandas as pd
 from jinja2 import Environment, StrictUndefined
 
-from shared.paths import artifact_path, canonical_sql_path
-from shared.prescription_uploads import (
-    date_parameters,
-    period_name,
-    prepare_prescription_uploads,
-)
 from shared.python.markdown_tables import (
     markdown_table,
     table_layout,
     write_text,
 )
-from shared.runtime import ROOT, RUNNER, digest
-from shared.sankey import render_sankey
+from shared.python.paths import artifact_path, canonical_sql_path
+from shared.python.prescription_uploads import (
+    date_parameters,
+    period_name,
+    prepare_prescription_uploads,
+)
+from shared.python.runtime import ROOT, RUNNER, digest
+from shared.python.sankey import render_sankey
 
 NAME = "cmpu-prescription-first-order-status"
 TEMPLATE = canonical_sql_path("cmpu_prescription_first_order_status.sql")

@@ -6,15 +6,16 @@ question: How do first-order line statuses relate to accepted prescription uploa
 title: How do first-order line statuses relate to accepted prescription uploads?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/__init__.py
 - python/markdown_tables.py
 - source-ownership.yaml
-- sql_templates.py
-- runtime.py
-- prescription_uploads.py
-- sankey.py
+- python/sql_templates.py
+- python/runtime.py
+- python/prescription_uploads.py
+- python/sankey.py
 migration:
   status: active
   source: targets/study-population-counts/src/latex/study_population_analysis.tex
@@ -30,10 +31,10 @@ sources:
 - targets/first-order-upload-status-flow/src/sql/cmpu_prescription_first_order_status.sql
 code_dependencies:
 - shared/python/markdown_tables.py
-- shared/runtime.py
-- shared/prescription_uploads.py
-- shared/sankey.py
-- shared/paths.py
+- shared/python/runtime.py
+- shared/python/prescription_uploads.py
+- shared/python/sankey.py
+- shared/python/paths.py
 pipeline: first-order-status
 images:
 - source: targets/first-order-upload-status-flow/outputs/diagrams/2026-08-15_2026-10-14/cmpu-first-order-lines_customer-upload_uploads-2026-08-01_2026-10-25_accepted-state-change_order-placed_sankey.png

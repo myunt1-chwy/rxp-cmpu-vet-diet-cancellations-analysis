@@ -9,7 +9,6 @@ import json
 import click
 import pandas as pd
 
-from shared.paths import artifact_path
 from shared.python import (
     create_aged_customer_prior_same_clinic_shipments as clinics,
 )
@@ -22,7 +21,8 @@ from shared.python.markdown_tables import (
     table_layout,
     write_text,
 )
-from shared.runtime import (
+from shared.python.paths import artifact_path
+from shared.python.runtime import (
     ROOT,
     digest,
 )

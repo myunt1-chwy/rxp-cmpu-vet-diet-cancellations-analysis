@@ -10,8 +10,9 @@ question: Which prescriptions, orders, customers, and uploads are included in th
 title: Which prescriptions, orders, customers, and uploads are included in the study?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/study-population-counts/src/latex/study_population_analysis.tex

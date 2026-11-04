@@ -19,7 +19,7 @@ Default builds reuse retained source data and rerun the validation and presentat
 Shared dependencies:
 - =shared/analysis=
 - =shared/artifact-ownership.yaml=
-- =shared/paths.py=
+- =shared/python/paths.py=
 
 * Outputs
 Generated content: =targets/executive-summary/outputs/latex/content.tex=.

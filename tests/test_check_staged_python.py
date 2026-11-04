@@ -99,8 +99,8 @@ def test_project_imports_do_not_depend_on_other_staged_files(repo):
     stage(
         repo,
         "import pandas as pd\n\n"
-        "from shared.paths import artifact_path\n"
         "from shared.python import analysis\n"
+        "from shared.python.paths import artifact_path\n"
         "from tests import fixtures\n\n"
         "print(pd, artifact_path, analysis, fixtures)\n",
     )

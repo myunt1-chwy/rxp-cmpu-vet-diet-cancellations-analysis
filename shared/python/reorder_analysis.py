@@ -7,9 +7,9 @@ import pandas as pd
 import pyarrow as pa
 from jinja2 import Environment, StrictUndefined
 
-from shared.paths import canonical_sql_path
 from shared.python import financial_values as base
-from shared.sql_templates import render_sql as render_template
+from shared.python.paths import canonical_sql_path
+from shared.python.sql_templates import render_sql as render_template
 
 KEYS = ["original_order_id", "original_line_id"]
 

@@ -8,8 +8,8 @@ ROOT = Path(__file__).parents[1]
 
 @pytest.fixture
 def format_markdown(monkeypatch):
-    monkeypatch.syspath_prepend(str(ROOT / "shared/analysis"))
-    return runpy.run_path(str(ROOT / "shared/analysis/howto.py"))[
+    monkeypatch.syspath_prepend(str(ROOT / "shared/python/analysis"))
+    return runpy.run_path(str(ROOT / "shared/python/analysis/howto.py"))[
         "format_markdown"
     ]
 

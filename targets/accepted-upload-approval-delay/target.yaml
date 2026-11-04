@@ -6,15 +6,16 @@ question: How long after an accepted upload is the prescription approved?
 title: How long after an accepted upload is the prescription approved?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/__init__.py
 - python/markdown_tables.py
 - source-ownership.yaml
-- sql_templates.py
-- runtime.py
-- prescription_uploads.py
-- sankey.py
+- python/sql_templates.py
+- python/runtime.py
+- python/prescription_uploads.py
+- python/sankey.py
 migration:
   status: active
   source: targets/accepted-upload-approval-delay/src/latex/approval_analysis.tex
@@ -28,10 +29,10 @@ sources:
 - targets/accepted-upload-approval-delay/src/sql/cmpu_upload_to_max_approval_extract.sql
 code_dependencies:
 - shared/python/markdown_tables.py
-- shared/runtime.py
-- shared/prescription_uploads.py
-- shared/sankey.py
-- shared/paths.py
+- shared/python/runtime.py
+- shared/python/prescription_uploads.py
+- shared/python/sankey.py
+- shared/python/paths.py
 pipeline: upload-approval
 images:
 - source: targets/accepted-upload-approval-delay/outputs/figures/2026-08-15_2026-10-14/cmpu-d-lines_upload-to-max-approval_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_cumulative.png

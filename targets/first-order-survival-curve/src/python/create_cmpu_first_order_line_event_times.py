@@ -11,17 +11,17 @@ import click
 import pandas as pd
 from jinja2 import Environment, StrictUndefined
 
-from shared.paths import artifact_path, canonical_sql_path
-from shared.prescription_uploads import (
-    AUDIT_COLUMNS,
-    TIMING_VARIANT,
-)
 from shared.python.markdown_tables import (
     markdown_table,
     table_layout,
     write_text,
 )
-from shared.runtime import (
+from shared.python.paths import artifact_path, canonical_sql_path
+from shared.python.prescription_uploads import (
+    AUDIT_COLUMNS,
+    TIMING_VARIANT,
+)
+from shared.python.runtime import (
     ROOT,
     RUNNER,
     digest,

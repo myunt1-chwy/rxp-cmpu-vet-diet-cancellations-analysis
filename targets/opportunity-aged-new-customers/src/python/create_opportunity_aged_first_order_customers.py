@@ -10,7 +10,6 @@ import click
 import duckdb
 import pandas as pd
 
-from shared.paths import artifact_path
 from shared.python import create_opportunity_order_cancellation_summary as base
 from shared.python.first_order_cohorts import (
     SCOPE_FOLDERS,
@@ -21,7 +20,8 @@ from shared.python.first_order_cohorts import (
     source_identity,
 )
 from shared.python.markdown_tables import markdown_table, write_text
-from shared.sql_templates import module_sql
+from shared.python.paths import artifact_path
+from shared.python.sql_templates import module_sql
 
 ROOT = base.ROOT
 KEYS = ["order_id", "order_line_id"]

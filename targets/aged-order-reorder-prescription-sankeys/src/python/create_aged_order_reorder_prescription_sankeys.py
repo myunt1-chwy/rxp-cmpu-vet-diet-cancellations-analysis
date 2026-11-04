@@ -12,8 +12,6 @@ from datetime import UTC, date, datetime, timedelta
 import click
 import pandas as pd
 
-from shared.cohort_queries import cached_expectations, render_cohort_query
-from shared.paths import artifact_path, canonical_sql_path
 from shared.python import (
     create_aged_order_reorder_approval_channels as channels,
 )
@@ -22,17 +20,22 @@ from shared.python import (
     create_aged_order_reorder_prescriptions as prescriptions,
 )
 from shared.python import create_aged_order_reorder_windows as windows
+from shared.python.cohort_queries import (
+    cached_expectations,
+    render_cohort_query,
+)
 from shared.python.markdown_tables import (
     markdown_table,
     table_layout,
     write_text,
 )
-from shared.runtime import (
+from shared.python.paths import artifact_path, canonical_sql_path
+from shared.python.runtime import (
     ROOT,
     RUNNER,
     digest,
 )
-from shared.sankey import (
+from shared.python.sankey import (
     render_sankey,
 )
 

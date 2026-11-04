@@ -8,13 +8,14 @@ title: How do customer counts, order counts, and estimated net sales vary by can
   status?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/__init__.py
 - python/markdown_tables.py
 - python/opportunity_report_tables.py
 - source-ownership.yaml
-- sql_templates.py
+- python/sql_templates.py
 - python/financial_values.py
 migration:
   status: active
@@ -31,9 +32,9 @@ sources:
 code_dependencies:
 - shared/python/markdown_tables.py
 - shared/python/opportunity_report_tables.py
-- shared/paths.py
+- shared/python/paths.py
 - shared/python/financial_values.py
-- shared/sql_templates.py
+- shared/python/sql_templates.py
 pipeline: financial-baseline
 table_columns:
 - Cancellation reason

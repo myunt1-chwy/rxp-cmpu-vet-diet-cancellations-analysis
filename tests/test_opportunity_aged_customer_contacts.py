@@ -7,8 +7,8 @@ import pytest
 from click.testing import CliRunner
 from test_opportunity_aged_reorders import sql_sources
 
-from shared.paths import canonical_sql_path
 from shared.python import create_opportunity_aged_customer_contacts as a
+from shared.python.paths import canonical_sql_path
 
 CANCEL = pd.Timestamp("2026-06-12 12:00:00", tz="UTC")
 

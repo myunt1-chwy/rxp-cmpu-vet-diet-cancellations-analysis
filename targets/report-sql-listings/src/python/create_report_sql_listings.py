@@ -3,8 +3,12 @@
 import hashlib
 import json
 
-from shared.paths import artifact_path, canonical_sql_path, repository_root
 from shared.python.markdown_tables import write_text
+from shared.python.paths import (
+    artifact_path,
+    canonical_sql_path,
+    repository_root,
+)
 from shared.python.sql_listing_format import (
     format_sql,
 )

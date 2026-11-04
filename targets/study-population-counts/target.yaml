@@ -6,15 +6,16 @@ question: How many prescriptions, orders, lines, customers, and uploaded documen
 title: How many prescriptions, orders, lines, customers, and uploaded documents are in each study population?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/__init__.py
 - python/markdown_tables.py
 - source-ownership.yaml
-- sql_templates.py
-- runtime.py
-- prescription_uploads.py
-- upload_entities.py
+- python/sql_templates.py
+- python/runtime.py
+- python/prescription_uploads.py
+- python/upload_entities.py
 - python/financial_values.py
 - python/opportunity_report_tables.py
 migration:
@@ -33,12 +34,12 @@ sources:
 - targets/study-population-counts/src/python/create_study_population_report_tables.py
 code_dependencies:
 - shared/python/markdown_tables.py
-- shared/runtime.py
-- shared/upload_entities.py
-- shared/paths.py
+- shared/python/runtime.py
+- shared/python/upload_entities.py
+- shared/python/paths.py
 - shared/python/financial_values.py
 - shared/python/opportunity_report_tables.py
-- shared/sql_templates.py
+- shared/python/sql_templates.py
 - targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
 pipeline: study-population
 table_columns:

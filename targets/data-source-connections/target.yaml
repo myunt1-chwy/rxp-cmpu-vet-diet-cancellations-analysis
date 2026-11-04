@@ -12,8 +12,9 @@ question: How are data sources connected?
 title: How are data sources connected?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/data-source-diagrams/src/latex/data_source_connections.tex

@@ -1,5 +1,5 @@
-from shared import duration_plots
-from shared.runtime import digest
+from shared.python import duration_plots
+from shared.python.runtime import digest
 
 (
     "REFNUM 52: upload creation relative to first-order placement, "
@@ -16,14 +16,14 @@ import click
 import pandas as pd
 from jinja2 import Environment, StrictUndefined
 
-from shared import upload_entities as entity
-from shared.paths import (
+from shared.python import upload_entities as entity
+from shared.python.markdown_tables import markdown_table, write_text
+from shared.python.paths import (
     artifact_path,
     canonical_sql_path,
     output_path,
     repository_root,
 )
-from shared.python.markdown_tables import markdown_table, write_text
 
 ROOT = repository_root()
 NAME = "cmpu-upload-entity-order-creation-distributions"

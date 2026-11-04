@@ -6,8 +6,9 @@ question: What is the grain and counting unit of each source?
 title: What is the grain and counting unit of each source?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/markdown_tables.py
 migration:
   status: active
@@ -21,6 +22,6 @@ table_columns:
 - Grain and matching rules
 data_dependencies: []
 code_dependencies:
-- shared/paths.py
+- shared/python/paths.py
 - shared/python/markdown_tables.py
 - targets/data-source-diagrams/src/python/create_data_source_diagrams.py

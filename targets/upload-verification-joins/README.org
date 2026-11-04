@@ -27,10 +27,10 @@ Dates and cohort parameters are preserved from the source manifests and the exis
 Shared dependencies:
 - =shared/analysis=
 - =shared/artifact-ownership.yaml=
-- =shared/paths.py=
+- =shared/python/paths.py=
 - =shared/python/__init__.py=
 - =shared/source-ownership.yaml=
-- =shared/sql_templates.py=
+- =shared/python/sql_templates.py=
 
 * Outputs
 Generated content: =targets/upload-verification-joins/outputs/latex/content.tex=.

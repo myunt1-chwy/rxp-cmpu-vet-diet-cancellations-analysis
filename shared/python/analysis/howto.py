@@ -10,7 +10,7 @@ from pathlib import Path
 
 from graph import load_graph
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 from shared.python.markdown_tables import write_text
 

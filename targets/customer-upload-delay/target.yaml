@@ -7,8 +7,9 @@ question: How long do customers wait to upload a prescription?
 title: How long do customers wait to upload a prescription?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/upload-processing-time/src/latex/entity_upload_analysis.tex

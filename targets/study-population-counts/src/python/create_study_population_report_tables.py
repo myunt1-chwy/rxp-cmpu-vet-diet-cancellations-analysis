@@ -6,11 +6,11 @@ import re
 import duckdb
 import pandas as pd
 
-from shared.paths import artifact_path, repository_root
 from shared.python.create_opportunity_order_cancellation_summary import digest
 from shared.python.latex_table_rows import replace_rows
 from shared.python.markdown_tables import markdown_table, write_text
-from shared.sql_templates import module_sql
+from shared.python.paths import artifact_path, repository_root
+from shared.python.sql_templates import module_sql
 
 ROOT = repository_root()
 # Keep the legacy root path unresolved until each dataset name is appended;

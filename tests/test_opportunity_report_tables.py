@@ -1,6 +1,6 @@
-from shared.paths import latex_fragment_path
 from shared.python import opportunity_report_tables as a
 from shared.python.markdown_tables import write_text
+from shared.python.paths import latex_fragment_path
 
 
 def test_interleaved_cohorts_exclude_frequency_and_rerun_idempotently(

@@ -14,13 +14,13 @@ import click
 import pandas as pd
 from jinja2 import Environment, StrictUndefined
 
-from shared import prescription_uploads, runtime, sankey
-from shared.paths import artifact_path, canonical_sql_path
+from shared.python import prescription_uploads, runtime, sankey
 from shared.python.markdown_tables import (
     markdown_table,
     table_layout,
     write_text,
 )
+from shared.python.paths import artifact_path, canonical_sql_path
 
 ROOT = runtime.ROOT
 NAME = "cmpu-first-order-line-status"

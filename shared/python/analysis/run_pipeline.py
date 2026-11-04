@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def main():

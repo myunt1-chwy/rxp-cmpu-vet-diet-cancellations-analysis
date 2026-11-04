@@ -8,9 +8,9 @@ import pyarrow.parquet as pq
 import pytest
 from click.testing import CliRunner
 
-from shared.paths import latex_fragment_path
 from shared.python import create_opportunity_order_cancellation_summary as a
 from shared.python.markdown_tables import write_text
+from shared.python.paths import latex_fragment_path
 
 DATES = ("2026-06-01", "2026-09-01")
 

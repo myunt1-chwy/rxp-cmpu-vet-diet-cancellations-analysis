@@ -193,3 +193,8 @@ database_derived_queries:
 - opportunity_auto_reorder_flags.sql
 - prescription_cohort_order_sales.sql
 - study_no_cancellation_upload_details.sql
+
+# Import relocation only; preserve the original extraction metadata.
+cache_compatible_implementations:
+  create_cmpu_upload_entity_state_change_distributions:
+    - a847ba84997fb1ed8b797141dfaa9c1ee15e00214ef1f4de8b05c6659cb93c3d

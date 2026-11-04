@@ -1478,3 +1478,22 @@
 * DONE Move task and completion records into ai-workspace
   - Moved todo.org and log.org under ai-workspace, updated AGENTS.md paths,
     and adjusted relative Org file links for the new location.
+
+* DONE Consolidate shared Python under shared/python
+  - Move root shared helpers into shared/python and analysis tooling into
+    shared/python/analysis, keeping pipeline YAML and Make configuration apart.
+  - Update imports, commands, metadata and documentation; verify tests, source
+    ownership, scaffolding, generated HOWTO and cached report reproduction.
+  - Moved eight root helpers and eight analysis scripts; all 27 shared Python
+    files now live under shared/python. Updated root discovery, package paths,
+    imports, Make commands, metadata, AGENTS.md and generated instructions.
+  - The upload-state cache includes its presentation-code hash. Registered the
+    pre-import-move identity for explicit validated replay; preserved original
+    extraction metadata and SQL/parameter/Parquet checks. Added replay tests.
+  - Full tests initially passed 681 cases with one stale import-order fixture;
+    corrected it and passed all 23 related hook/scaffold/HOWTO checks. All 18
+    upload-state tests, including the new replay case, pass. Ruff, ownership,
+    hierarchy and diff checks pass. No SQL or warehouse records changed.
+  - Cached report validation resumed after the cache-lookup repair, reusing
+    successful pipeline results. Final PDF and all 23 authoritative Org tables
+    are byte-identical to the pre-move copies.

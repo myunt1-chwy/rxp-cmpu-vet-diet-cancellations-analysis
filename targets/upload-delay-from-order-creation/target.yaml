@@ -7,15 +7,16 @@ question: How does time from order creation to upload compare between all study 
 title: How does time from order creation to upload compare between all study uploads and aged-order uploads?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 - python/__init__.py
 - python/markdown_tables.py
 - source-ownership.yaml
-- sql_templates.py
-- runtime.py
-- upload_entities.py
-- duration_plots.py
+- python/sql_templates.py
+- python/runtime.py
+- python/upload_entities.py
+- python/duration_plots.py
 migration:
   status: active
   source: targets/upload-processing-time/src/latex/entity_upload_analysis.tex
@@ -28,10 +29,10 @@ sources:
 - targets/upload-delay-from-order-creation/src/sql/cmpu_upload_entity_order_creation_distributions.sql
 code_dependencies:
 - shared/python/markdown_tables.py
-- shared/runtime.py
-- shared/upload_entities.py
-- shared/duration_plots.py
-- shared/paths.py
+- shared/python/runtime.py
+- shared/python/upload_entities.py
+- shared/python/duration_plots.py
+- shared/python/paths.py
 pipeline: upload-creation
 images:
 - source: targets/upload-delay-from-order-creation/outputs/figures/2026-08-15_2026-10-14/cmpu-upload-entity-order-creation-distributions/overall-and-aged-orders.png

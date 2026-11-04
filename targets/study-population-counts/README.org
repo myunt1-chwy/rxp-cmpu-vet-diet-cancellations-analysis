@@ -33,18 +33,18 @@ The study window remains August 15 through October 14, 2026 UTC; upload creation
 - =targets/study-population-counts/src/sql/summarize_study_population_uploaded_documents-query-1.sql.j2=
 
 Imported analysis dependencies:
-- =shared/upload_entities.py= and =shared/runtime.py=
+- =shared/python/upload_entities.py= and =shared/python/runtime.py=
 - =shared/python/markdown_tables.py=
 
 Shared dependencies:
 - =shared/analysis=
 - =shared/artifact-ownership.yaml=
-- =shared/paths.py=
+- =shared/python/paths.py=
 - =shared/python/__init__.py=
-- =shared/upload_entities.py= and =shared/runtime.py=
+- =shared/python/upload_entities.py= and =shared/python/runtime.py=
 - =shared/python/markdown_tables.py=
 - =shared/source-ownership.yaml=
-- =shared/sql_templates.py=
+- =shared/python/sql_templates.py=
 
 * Outputs
 Generated content: =targets/study-population-counts/outputs/latex/content.tex=.

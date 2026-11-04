@@ -4,9 +4,9 @@ import duckdb
 import pandas as pd
 from jinja2 import Environment, StrictUndefined
 
-from shared.paths import canonical_sql_path
 from shared.python import financial_values as base
-from shared.sql_templates import render_sql as render_template
+from shared.python.paths import canonical_sql_path
+from shared.python.sql_templates import render_sql as render_template
 
 MIN_DAY = -13
 

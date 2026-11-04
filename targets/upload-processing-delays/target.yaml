@@ -11,8 +11,9 @@ question: What are the delays in processing uploaded prescriptions?
 title: What are the delays in processing uploaded prescriptions?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/study-population-counts/src/latex/study_population_analysis.tex

@@ -12,8 +12,9 @@ question: How did we verify the data?
 title: How did we verify the data?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/data-verification/src/latex/data_verification.tex

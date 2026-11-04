@@ -27,19 +27,19 @@ Dates and cohort parameters are preserved from the source manifests and the exis
 
 Imported analysis dependencies:
 - =targets/first-order-survival-curve/src/python/create_cmpu_first_order_line_event_times.py=
-- =shared/runtime.py=, =shared/prescription_uploads.py= and =shared/sankey.py=
+- =shared/python/runtime.py=, =shared/python/prescription_uploads.py= and =shared/python/sankey.py=
 - =shared/python/markdown_tables.py=
 
 Shared dependencies:
 - =shared/analysis=
 - =shared/artifact-ownership.yaml=
-- =shared/paths.py=
+- =shared/python/paths.py=
 - =shared/python/__init__.py=
 - =targets/first-order-survival-curve/src/python/create_cmpu_first_order_line_event_times.py=
-- =shared/runtime.py=, =shared/prescription_uploads.py= and =shared/sankey.py=
+- =shared/python/runtime.py=, =shared/python/prescription_uploads.py= and =shared/python/sankey.py=
 - =shared/python/markdown_tables.py=
 - =shared/source-ownership.yaml=
-- =shared/sql_templates.py=
+- =shared/python/sql_templates.py=
 
 * Outputs
 Generated content: =targets/first-order-survival-curve/outputs/latex/content.tex=.

@@ -7,8 +7,9 @@ question: What is the distribution of order cancellation reasons in the prescrip
 title: What is the distribution of order cancellation reasons in the prescription upload tables?
 shared_dependencies:
 - analysis
+- python/analysis
 - artifact-ownership.yaml
-- paths.py
+- python/paths.py
 migration:
   status: active
   source: targets/data-verification/src/latex/data_verification.tex
