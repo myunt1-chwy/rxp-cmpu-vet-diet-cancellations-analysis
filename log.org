@@ -363,3 +363,16 @@
 
 * 2026-11-04 Commit remaining staged change
   - User requested committing all remaining changes. The only pending file was the already staged .DS_Store; committed as dedce15. No SQL history or cache files were added.
+
+* 2026-11-04 Scaffold analysis units and consolidate reproduction instructions
+  - User approved the pending changes; committed as 46cfd3a on
+    feat/analysis-target-structure.
+  - Added a scaffold command for paragraphs, subsubsections and subsections,
+    requiring a question and valid parent. Generates target Makefiles and
+    boilerplate, attaches children and restores parent files on failure.
+  - Documented hierarchy additions and generated Makefiles in target READMEs
+    and HOWTO. Moved current methodology out of docs and removed historical
+    migration notes. HOWTO now uses question-first headings and 80 columns.
+  - Fifteen focused tests, Ruff lint/format, hierarchy/ownership validation,
+    diff checks and commit hooks passed. No warehouse refresh, report rebuild,
+    merge or push was performed for these tooling and documentation changes.
