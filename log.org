@@ -1,3 +1,10 @@
+* 2026-11-04 Root analysis directory retirement
+  - User approved the migration; committed 5b69f81 on feat/analysis-target-structure.
+  - Moved src/ignore to playground; retired root src/data and compatibility links. Retained evidence and artifacts have target owners; root outputs contains the published PDF only.
+  - Updated imports, source metadata, path routing, documentation and lint exclusions. The SQL hook excludes playground while continuing to enforce maintained SQL checks.
+  - Full suite: 639 passed and 16 subtests passed. Commit hooks, Ruff, ownership/hierarchy validators and git diff --check pass. All 34 paragraph artifacts regenerate and the retained-data PDF preview builds.
+  - No warehouse refresh or published-PDF change. Normal report build still stops on the existing financial-query fingerprint mismatch.
+
 * 2026-11-04 Migration test repairs
   - User approved committing all repairs; committed 7240f0c on feat/analysis-target-structure.
   - Repaired all 62 migration-era failures while preserving analytical assertions, scalar SQL APIs and cache provenance checks.
