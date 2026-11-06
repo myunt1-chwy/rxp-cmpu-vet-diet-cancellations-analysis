@@ -172,6 +172,7 @@ queries:
   opportunity_customer_contacts_by_cancel_reason.sql: targets/contact-cancellation-distribution/src/sql/opportunity_customer_contacts_by_cancel_reason.sql
   opportunity_new_upload_customer_chewy_follow_up.sql: targets/opportunity-new-upload-customer-follow-up/src/sql/opportunity_new_upload_customer_chewy_follow_up.sql
   opportunity_new_upload_customer_follow_up.sql: targets/opportunity-new-upload-customer-follow-up/src/sql/opportunity_new_upload_customer_follow_up.sql
+  opportunity_new_chewy_customer_follow_up.sql: targets/opportunity-new-upload-customer-follow-up/src/sql/opportunity_new_chewy_customer_follow_up.sql
   opportunity_new_vet_diet_customer_chewy_follow_up.sql: targets/opportunity-new-upload-customer-follow-up/src/sql/opportunity_new_vet_diet_customer_chewy_follow_up.sql
   opportunity_new_vet_diet_customer_follow_up.sql: targets/opportunity-new-upload-customer-follow-up/src/sql/opportunity_new_vet_diet_customer_follow_up.sql
   opportunity_order_cancellation_summary.sql: targets/cancellation-sales-baseline/src/sql/opportunity_order_cancellation_summary.sql

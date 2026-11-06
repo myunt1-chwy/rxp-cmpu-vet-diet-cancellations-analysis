@@ -1,11 +1,11 @@
 id: non-autoship-first-vet-diet-returns
 level: paragraph
-parent: non-autoship-same-pet-product-returns
+parent: first-vet-diet-reorder-behavior
 children: []
-question: How do non-autoship reorders evolve for customers whose first vet-diet
-  order aged?
-title: How do non-autoship reorders evolve for customers whose first vet-diet order
-  aged?
+question: How do non-autoship reorders for the same pet and product evolve for customers
+  whose first vet-diet order aged?
+title: How do non-autoship reorders for the same pet and product evolve for customers
+  whose first vet-diet order aged?
 shared_dependencies:
 - python/analysis
 - python/non_autoship_returns.py

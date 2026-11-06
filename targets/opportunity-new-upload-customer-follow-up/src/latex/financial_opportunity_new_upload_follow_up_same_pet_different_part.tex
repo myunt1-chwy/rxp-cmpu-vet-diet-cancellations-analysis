@@ -1,29 +1,29 @@
 \clearpage
-\subsubsection{Same-pet, different-product vet-diet follow-up for first upload customers}
+\subsubsection{Follow-up for first CMPU CUSTOMER\_UPLOAD vet-diet customers}
 Table~\ref{tab:financial-opportunity-new-upload-same-pet-different-part} follows the
-11,550 customers whose first observed vet-diet
+13,498 customers whose first observed CMPU vet-diet
 \texttt{CUSTOMER\_UPLOAD} order was an aged order. Original CMPU vet-diet
 \texttt{CUSTOMER\_UPLOAD} aged cancellations occurred from
 May 1, 2026 through July 31, 2026, inclusive, UTC.
 
 \begin{table}[!htbp]
 \centering
-\caption{Same-pet, different-product vet-diet non-cancelled reorders after cancellation of a first CUSTOMER\_UPLOAD vet-diet aged order: cumulative customers, percentage of the fixed cohort, orders and matching-line net sales through 70 days.}
+\caption{Same-pet, different-product vet-diet non-cancelled reorders after cancellation of a first CMPU CUSTOMER\_UPLOAD vet-diet aged order: cumulative customers, percentage of the fixed cohort, orders and matching-line net sales through 70 days.}
 \label{tab:financial-opportunity-new-upload-same-pet-different-part}
-\begin{tabular}{@{}rrrrr@{}}
+\begin{tabular}{@{}rrrrrr@{}}
 \toprule
-Follow-up (days) & Customers & Cohort (\%) & Orders & Net sales \\
+Follow-up (days) & Customers & Cohort (\%) & Orders & Lines & Net sales \\
 \midrule
-7 & 444 & 3.84\% & 466 & 40,916.08 \\
-14 & 727 & 6.29\% & 792 & 68,360.26 \\
-21 & 924 & 8.00\% & 1,089 & 94,359.87 \\
-28 & 1,080 & 9.35\% & 1,379 & 119,958.61 \\
-35 & 1,217 & 10.54\% & 1,695 & 147,193.63 \\
-42 & 1,314 & 11.38\% & 1,983 & 173,509.35 \\
-49 & 1,401 & 12.13\% & 2,289 & 201,286.86 \\
-56 & 1,479 & 12.81\% & 2,574 & 225,931.09 \\
-63 & 1,553 & 13.45\% & 2,893 & 253,413.39 \\
-70 & 1,617 & 14.00\% & 3,220 & 281,008.90 \\
+7 & 528 & 3.91\% & 558 & 721 & 50,190.24 \\
+14 & 859 & 6.36\% & 941 & 1,180 & 82,877.41 \\
+21 & 1,118 & 8.28\% & 1,321 & 1,619 & 115,769.90 \\
+28 & 1,315 & 9.74\% & 1,680 & 2,059 & 148,285.28 \\
+35 & 1,479 & 10.96\% & 2,057 & 2,498 & 181,235.72 \\
+42 & 1,596 & 11.82\% & 2,413 & 2,913 & 213,577.52 \\
+49 & 1,702 & 12.61\% & 2,781 & 3,355 & 246,657.88 \\
+56 & 1,808 & 13.39\% & 3,142 & 3,778 & 277,502.04 \\
+63 & 1,898 & 14.06\% & 3,538 & 4,236 & 312,007.73 \\
+70 & 1,973 & 14.62\% & 3,928 & 4,683 & 345,956.80 \\
 \bottomrule
 \end{tabular}
 
@@ -35,11 +35,11 @@ order's cancellation and includes the indicated day limit. Require the same nume
 source. Exclude the whole later order if any line is cancelled or has unknown
 status. Count each customer, order and physical line once within each window,
 regardless of multiple original lines or shipments. Every percentage uses the
-same fixed denominator of 11,550 customers, including those with no
+same fixed denominator of 13,498 customers, including those with no
 qualifying reorder. All windows require complete follow-up through
 2026-10-28 00:00 UTC; windows and studies overlap and should not be added.
 The cohort uses exact earliest observed order IDs in linked prescription and
-ECOM history, across all historical prescription sources, with current
+ECOM history, restricted to CMPU CUSTOMER\_UPLOAD prescriptions, with current
 prescription approval-channel snapshots. Original eligibility is CMPU,
 vet diet and \texttt{CUSTOMER\_UPLOAD}. Current extraction statuses determine
 non-cancellation. Net sales sum \texttt{ORDER\_LINE\_NET\_SALES} on matching

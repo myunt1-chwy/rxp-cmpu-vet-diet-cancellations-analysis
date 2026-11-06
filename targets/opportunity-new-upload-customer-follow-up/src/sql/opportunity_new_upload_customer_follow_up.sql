@@ -1,9 +1,10 @@
--- Same-pet/product follow-up after cancellation of a first CUSTOMER_UPLOAD vet-
+-- Same-pet/product follow-up after cancellation of a first CMPU CUSTOMER_UPLOAD
+-- vet-
 -- diet aged order.
 -- CMPU vet-diet CUSTOMER_UPLOAD aged cancellations; first observed
--- CUSTOMER_UPLOAD vet-diet order IDs.
--- Vet-diet CUSTOMER_UPLOAD history from RxP prescriptions; all
--- sources/statuses/dates; ECOM chronology.
+-- CMPU CUSTOMER_UPLOAD vet-diet order IDs.
+-- CMPU CUSTOMER_UPLOAD vet-diet history from linked RxP prescriptions;
+-- all statuses and dates, ordered by ECOM placement time.
 WITH registry AS (
     SELECT
         rx_id,
@@ -62,7 +63,7 @@ cohort_customers AS (
 ),
 
 vet_diet_order_keys AS (
-    -- CUSTOMER_UPLOAD vet-diet history from every prescription source and date.
+    -- CMPU CUSTOMER_UPLOAD vet-diet history, across all dates and statuses.
     SELECT
         l.customer_id,
         l.order_id,
@@ -75,6 +76,7 @@ vet_diet_order_keys AS (
     WHERE
         l.is_vet_diet_flag = TRUE
         AND p.is_vet_diet_flag = TRUE
+        AND p.prescription_source = 'CMPU'
         AND p.approval_channel = 'CUSTOMER_UPLOAD'
     GROUP BY l.customer_id, l.order_id
 ),
@@ -150,7 +152,8 @@ first_orders AS (
 ),
 
 selected_aged_keys AS (
-    -- Only the first CUSTOMER_UPLOAD vet-diet aged order per customer is an
+    -- Only the first CMPU CUSTOMER_UPLOAD vet-diet aged order per customer is
+    -- an
     -- anchor.
     SELECT DISTINCT
         a.order_id,

@@ -13,12 +13,16 @@ SOURCES = [
         "financial_opportunity_follow_up_same_part_pet.tex",
     ),
     (
-        "First CUSTOMER_UPLOAD vet-diet order aged",
+        "First CMPU CUSTOMER_UPLOAD vet-diet order aged",
         "financial_opportunity_new_upload_follow_up_same_part_pet.tex",
     ),
     (
         "First vet-diet order aged",
         "financial_opportunity_new_vet_diet_follow_up_same_part_pet.tex",
+    ),
+    (
+        "First observed ECOM order aged",
+        "financial_opportunity_new_chewy_follow_up_same_part_pet.tex",
     ),
 ]
 

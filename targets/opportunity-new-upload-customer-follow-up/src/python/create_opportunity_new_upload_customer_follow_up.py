@@ -1,5 +1,5 @@
 """
-Follow-up purchases after a first observed vet-diet or CUSTOMER_UPLOAD aged
+Follow-up purchases after a first vet-diet or CMPU CUSTOMER_UPLOAD aged
 order.
 """
 
@@ -51,11 +51,14 @@ def render_sql(
     all_chewy=False,
     cohort_kind="first-upload",
 ):
-    template = (
-        "opportunity_new_upload_customer_chewy_follow_up.sql"
-        if all_chewy
-        else "opportunity_new_upload_customer_follow_up.sql"
-    )
+    if cohort_kind == "first-chewy":
+        template = "opportunity_new_chewy_customer_follow_up.sql"
+    else:
+        template = (
+            "opportunity_new_upload_customer_chewy_follow_up.sql"
+            if all_chewy
+            else "opportunity_new_upload_customer_follow_up.sql"
+        )
     if cohort_kind == "first-vet-diet":
         template = template.replace("new_upload", "new_vet_diet")
     return (
@@ -71,7 +74,11 @@ def render_sql(
 
 
 def load_cohort(start, end, cached, cohort_kind="first-upload"):
-    scope = "vet-diet" if cohort_kind == "first-vet-diet" else SCOPE
+    scope = {
+        "first-upload": SCOPE,
+        "first-vet-diet": "vet-diet",
+        "first-chewy": "chewy",
+    }[cohort_kind]
     directory = artifact_path(
         ROOT
         / "data/opportunity"
@@ -286,11 +293,11 @@ def latex_table(
         )
     text = (
         r"""\clearpage
-\subsubsection{Follow-up for first CUSTOMER\_UPLOAD vet-diet customers}
+\subsubsection{Follow-up for first CMPU CUSTOMER\_UPLOAD vet-diet customers}
 Table~\ref{tab:financial-opportunity-new-upload-follow-up} follows the
 """
         + f"{denominator:,}"
-        + r""" customers whose first observed vet-diet
+        + r""" customers whose first observed CMPU vet-diet
 \texttt{CUSTOMER\_UPLOAD} order was an aged order. Original CMPU vet-diet
 \texttt{CUSTOMER\_UPLOAD} aged cancellations occurred from
 """
@@ -300,7 +307,7 @@ Table~\ref{tab:financial-opportunity-new-upload-follow-up} follows the
         + (
             ", inclusive, UTC.\n\n\\begin{table}[!htbp]\n\\centering"
             "\n\\caption{Same-pet, same-product non-cancelled "
-            "reorders after cancellation of a first CUSTOMER\\_"
+            "reorders after cancellation of a first CMPU CUSTOMER\\_"
             "UPLOAD vet-diet aged order: cumulative customers, "
             "percentage of the fixed cohort, orders and matching-"
             "line net sales through 70 days.}\n\\label{tab:financial"
@@ -334,7 +341,7 @@ qualifying reorder. All windows require complete follow-up through
             " 00:00 UTC; windows and studies overlap and should not "
             "be added.\nThe cohort uses exact earliest observed "
             "order IDs in linked prescription and\nECOM history, "
-            "across all historical prescription sources, with "
+            "restricted to CMPU CUSTOMER\\_UPLOAD prescriptions, with "
             "current\nprescription approval-channel snapshots. "
             "Original eligibility is CMPU,\nvet diet and "
             "\\texttt{CUSTOMER\\_UPLOAD}. Current extraction "
@@ -409,23 +416,51 @@ numeric customer ID, exact \texttt{PRODUCT\_PART\_NUMBER} and non-null
             "was an aged order.\n\nOriginal CMPU vet-diet",
         )
         text = text.replace(
-            r"first CUSTOMER\_UPLOAD vet-diet", "first vet-diet"
+            r"first CMPU CUSTOMER\_UPLOAD vet-diet", "first vet-diet"
         ).replace("first upload customers", "first vet-diet customers")
         text = text.replace(
-            "first observed vet-diet\n" + r"\texttt{CUSTOMER\_UPLOAD} order",
+            "first observed CMPU vet-diet\n"
+            + r"\texttt{CUSTOMER\_UPLOAD} order",
             "first observed vet-diet order",
         )
         text = text.replace(
             (
                 "The cohort uses exact earliest observed order IDs in linked "
-                "prescription and\nECOM history, across all historical "
-                "prescription sources, with current\nprescription "
+                "prescription and\nECOM history, restricted to CMPU "
+                "CUSTOMER\\_UPLOAD prescriptions, with current\nprescription "
                 "approval-channel snapshots."
             ),
             (
                 "The cohort uses earliest observed vet-diet order IDs across "
                 "all historical approval channels and prescription sources, "
                 "identified from RxP vet-diet lines and ECOM order history."
+            ),
+        )
+    elif cohort_kind == "first-chewy":
+        text = text.replace(
+            "tab:financial-opportunity-new-upload",
+            "tab:financial-opportunity-new-chewy",
+        )
+        text = text.replace(
+            r"first CMPU CUSTOMER\_UPLOAD vet-diet",
+            "first observed ECOM",
+        ).replace("first upload customers", "new-to-Chewy customers")
+        text = text.replace(
+            "first observed CMPU vet-diet\n"
+            + r"\texttt{CUSTOMER\_UPLOAD} order",
+            "first observed ECOM order",
+        )
+        text = text.replace(
+            (
+                "The cohort uses exact earliest observed order IDs in linked "
+                "prescription and\nECOM history, restricted to CMPU "
+                "CUSTOMER\\_UPLOAD prescriptions, with current\nprescription "
+                "approval-channel snapshots."
+            ),
+            (
+                "The cohort uses exact earliest observed ECOM order IDs "
+                "across all products and statuses, not guaranteed complete "
+                "lifetime history."
             ),
         )
     return text
@@ -435,9 +470,13 @@ def publish_latex(
     text, all_chewy=False, tables=None, cohort_kind="first-upload"
 ):
     filename = (
-        "financial_opportunity_new_upload_chewy_follow_up.tex"
-        if all_chewy
-        else "financial_opportunity_new_upload_follow_up.tex"
+        "financial_opportunity_new_chewy_follow_up.tex"
+        if cohort_kind == "first-chewy"
+        else (
+            "financial_opportunity_new_upload_chewy_follow_up.tex"
+            if all_chewy
+            else "financial_opportunity_new_upload_follow_up.tex"
+        )
     )
     if cohort_kind == "first-vet-diet":
         filename = filename.replace("new_upload", "new_vet_diet")
@@ -446,7 +485,11 @@ def publish_latex(
         fragments = (
             report_tables.VET_FILES
             if cohort_kind == "first-vet-diet"
-            else report_tables.UPLOAD_FILES
+            else (
+                report_tables.CHEWY_FIRST_FILES
+                if cohort_kind == "first-chewy"
+                else report_tables.UPLOAD_FILES
+            )
         )
         for study, fragment in (tables or {}).items():
             write_text(
@@ -468,7 +511,7 @@ def publish_latex(
 @click.option(
     "--cohort",
     "cohort_kind",
-    type=click.Choice(["first-upload", "first-vet-diet"]),
+    type=click.Choice(["first-upload", "first-vet-diet", "first-chewy"]),
     default="first-upload",
 )
 @click.option(
@@ -536,6 +579,8 @@ def main(
     )
     if cohort_kind == "first-vet-diet":
         root_name = root_name.replace("new-upload", "new-vet-diet")
+    elif cohort_kind == "first-chewy":
+        root_name = root_name.replace("new-upload", "new-chewy")
     directory = artifact_path(
         ROOT
         / "data/opportunity"
@@ -551,7 +596,8 @@ def main(
         as_of_date=as_of_date,
         horizons=HORIZONS,
         anchor=(
-            "first observed CUSTOMER_UPLOAD vet-diet aged order cancellation"
+            "first observed CMPU CUSTOMER_UPLOAD vet-diet aged order "
+            "cancellation"
         ),
         sql_sha256=hashlib.sha256(sql.encode()).hexdigest(),
         **cohort,
@@ -560,6 +606,11 @@ def main(
         identity.update(
             cohort_kind=cohort_kind,
             anchor="first observed vet-diet aged order cancellation",
+        )
+    elif cohort_kind == "first-chewy":
+        identity.update(
+            cohort_kind=cohort_kind,
+            anchor="first observed ECOM aged order cancellation",
         )
     if all_studies or study != "same-part-pet":
         identity["studies"] = studies
@@ -674,12 +725,12 @@ def main(
         lambda v: "Incomplete" if pd.isna(v) else f"{v:,.2f}"
     )
     text = (
-        f"# First CUSTOMER_UPLOAD vet-diet customers: same-pet/product "
+        f"# First CMPU CUSTOMER_UPLOAD vet-diet customers: same-pet/product "
         f"follow-up\n\nOriginal CMPU vet-diet CUSTOMER_UPLOAD aged "
         f"cancellations [{start_date}, {end_date}) UTC; "
         f"as of {as_of_date} 00:00 UTC. Cohort: {len(anchors):,} customers "
-        f"whose first observed CUSTOMER_UPLOAD vet-diet order was an aged "
-        f"order. "
+        f"whose first observed CMPU CUSTOMER_UPLOAD vet-diet order was "
+        f"an aged order. "
         "Only that first aged order anchors each customer, including every "
         "qualifying line on it; subsequent aged orders do not reset "
         "follow-up. "
@@ -748,21 +799,21 @@ def main(
     suffix = (
         "all-studies" if all_studies else ("all-chewy" if all_chewy else study)
     )
-    prefix = (
-        "new-vet-diet-customers"
-        if cohort_kind == "first-vet-diet"
-        else "new-upload-customers"
-    )
+    prefix = {
+        "first-upload": "new-upload-customers",
+        "first-vet-diet": "new-vet-diet-customers",
+        "first-chewy": "new-chewy-customers",
+    }[cohort_kind]
     if cohort_kind == "first-vet-diet":
         text = (
             text.replace(
-                "# First CUSTOMER_UPLOAD vet-diet customers",
+                "# First CMPU CUSTOMER_UPLOAD vet-diet customers",
                 "# First vet-diet customers",
             )
             .replace(
                 (
-                    "whose first observed CUSTOMER_UPLOAD vet-diet order was "
-                    "an aged order."
+                    "whose first observed CMPU CUSTOMER_UPLOAD vet-diet order "
+                    "was an aged order."
                 ),
                 (
                     "whose first observed vet-diet order across all "
@@ -781,6 +832,32 @@ def main(
                     "First-customer status is based on observed RxP vet-diet "
                     "lines and ECOM history, not guaranteed complete lifetime "
                     "history."
+                ),
+            )
+        )
+    elif cohort_kind == "first-chewy":
+        text = (
+            text.replace(
+                "# First CMPU CUSTOMER_UPLOAD vet-diet customers",
+                "# New-to-Chewy customers",
+            )
+            .replace(
+                (
+                    "whose first observed CMPU CUSTOMER_UPLOAD vet-diet order "
+                    "was an aged order."
+                ),
+                ("whose earliest observed ECOM order was an aged order."),
+            )
+            .replace(
+                (
+                    "First-customer status is based on observed linked "
+                    "prescription and ECOM history, with current "
+                    "prescription-channel snapshots, not guaranteed complete "
+                    "lifetime history."
+                ),
+                (
+                    "First-customer status is based on observed ECOM order "
+                    "history, not guaranteed complete lifetime history."
                 ),
             )
         )

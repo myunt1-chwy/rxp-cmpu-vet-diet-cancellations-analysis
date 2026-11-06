@@ -46,7 +46,7 @@ def fixture():
     return [original, later]
 
 
-def execute(rows, transactions=None):
+def execute(rows, transactions=None, extra_prescriptions=None):
     sql = a.render_sql()
     sql = sql.replace("edldb.bt_hca_hcdm.rxp_prescriptions", "prescriptions")
     sql = sql.replace(
@@ -116,6 +116,8 @@ def execute(rows, transactions=None):
             }
         ]
     )
+    if extra_prescriptions is not None:
+        prescriptions = pd.concat([prescriptions, extra_prescriptions])
     orders = lines[
         ["order_id", "customer_id", "order_placed_dttm"]
     ].drop_duplicates()
@@ -318,7 +320,15 @@ def test_first_cohorts_and_successful_order_scope():
     assert all(
         r["denominator"] == 0
         for r in data["summary"]
-        if r["cohort"] != "all-aged"
+        if r["cohort"] in {"first-upload", "first-vet-diet"}
+    )
+    assert (
+        next(
+            r
+            for r in data["summary"]
+            if r["cohort"] == "first-chewy" and r["days"] == 70
+        )["denominator"]
+        == 0
     )
     cancelled_other_product = dict(
         later,
@@ -627,3 +637,35 @@ def test_eastern_daylight_saving_ties_use_instants():
     assert pd.Timestamp(data["line"][0]["product_first_shipped_utc"]) == (
         pd.Timestamp("2026-11-01T05:30:00")
     )
+
+
+@pytest.mark.parametrize("source,expected", [("OTHER_SOURCE", 1), ("CMPU", 0)])
+def test_first_upload_history_requires_cmpu(source, expected):
+    original, later = fixture()
+    historical = dict(
+        later,
+        order_id=99,
+        order_line_id=991,
+        rx_id="historical",
+        order_placed_dttm=pd.Timestamp("2025-01-01"),
+        order_line_shipped_dttm=pd.Timestamp("2025-01-02"),
+    )
+    prescriptions = pd.DataFrame(
+        [
+            {
+                "rx_id": "historical",
+                "customer_id": 7,
+                "is_vet_diet_flag": True,
+                "approval_channel": "CUSTOMER_UPLOAD",
+                "prescription_source": source,
+            }
+        ]
+    )
+    data = execute(
+        [original, later, historical], extra_prescriptions=prescriptions
+    )
+    a.validate(data)
+    cohorts = {r["cohort"]: r for r in data["summary"] if r["days"] == 70}
+    assert cohorts["all-aged"]["denominator"] == 1
+    assert cohorts["first-upload"]["denominator"] == expected
+    assert cohorts["first-vet-diet"]["denominator"] == 0

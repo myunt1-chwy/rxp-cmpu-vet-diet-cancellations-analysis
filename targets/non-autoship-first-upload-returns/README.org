@@ -1,8 +1,8 @@
 #+TITLE: Non-autoship same-pet, same-product reorders
 
 * Question
-How do non-autoship reorders evolve for customers whose first CUSTOMER_UPLOAD
-vet-diet order aged?
+How do non-autoship reorders for the same pet and product evolve for customers
+whose first CMPU CUSTOMER_UPLOAD vet-diet order aged?
 
 * Inputs and definitions
 Uses certified RxP prescriptions and shipment/line measures, plus ECOM
@@ -22,7 +22,7 @@ at or before the inclusive window end. Each anchor needs complete follow-up.
 All-aged customers retain every qualifying aged anchor. First-order cohorts
 retain only the unique earliest observed qualifying order, determined from
 ECOM history with missing-history and timestamp-tie checks. The first-upload
-history includes CUSTOMER_UPLOAD vet-diet prescriptions across sources;
+history includes only CMPU CUSTOMER_UPLOAD vet-diet prescriptions;
 the first-vet-diet history includes all channels and prescription sources.
 Physical lines and shipment contributions are deduplicated before aggregation.
 Conflicting physical-line flags fail validation, including FALSE/NULL mixes.
@@ -44,14 +44,17 @@ Refresh stages extraction and validation before replacing usable inputs.
 Each paragraph owns outputs/tables/table.org and outputs/latex/visual.tex.
 The all-aged paragraph owns the shared query and data/current cache,
 including raw records, query, manifest and reconciliation. Other paragraphs
-declare this data dependency. The parent composes one landscape page.
+declare this data dependency. The cohort parent groups six reorder types over
+two landscape pages.
 Net sales preserve signed amounts; missing sales are disclosed. First-order
 classification reflects available historical records and snapshot channels.
 
 * Shipped matching lines
 Later matching physical lines require =reorder_shipped_utc IS NOT NULL=,
 where the timestamp is =MIN(ORDER_LINE_SHIPPED_DTTM)=. This requirement
-applies to all reorder comparisons under section 3.1. Windows still use order placement;
+applies to all reorder comparisons under the medium-term reorder subsection.
+Windows still use order
+placement;
 original aged lines and cohort denominators have no shipment restriction.
 Table captions describe eligibility in plain language.
 
@@ -61,7 +64,14 @@ Every later matching physical line must satisfy
 =(order_id, order_line_id)=. A shipped sibling line never qualifies an
 unshipped matching line. Existing order cancellation and unknown-status
 exclusions remain. The baseline cancellation cohort is not shipment-filtered.
-All cumulative panels use days, customers, cohort percentage, orders,
-distinct line items and matching-line net sales. Line items are deduplicated
+All cumulative panels use days, customers, cohort percentage, distinct
+line items, orders and matching-line net sales. Line items are deduplicated
 across shipments and original anchors. Shared presentation code lives in
-shared/python/analysis/reorder_panels.py; captions describe eligibility in plain language.
+shared/python/analysis/reorder_panels.py; captions describe eligibility in plain
+language.
+
+* Report grouping
+Parent: =first-upload-reorder-behavior=. This is one of six reorder tables for
+the same cohort.
+The report preserves the 7-day increments through 70 days and the shared
+methodology reference to section 3.2. Data ownership and commands are stable.

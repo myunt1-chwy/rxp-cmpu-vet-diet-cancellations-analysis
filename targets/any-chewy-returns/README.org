@@ -1,39 +1,20 @@
-#+TITLE: What percentage of customers place a Chewy order successfully in the following 70 days after their aged order?
+#+TITLE: any-chewy-returns compatibility command
 
-* Ownership
-Target: =any-chewy-returns=. Level: =subsubsection=.
-Parent: =financial-impact=.
-Ordered children: =any-chewy-return-comparison=.
+* Purpose
+This former reorder-type section is no longer a report hierarchy target.
+Its three paragraph tables now belong to the three cohort sections beneath
+=medium-term-reorder-behavior=. No calculations or data moved.
 
 * Reproduction commands
-Run from the repository root with the project environment installed:
 #+begin_src sh
-make any-chewy-returns
-make any-chewy-returns REPRO=1
-make any-chewy-returns REFRESH=1
+make any-chewy-returns FINAL=0
+make any-chewy-returns REFRESH=1 FINAL=0
 #+end_src
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+These commands rebuild the following existing paragraph artifacts:
+- =any-chewy-return-comparison=
+- =any-chewy-first-upload-returns=
+- =any-chewy-first-vet-diet-returns=
 
-* Inputs and dependencies
-The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.
-
-Shared dependencies:
-- =shared/analysis=
-- =shared/artifact-ownership.yaml=
-- =shared/python/paths.py=
-
-* Outputs
-Generated content: =targets/any-chewy-returns/outputs/latex/content.tex=.
-Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
-
-* Unified cohort panels
-Three independently reproducible paragraphs own the all-aged, first-upload
-and first-vet-diet cohort tables. The parent aligns them on one landscape
-page. Every table includes distinct physical line-item counts, requires a
-non-null shipment date on that line, and shows caption predicates as code.
-Shipment presence reflects the extraction snapshot; the 70-day windows
-and observation cutoff apply to order placement, not shipment time.
-
-* Shared notes
-Common methodology is documented once in the financial-impact introduction.
-Tables reference that section and retain comparison-specific eligibility descriptions.
+Build =medium-term-reorder-behavior= or =report= to assemble all cohort
+sections. Default builds reuse validated caches; REFRESH=1 explicitly
+refreshes the shared pipelines.

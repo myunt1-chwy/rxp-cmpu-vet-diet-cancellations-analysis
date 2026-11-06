@@ -1,11 +1,13 @@
 id: autoship-initiated-or-non-autoship-first-upload
 level: paragraph
-parent: autoship-initiated-or-non-autoship-reorders
+parent: first-upload-reorder-behavior
 children: []
-question: What is the 70-day reorder rate through these line items for customers
-  whose first CUSTOMER_UPLOAD vet-diet order aged?
-title: What is the 70-day reorder rate through these line items for customers whose
-  first CUSTOMER_UPLOAD vet-diet order aged?
+question: How do line items that are the first line items shipped in autoship
+  subscriptions for same pet and product evolve for customers whose first CMPU
+  CUSTOMER_UPLOAD vet-diet order aged?
+title: How do line items that are the first line items shipped in autoship
+  subscriptions for same pet and product evolve for customers whose first CMPU
+  CUSTOMER_UPLOAD vet-diet order aged?
 shared_dependencies:
 - python/analysis
 - python/non_autoship_returns.py

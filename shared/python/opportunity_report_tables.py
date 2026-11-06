@@ -18,6 +18,11 @@ VET_FILES = {
     + study.replace("-", "_")
     for study in STUDIES
 }
+CHEWY_FIRST_FILES = {
+    study: "financial_opportunity_new_chewy_follow_up_"
+    + study.replace("-", "_")
+    for study in STUDIES
+}
 FREQUENCY = "financial_opportunity_customer_order_frequency"
 CHEWY = "financial_opportunity_chewy_follow_up"
 UPLOAD_CHEWY = "financial_opportunity_new_upload_chewy_follow_up"
@@ -37,8 +42,10 @@ KNOWN_FILES = (
     list(WHOLE_FILES.values())
     + list(UPLOAD_FILES.values())
     + list(VET_FILES.values())
+    + list(CHEWY_FIRST_FILES.values())
     + [
         VET_CHEWY,
+        "financial_opportunity_new_chewy_follow_up",
         LEGACY_VET,
         FREQUENCY,
         CHEWY,

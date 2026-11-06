@@ -332,7 +332,7 @@ cohort_customers AS (
 
 first_upload_anchors AS (
     WITH vet_diet_order_keys AS (
-    -- CUSTOMER_UPLOAD vet-diet history from every prescription source and date.
+    -- CMPU CUSTOMER_UPLOAD vet-diet history, across all dates and statuses.
         SELECT
             l.customer_id,
             l.order_id,
@@ -347,6 +347,7 @@ first_upload_anchors AS (
         WHERE
             l.is_vet_diet_flag = TRUE
             AND p.is_vet_diet_flag = TRUE
+            AND p.prescription_source = 'CMPU'
             AND p.approval_channel = 'CUSTOMER_UPLOAD'
         GROUP BY l.customer_id, l.order_id
     ),
@@ -418,8 +419,8 @@ first_upload_anchors AS (
     ),
 
     selected_aged_keys AS (
-    -- Only the first CUSTOMER_UPLOAD vet-diet aged order per customer is an
-    -- anchor.
+    -- Only the first CMPU CUSTOMER_UPLOAD vet-diet aged order anchors
+    -- each customer; later aged orders do not reset follow-up.
         SELECT DISTINCT
             a.order_id,
             a.order_line_id,
@@ -548,6 +549,60 @@ first_vet_diet_anchors AS (
             AND a.original_line_id = k.order_line_id
 ),
 
+first_chewy_anchors AS (
+    WITH history AS (
+        SELECT
+            o.order_id,
+            MIN(o.customer_id) AS customer_id,
+            MIN(o.order_placed_dttm) AS placed_at_utc,
+            COUNT(DISTINCT o.order_placed_dttm)
+            + IFF(COUNT_IF(o.order_placed_dttm IS NULL) > 0, 1, 0)
+                AS placement_variants
+        FROM edldb.ecom.orders AS o
+        INNER JOIN cohort_customers AS c ON o.customer_id = c.customer_id
+        GROUP BY o.order_id
+    ),
+
+    ranked AS (
+        SELECT
+            *,
+            MIN(placed_at_utc)
+                OVER (PARTITION BY customer_id)
+                AS earliest_placed_at_utc,
+            ROW_NUMBER()
+                OVER (
+                    PARTITION BY customer_id
+                    ORDER BY placed_at_utc NULLS LAST, order_id
+                )
+                AS first_rank
+        FROM history
+    ),
+
+    first_orders AS (
+        SELECT
+            customer_id,
+            COUNT_IF(placed_at_utc IS NULL) AS history_orders_missing_placement,
+            MAX(placement_variants) AS placement_variants,
+            MIN(earliest_placed_at_utc) AS first_placed_at_utc,
+            COUNT_IF(placed_at_utc = earliest_placed_at_utc)
+                AS earliest_timestamp_ties,
+            MAX(IFF(first_rank = 1, order_id, NULL)) AS first_order_id
+        FROM ranked
+        GROUP BY customer_id
+    )
+
+    SELECT a.*
+    FROM originals AS a
+    INNER JOIN first_orders AS f
+        ON
+            a.original_customer_id = f.customer_id
+            AND a.original_order_id = f.first_order_id
+    WHERE
+        f.first_placed_at_utc IS NOT NULL
+        AND f.earliest_timestamp_ties = 1
+        AND f.history_orders_missing_placement = 0
+),
+
 anchor_cohorts AS (
     SELECT
         'all-aged' AS cohort,
@@ -563,6 +618,11 @@ anchor_cohorts AS (
         'first-vet-diet' AS cohort,
         a.*
     FROM first_vet_diet_anchors AS a
+    UNION ALL
+    SELECT
+        'first-chewy' AS cohort,
+        a.*
+    FROM first_chewy_anchors AS a
 ),
 
 anchors AS (
@@ -589,7 +649,7 @@ cohorts AS (
     SELECT column1 AS cohort
     FROM
         VALUES
-        ('all-aged'), ('first-upload'), ('first-vet-diet')
+        ('all-aged'), ('first-upload'), ('first-vet-diet'), ('first-chewy')
 ),
 
 horizons AS (

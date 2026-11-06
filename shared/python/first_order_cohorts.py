@@ -18,7 +18,7 @@ SCOPE_LABELS = {
     "chewy": STATUSES[0],
     "vet-diet": "First order in observed vet-diet history",
     "vet-diet-customer-upload": (
-        "First observed CUSTOMER_UPLOAD vet-diet order"
+        "First observed CMPU CUSTOMER_UPLOAD vet-diet order"
     ),
 }
 
@@ -68,8 +68,8 @@ def source_identity(params, sql, scope="chewy"):
         identity.update(
             scope=scope,
             definition=(
-                "exact earliest placed CUSTOMER_UPLOAD vet-diet order ID; all "
-                "prescription sources and statuses"
+                "exact earliest placed CMPU CUSTOMER_UPLOAD vet-diet order "
+                "ID; all statuses"
             ),
         )
     return identity

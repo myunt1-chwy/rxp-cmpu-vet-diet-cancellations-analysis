@@ -21,7 +21,7 @@ def channel_history(channel="FAX", customer=7):
         rx_id="HIST-RX",
         customer_id=customer,
         approval_channel=channel,
-        prescription_source="OTHER_SOURCE",
+        prescription_source="CMPU",
     )
     return orders, lines, pd.concat([rx, extra])
 
@@ -37,10 +37,9 @@ def test_earlier_other_channel_does_not_block_first_customer_upload():
     assert frames["orders"].iloc[0].first_order_id == "1"
     assert (
         frames["orders"].iloc[0].status
-        == "First observed CUSTOMER_UPLOAD vet-diet order"
+        == "First observed CMPU CUSTOMER_UPLOAD vet-diet order"
     )
-    # Prior history counts even outside the cancellation window and from a
-    # non-CMPU prescription source. The order's status is unrestricted.
+    # Prior CMPU history counts outside the window, regardless of order status.
     rx.loc[rx.rx_id.eq("HIST-RX"), "approval_channel"] = "CUSTOMER_UPLOAD"
     frames, _ = a.analyze(
         execute(orders, lines, scope=SCOPE, rx=rx),
@@ -50,6 +49,20 @@ def test_earlier_other_channel_does_not_block_first_customer_upload():
     )
     assert frames["orders"].iloc[0].first_order_id == "99"
     assert frames["orders"].iloc[0].status == "Existing customer"
+
+
+@pytest.mark.parametrize("source", ["OTHER_SOURCE", None])
+def test_earlier_non_cmpu_customer_upload_does_not_block(source):
+    orders, lines, rx = channel_history(channel="CUSTOMER_UPLOAD")
+    rx.loc[rx.rx_id.eq("HIST-RX"), "prescription_source"] = source
+    frames, _ = a.analyze(
+        execute(orders, lines, scope=SCOPE, rx=rx),
+        "2026-05-01",
+        "2026-08-01",
+        scope=SCOPE,
+    )
+    assert frames["orders"].iloc[0].first_order_id == "1"
+    assert frames["orders"].iloc[0].status == a.SCOPE_LABELS[SCOPE]
 
 
 def test_historical_rx_match_requires_customer_and_vet_diet_flags():
@@ -118,7 +131,7 @@ def test_channel_scope_fresh_cached_sql_only_and_separate_output(
         .split("), history_keys AS (")[0]
     )
     assert (
-        "prescription_source=" not in history_sql
+        sql_contains(history_sql, "p.prescription_source='CMPU'")
         and "order_placed_dttm" not in history_sql
     )
     report = next(
@@ -126,7 +139,7 @@ def test_channel_scope_fresh_cached_sql_only_and_separate_output(
             "aged-first-customer-upload-vet-diet-order-customers.md"
         )
     ).read_text()
-    assert "across all prescription sources, statuses and dates" in report
+    assert "across all statuses and dates" in report
     manifest = json.loads(
         next((tmp_path / "data").rglob("analysis.json")).read_text()
     )

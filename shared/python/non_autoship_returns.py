@@ -23,11 +23,12 @@ ROOT = Path(__file__).resolve().parents[2]
 OWNER = "non-autoship-all-aged-returns"
 TARGETS = dict(
     zip(
-        ["all-aged", "first-upload", "first-vet-diet"],
+        ["all-aged", "first-upload", "first-vet-diet", "first-chewy"],
         [
             OWNER,
             "non-autoship-first-upload-returns",
             "non-autoship-first-vet-diet-returns",
+            "non-autoship-first-chewy-returns",
         ],
         strict=True,
     )
@@ -35,7 +36,9 @@ TARGETS = dict(
 INITIATED_TARGETS = {
     cohort: "autoship-initiated-or-non-autoship-" + suffix
     for cohort, suffix in zip(
-        TARGETS, ["all-aged", "first-upload", "first-vet-diet"], strict=True
+        TARGETS,
+        ["all-aged", "first-upload", "first-vet-diet", "first-chewy"],
+        strict=True,
     )
 }
 SHIPPED_TARGETS = dict(
@@ -45,6 +48,7 @@ SHIPPED_TARGETS = dict(
             "same-pet-product-return-comparison",
             "same-pet-product-first-upload-returns",
             "same-pet-product-first-vet-diet-returns",
+            "same-pet-product-first-chewy-returns",
         ],
         strict=True,
     )
@@ -56,6 +60,7 @@ SHIPPED_LABELS = dict(
             "financial-opportunity-reorder-windows",
             "financial-opportunity-new-upload-follow-up",
             "financial-opportunity-new-vet-diet-follow-up",
+            "financial-opportunity-new-chewy-follow-up",
         ],
         strict=True,
     )
@@ -129,6 +134,7 @@ def dependencies():
         "aged-reorder-studies",
         "new-upload-customer-follow-up-studies",
         "new-vet-diet-customer-follow-up-studies",
+        "new-chewy-customer-follow-up-studies",
     ]
     for cohort, folder in zip(TARGETS, folders, strict=True):
         candidates = []
@@ -433,7 +439,7 @@ def present_first_shipped(data):
     """Export the 70-day table with authoritative Org cells."""
     labels = {
         "all-aged": "All aged customers",
-        "first-upload": "First CUSTOMER_UPLOAD vet-diet order aged",
+        "first-upload": "First CMPU CUSTOMER_UPLOAD vet-diet order aged",
         "first-vet-diet": "First vet-diet order aged",
     }
     summaries = {
@@ -641,7 +647,8 @@ def present(data, initiated=False, shipped=False):
             "are included."
         )
         title = (
-            "Autoship-initiating reorders"
+            "Reorders where line item is the first line item in an "
+            "autoship subscription"
             if initiated
             else "Same-pet, same-product reorders"
             if shipped

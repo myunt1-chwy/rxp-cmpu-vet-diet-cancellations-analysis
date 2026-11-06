@@ -1,70 +1,34 @@
-\begin{landscape}
-\paragraph{How do successful vet-diet return rates and net sales compare across the three customer cohorts over 70 days?}
-Any vet-diet follow-up, for any pet or product: cumulative customers, cohort percentages, distinct orders and matching-line net sales across three aged-customer cohorts.
+\paragraph{How do any vet-diet reorders evolve for all aged customers?}
+% Numerical narrative and table are generated from validated cells.
 
-\begin{table}[!htbp]
-\centering
-\caption{Any vet-diet follow-up, for any pet or product: cumulative customers, cohort percentages, distinct orders and matching-line net sales across three aged-customer cohorts.}
-\label{tab:financial-opportunity-reorder-any-vet-diet}
-\label{tab:financial-opportunity-new-upload-any-vet-diet}
-\label{tab:financial-opportunity-new-vet-diet-any-vet-diet}
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}r >{\columncolor{yellow!35}}r rrr >{\columncolor{yellow!35}}r rrr >{\columncolor{yellow!35}}r rrr@{}}
-\toprule
- & \multicolumn{4}{c}{\shortstack{All aged customers\\$N = 30,382$}}
- & \multicolumn{4}{c}{\shortstack{First \texttt{CUSTOMER\_UPLOAD}\\vet-diet order aged; $N = 11,550$}}
- & \multicolumn{4}{c}{\shortstack{First vet-diet order aged\\$N = 5,097$}} \\
-\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
-Days & Customers & Cohort (\%) & Orders & Net sales & Customers & Cohort (\%) & Orders & Net sales & Customers & Cohort (\%) & Orders & Net sales \\
-\midrule
+\refstepcounter{table}\label{tab:financial-opportunity-reorder-any-vet-diet}
+\par\smallskip\noindent\parbox[t][2\baselineskip][t]{\linewidth}{\raggedright\textbf{Table~\thetable. Any vet-diet reorders}}
+\par\raggedright\footnotesize Shared methodology: Section~\ref{subsec:medium-term-reorder-behavior}.
+\par\noindent\parbox[t][2\baselineskip][t]{\linewidth}{\raggedright Vet-diet line items for any pet and any part number.}
+\par\noindent\textbf{Cohort denominator: 30,382}
+\par\centering\footnotesize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{rrrrrr}\toprule
+Days & Customers & \shortstack{Cohort\\(\%)} & \shortstack{Line\\items} & Orders & \shortstack{Net sales\\(USD)} \\ \midrule
 
-7 & 3,594 & 11.83\% & 4,020 & 376,440.20 & 1,217 & 10.54\% & 1,305 & 115,132.09 & 438 & 8.59\% & 463 & 35,772.45 \\
+7 & 3,594 & 11.83 & 4,462 & 4,020 & 376,368.01 \\
 
-14 & 5,824 & 19.17\% & 7,052 & 666,309.41 & 1,914 & 16.57\% & 2,178 & 192,777.87 & 659 & 12.93\% & 737 & 55,857.40 \\
+14 & 5,824 & 19.17 & 7,804 & 7,052 & 666,237.22 \\
 
-21 & 7,637 & 25.14\% & 10,163 & 960,107.59 & 2,432 & 21.06\% & 3,005 & 267,367.22 & 800 & 15.70\% & 969 & 74,330.46 \\
+21 & 7,637 & 25.14 & 11,210 & 10,163 & 960,035.40 \\
 
-28 & 8,713 & 28.68\% & 12,680 & 1,202,534.61 & 2,766 & 23.95\% & 3,743 & 332,421.02 & 899 & 17.64\% & 1,208 & 92,469.85 \\
+28 & 8,713 & 28.68 & 13,994 & 12,680 & 1,202,462.42 \\
 
-35 & 9,555 & 31.45\% & 15,448 & 1,469,868.48 & 3,051 & 26.42\% & 4,540 & 405,245.66 & 980 & 19.23\% & 1,425 & 109,763.84 \\
+35 & 9,555 & 31.45 & 17,034 & 15,448 & 1,469,796.29 \\
 
-42 & 10,075 & 33.16\% & 17,772 & 1,693,731.72 & 3,240 & 28.05\% & 5,282 & 474,797.91 & 1,031 & 20.23\% & 1,653 & 128,552.70 \\
+42 & 10,075 & 33.16 & 19,593 & 17,772 & 1,693,659.53 \\
 
-49 & 10,631 & 34.99\% & 20,632 & 1,969,419.82 & 3,423 & 29.64\% & 6,127 & 555,407.00 & 1,072 & 21.03\% & 1,873 & 146,660.13 \\
+49 & 10,631 & 34.99 & 22,745 & 20,632 & 1,969,347.63 \\
 
-56 & 10,976 & 36.13\% & 23,017 & 2,198,126.45 & 3,547 & 30.71\% & 6,825 & 618,318.62 & 1,105 & 21.68\% & 2,077 & 163,846.89 \\
+56 & 10,976 & 36.13 & 25,364 & 23,017 & 2,198,054.26 \\
 
-63 & 11,314 & 37.24\% & 25,580 & 2,445,035.54 & 3,664 & 31.72\% & 7,624 & 693,046.86 & 1,137 & 22.31\% & 2,302 & 183,559.64 \\
+63 & 11,314 & 37.24 & 28,169 & 25,580 & 2,444,963.35 \\
 
-70 & 11,567 & 38.07\% & 27,878 & 2,665,017.53 & 3,753 & 32.49\% & 8,395 & 762,387.61 & 1,165 & 22.86\% & 2,541 & 202,269.09 \\
-\bottomrule
-\end{tabular}
-
-\begin{minipage}{\linewidth}
-\footnotesize
-\textit{Cohorts and anchors:} All aged customers includes every qualifying aged cancellation,
-without a prescription-creation or first-order restriction. For each first-order cohort,
-the customer's first qualifying aged order is the sole anchor; later aged orders do not reset follow-up.
-The first customer-upload cohort uses the earliest observed vet-diet \texttt{CUSTOMER\_UPLOAD}
-order across historical prescription sources, using linked prescriptions and ECOM order history.
-The first vet-diet cohort uses earliest observed vet-diet orders across all historical approval
-channels and prescription sources, using RxP vet-diet lines and ECOM order history.
-Each percentage divides returning customers by its group's fixed full cohort, including
-customers without a qualifying reorder or with unusable matching keys. The cohorts overlap;
-do not add their counts.
-
-\textit{Shared follow-up rules:} Require the same numeric customer ID and a TRUE vet-diet flag on the later line; purchases may be for any pet and any product part number. Use a different order
-placed strictly after the matched cancellation through the indicated day, inclusive.
-Later orders may use any approval channel or prescription source within the certified RxP line view.
-Exclude the entire later order if any line has status X, a recorded cancellation reason,
-a cancellation timestamp or unknown line status. Statuses and prescription channels reflect
-the extraction snapshot. All windows require complete follow-up through 2026-10-28 00:00 UTC.
-Each customer, order and matching physical line counts once per window, despite repeated
-anchor associations. Windows overlap and must not be added. Net sales sum \texttt{ORDER\_LINE\_NET\_SALES} once per matching shipment/line contribution, preserving zero and negative amounts; missing sales make totals incomplete.
-Sales can be recorded after the placement window and do not prove recovered revenue.
-Amounts display two decimals; exports retain five. N/A denotes a zero cohort denominator.
-\end{minipage}
-\end{table}
-\end{landscape}
+70 & 11,567 & 38.07 & 30,695 & 27,878 & 2,664,945.34 \\
+\bottomrule\end{tabular}\par
 

@@ -3,6 +3,7 @@ level: section
 parent: report
 children:
 - financial-impact
+- medium-term-reorder-behavior
 - customer-contact-patterns
 - upload-processing-delays
 - aged-order-risk

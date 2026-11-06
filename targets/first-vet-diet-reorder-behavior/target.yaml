@@ -1,0 +1,28 @@
+id: first-vet-diet-reorder-behavior
+level: subsubsection
+parent: medium-term-reorder-behavior
+children:
+- same-pet-product-first-vet-diet-returns
+- non-autoship-first-vet-diet-returns
+- autoship-initiated-or-non-autoship-first-vet-diet
+- same-pet-other-product-first-vet-diet-returns
+- any-vet-diet-first-vet-diet-returns
+- any-chewy-first-vet-diet-returns
+question: What is the reorder and returning customer behavior (aged order is customer's
+  first vet diet order)?
+title: What is the reorder and returning customer behavior (aged order is customer's
+  first vet diet order)?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/first-vet-diet-reorder-behavior/src/latex/body.tex
+  content: authored
+  build: active
+artifact: null
+data_dependencies: []
+landscape: true
+aligned_panels: true

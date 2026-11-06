@@ -4,6 +4,7 @@ from decimal import Decimal
 
 import duckdb
 import pandas as pd
+import pytest
 from click.testing import CliRunner
 from test_opportunity_aged_reorders import (
     broad_sources,
@@ -51,8 +52,30 @@ def test_new_cohort_broad_scopes_matching_and_distinct_counts():
             assert "any pet and product part number" in latex
 
 
-def chewy_raw(cohort_kind="first-upload"):
+def chewy_raw(cohort_kind="first-upload", prior_source=None):
     rx, lines = sql_sources()
+    if prior_source is not None:
+        rx = pd.concat(
+            [
+                rx,
+                rx.iloc[[0]].assign(
+                    rx_id="prior",
+                    prescription_source=prior_source,
+                ),
+            ]
+        )
+        lines = pd.concat(
+            [
+                lines,
+                lines.iloc[[0]].assign(
+                    order_id=0,
+                    order_line_id=0,
+                    rx_id="prior",
+                    order_placed_dttm=pd.Timestamp("2025-01-01"),
+                    order_cancel_dttm=pd.Timestamp("2025-02-01"),
+                ),
+            ]
+        )
     headers = (
         lines[["order_id", "customer_id", "order_placed_dttm"]]
         .drop_duplicates()
@@ -229,3 +252,9 @@ def test_all_scopes_fresh_cached_sql_and_report_inclusions(
 
 
 from sql_fixtures import fixture_sql, sql_contains
+
+
+@pytest.mark.parametrize("source", ["OTHER_SOURCE", "CMPU"])
+def test_chewy_first_upload_history_requires_cmpu(source):
+    raw = chewy_raw(prior_source=source)
+    assert raw.empty == (source == "CMPU")

@@ -10,6 +10,7 @@ financial-returns:
   - - opportunity-follow-up-sales
   - - opportunity-new-upload-customer-follow-up
   - - opportunity-new-vet-diet-customer-follow-up
+  - - opportunity-new-chewy-customer-follow-up
   - - combined-follow-up-table
   refresh_commands:
   - - opportunity-aged-new-customer-upload-vet-diet-customers
@@ -17,6 +18,7 @@ financial-returns:
   - - opportunity-follow-up-sales
   - - opportunity-new-upload-customer-follow-up
   - - opportunity-new-vet-diet-customer-follow-up
+  - - opportunity-new-chewy-customer-follow-up
   - - combined-follow-up-table
   data_targets:
   - cancellation-sales-baseline

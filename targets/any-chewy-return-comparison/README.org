@@ -28,7 +28,14 @@ stale inputs require an explicit REFRESH=1 build with browser SSO.
 
 * Outputs and dependencies
 Authoritative values: outputs/tables/table.org. LaTeX reads back Org cells.
-Provenance: outputs/tables/provenance.json. The parent composes three aligned
-panels on a landscape page. Shared rendering lives in
+Provenance: outputs/tables/provenance.json. The cohort parent composes six
+panels on one landscape page,
+with two rows of three aligned panels. Shared rendering lives in
 shared/python/analysis/reorder_panels.py. Source and data dependencies are
 explicit in target.yaml. Each cohort owns one paragraph and one table.
+
+* Report grouping
+Parent: =all-aged-reorder-behavior=. This is one of six reorder tables for the
+same cohort.
+The report preserves the 7-day increments through 70 days and the shared
+methodology reference to section 3.2. Data ownership and commands are stable.

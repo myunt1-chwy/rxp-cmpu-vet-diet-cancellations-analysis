@@ -4,33 +4,41 @@
 def render_panel(
     rows, denominator, label, narrative, title, eligibility_note=""
 ):
-    """Render values read from an authoritative Org table."""
+    """Render Org values without the legacy numerical summary paragraph."""
     values = [[*row] for row in rows]
     for row in values:
         row[2] = row[2].replace(r"\%", "")
+        row[3], row[4] = row[4], row[3]
     return (
-        narrative
-        + r"\refstepcounter{table}\label{"
+        r"\refstepcounter{table}\label{"
         + label
         + "}\n"
-        + r"\par\smallskip\noindent\textbf{Table~\thetable. "
+        + r"\par\smallskip\noindent"
+        + r"\parbox[t][2\baselineskip][t]{\linewidth}{"
+        + r"\raggedright\textbf{Table~\thetable. "
         + title
-        + "}\n"
-        + r"\par\smallskip\raggedright\footnotesize "
+        + "}}\n"
+        + r"\par\raggedright\footnotesize "
         + r"Shared methodology: "
-        + r"Section~\ref{subsec:financial-opportunity-analysis}."
-        + ("\n" + r"\par\noindent " + eligibility_note + "\n")
-        + r"\par\smallskip\noindent\textbf{Cohort denominator: "
+        + r"Section~\ref{subsec:medium-term-reorder-behavior}."
+        # Reorder types have different caption lengths within a cohort row.
+        # Reserve equal space so the table top rules remain aligned.
+        + "\n"
+        + r"\par\noindent\parbox[t][2\baselineskip][t]{\linewidth}{"
+        + r"\raggedright "
+        + eligibility_note
+        + "}\n"
+        + r"\par\noindent\textbf{Cohort denominator: "
         + denominator
         + "}\n"
-        + r"\par\smallskip\centering\footnotesize"
+        + r"\par\centering\footnotesize"
         + "\n"
         + r"\setlength{\tabcolsep}{2pt}"
         + "\n"
         + r"\begin{tabular}{rrrrrr}\toprule"
         + "\n"
-        + r"Days & Customers & \shortstack{Cohort\\(\%)} & Orders & "
-        + r"\shortstack{Line\\items} & \shortstack{Net sales\\(USD)}"
+        + r"Days & Customers & \shortstack{Cohort\\(\%)} & "
+        + r"\shortstack{Line\\items} & Orders & \shortstack{Net sales\\(USD)}"
         + r" \\ \midrule"
         + "\n"
         + "\n".join(" & ".join(row) + r" \\" for row in values)

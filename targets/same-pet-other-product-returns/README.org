@@ -1,31 +1,20 @@
-#+TITLE: Same-pet, different-product vet-diet reorders
+#+TITLE: same-pet-other-product-returns compatibility command
 
-* Question
-What percentage of customers come back and place a successful order for the
-same pet but different product after an aged order in the next 70 days?
+* Purpose
+This former reorder-type section is no longer a report hierarchy target.
+Its three paragraph tables now belong to the three cohort sections beneath
+=medium-term-reorder-behavior=. No calculations or data moved.
 
 * Reproduction commands
 #+begin_src sh
-make same-pet-other-product-returns
-make same-pet-other-product-returns REPRO=1 FINAL=0
-make same-pet-other-product-returns REFRESH=1
+make same-pet-other-product-returns FINAL=0
+make same-pet-other-product-returns REFRESH=1 FINAL=0
 #+end_src
-Default builds use validated cached financial-return inputs. REFRESH=1
-propagates to the shared extraction pipeline; no refresh is needed for
-this layout change.
+These commands rebuild the following existing paragraph artifacts:
+- =same-pet-other-product-return-comparison=
+- =same-pet-other-product-first-upload-returns=
+- =same-pet-other-product-first-vet-diet-returns=
 
-* Structure and outputs
-Three cohort paragraphs own their tables and numerical summaries. Their
-ordered IDs are declared in target.yaml. This parent places their outputs
-side by side on one landscape page. Shared methodology is in the parent
-financial-impact introduction.
-The existing denominators, observations and study parameters are unchanged.
-Outputs: outputs/latex/content.tex, assembled into the draft report.
-
-* Panel alignment
-Headings and summaries share the first layout row. Tables share a second
-row so their top rules align automatically without fixed-height spacers.
-
-* Shared notes
-Common methodology is documented once in the financial-impact introduction.
-Tables reference that section and retain comparison-specific eligibility descriptions.
+Build =medium-term-reorder-behavior= or =report= to assemble all cohort
+sections. Default builds reuse validated caches; REFRESH=1 explicitly
+refreshes the shared pipelines.

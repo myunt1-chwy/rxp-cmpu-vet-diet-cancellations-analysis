@@ -69,13 +69,11 @@ remain in Total uploads, so Accepted plus Rejected need not equal Total.
 Reasons are trimmed and case-insensitive. Aged order uses the inclusive
 October 27, 2026, 00:00 UTC cancellation cutoff; later or undated aged reasons
 remain in the outside-cutoff row. Missing/blank reasons do not prove an uncancelled
-order. Line-item status is \texttt{ORDER\_ORDER\_LINE\_STATUS} from the coordinated first-order-line extract, with shipment-row consistency checked.
+order. Line-item status is \texttt{ORDER\_ORDER\_LINE\_STATUS} with shipment-row consistency checked.
 Codes are shown as recorded; missing status is explicit. Table~\ref{tab:study-no-cancellation-upload-details}
 uses reconciled status/reason evidence.
 An entity may match multiple prescriptions/lines and reason/status groups;
 an order can also span groups. TOTAL independently deduplicates both and is not
-the sum of overlapping rows. Cancellation reasons/times use the retained
-prescription-decision extract and agree with the upload and status extracts.
-Counts describe the validated source snapshots.
+the sum of overlapping rows. Counts describe currently recorded statuses.
 \end{minipage}
 \end{table}

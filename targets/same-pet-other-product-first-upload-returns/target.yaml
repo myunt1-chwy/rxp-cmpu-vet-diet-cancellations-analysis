@@ -1,11 +1,11 @@
 id: same-pet-other-product-first-upload-returns
 level: paragraph
-parent: same-pet-other-product-returns
+parent: first-upload-reorder-behavior
 children: []
-question: How do same-pet, different-product vet-diet reorders evolve for customers
-  whose first CUSTOMER_UPLOAD vet-diet order aged?
+question: How do same-pet, different-product vet-diet reorders evolve for
+  customers whose first CMPU CUSTOMER_UPLOAD vet-diet order aged?
 title: How do same-pet, different-product vet-diet reorders evolve for customers
-  whose first CUSTOMER_UPLOAD vet-diet order aged?
+  whose first CMPU CUSTOMER_UPLOAD vet-diet order aged?
 shared_dependencies:
 - analysis
 - python/analysis

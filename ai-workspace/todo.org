@@ -1742,3 +1742,142 @@
     partitions, missing keys, ties and duplicates. Final SQLFluff, Ruff,
     hierarchy/ownership, cached reproduction and diff checks passed.
     Inspected 3.1.4 and shared-methodology pages. FINAL=0; no commit made.
+
+* DONE Simplify the reader-facing shipped-line definition
+  - State that the matching line item must have shipped; remove SQL
+    aggregation and grouping details from the shared report methodology.
+  - Rebuild the draft and verify the text and layout.
+  - Rebuilt FINAL=0 and inspected page 4. The report now says the matching
+    line item must have shipped. SQL and calculations are unchanged.
+    Diff check passed; awaiting review before commit.
+
+* DONE Place line-item counts before order counts in reorder tables
+  - Reorder report columns across all 18 panels in sections 3.1.2--3.1.7.
+  - Preserve values and calculations; rebuild and verify the draft.
+  - All 18 tables now display line items before orders. Verified all 180
+    rows differ only by the requested column swap. Cached build, Ruff
+    and diff checks passed; PDF layout inspected. FINAL=0; awaiting review.
+
+* DONE Clarify and document the three section 3.1 customer cohorts
+  - Explain the shared CMPU vet-diet CUSTOMER_UPLOAD aged-order population,
+    cancellation study dates, first-order history, follow-up anchors and
+    fixed overlapping customer denominators in reader-facing language.
+  - Verified that current first-upload history spans all prescription
+    sources, whereas the requested definition specifies first CMPU order.
+  - User approved restricting second-cohort history to CMPU prescriptions
+    with CUSTOMER_UPLOAD approval channel; retain the vet-diet scope.
+  - Update self-contained queries, refresh membership and all follow-ups,
+    validate caches and unchanged All/first-vet-diet results, rebuild draft.
+  - Keep first-ever vet-diet history across all channels and sources.
+  - Refreshed the first CMPU CUSTOMER_UPLOAD vet-diet cohort: 13,498
+    customers versus 11,550 previously; all prior members remain.
+  - Refreshed RxP and Chewy follow-ups and the shared autoship extraction.
+    All and first-vet-diet anchors and every shared summary are unchanged.
+  - Verified 85 targeted tests, Ruff, SQLFluff, hierarchy/source ownership,
+    and git diff --check. Old cached definition is rejected; fresh cached
+    reproduction passes with warehouse extraction disabled.
+  - Rebuilt FINAL=0 and visually checked the cohort explanations and aligned
+    panels, headings, denominators, and line-items-before-orders columns.
+    Published the inspected draft; awaiting user review and commit approval.
+
+* DONE Separate medium-term reorder behavior from financial impact
+  - Keep the cancellation baseline (3.1.1) in financial-impact. Move all six
+    reorder comparisons and shared methodology to a new subsection 3.2:
+    What is the medium term (70 days) reorder and returning customer behavior?
+  - Preserve calculations and table values; update hierarchy, Make edges,
+    references, ownership documentation, HOWTO and later document numbering.
+  - Build FINAL=0, verify cached reproduction, and inspect layout and links.
+  - Added medium-term-reorder-behavior; moved the six comparisons to
+    3.2.1--3.2.6 and renumbered later subsections through data verification 3.6.
+  - Preserved the exact agreed heading despite legacy wording normalization.
+    Moved common descriptions to a fresh page and updated all 18 references.
+  - Verified unchanged numerical content across all six comparison pages,
+    cached reproduction without warehouse access, REPRO instructions,
+    73 targeted tests, Ruff, hierarchy/source checks and git diff --check.
+  - Inspected the draft methodology and landscape panel pages. Published
+    FINAL=0; awaiting user review and commit approval.
+
+* DONE Change the section 3.2 heading from medium term to short term
+  - Use: What is the short term (70 days) reorder and returning customer
+    behavior? Update the heading and reproduction documentation, preserve
+    stable target identifiers, and rebuild the FINAL=0 draft.
+  - Verified the exact heading in the contents and section 3.2; inspected
+    the rebuilt draft and passed hierarchy and whitespace checks.
+
+* DONE Organize section 3.2 by customer cohort
+  - Replace the six reorder-type sections with three cohort sections: All,
+    first CMPU CUSTOMER_UPLOAD vet-diet order aged, and first-ever vet-diet
+    order aged. Keep the existing 18 paragraph targets and numerical data.
+  - Each cohort contains the same six reorder tables in the current type
+    order, arranged as aligned three-panel rows over two landscape pages.
+  - Preserve shared methodology in 3.2; update graph, Make dependencies,
+    documentation, table numbering and HOWTO. Retain old comparison Make
+    commands as compatibility aliases outside the report hierarchy.
+  - User supplied the three cohort headings; correct spelling and spacing.
+    Validate cached reproduction,
+    compare authoritative table hashes, and inspect the FINAL=0 draft.
+  - Applied user-supplied 3.2.1--3.2.3 headings with spelling and spacing
+    corrections; preserved "returning customer" in all agreed headings.
+  - Reparented all 18 existing paragraphs into three cohort targets. Each
+    cohort has six tables across two landscape pages. Retired the six old
+    composition targets, retaining their commands as compatibility aliases.
+  - Reserved equal caption space to align actual table top rules across
+    different reorder types; kept shared methodology and stable table labels.
+  - Confirmed all 18 Org tables are byte-for-byte unchanged, six tables per
+    cohort with correct denominators, unique table numbering, and 18 links
+    to section 3.2. Cached reproduction made no warehouse calls.
+  - Verified REPRO instructions and Make propagation, 73 tests, Ruff,
+    hierarchy/source checks, HOWTO regeneration, and git diff --check.
+    Inspected cohort landscape pages and published FINAL=0 for review.
+
+* DONE Compact cohort reorder panels and clarify same-pet/product eligibility
+  - Make the non-autoship and initial-autoship panel headings explicitly
+    identify matching line items for the same pet and product in all cohorts.
+  - Remove numerical summaries under panel headings and arrange all six
+    tables in two aligned rows on one landscape page per cohort.
+  - Preserve numerical values, captions, denominators and shared methodology;
+    rebuild FINAL=0 and inspect readability, alignment and references.
+  - Updated all six non-autoship/initial-autoship panel headings and their
+    documentation to specify the same pet and product.
+  - Removed the report's numerical summary paragraphs. All three cohorts
+    now fit six panels on one landscape page each, without reducing table
+    font size; shortened equal-height caption boxes and row spacing.
+  - Verified all 18 authoritative tables unchanged, six tables and correct
+    denominators per page, no summary prose, and 18 methodology references.
+    Inspected all cohort pages, including a caption detail rendering.
+  - Passed 62 targeted tests, Ruff, hierarchy/source checks and whitespace
+    validation; regenerated HOWTO and published the FINAL=0 draft for review.
+
+* DONE Rename initial autoship panels for all three cohorts
+  - Use the requested "How do first line items in autoship subscriptions for
+    same pet and product evolve" question with the corresponding cohort.
+  - Name each table "Reorders with First Line Items in Autoship Subscriptions".
+  - Preserve calculations and the six-panel layout; rebuild and inspect draft.
+  - Updated all three questions and table captions, keeping cohort-specific
+    wording. Reserved two caption-title lines and tightened spacing to retain
+    aligned top rules and six panels on one landscape page per cohort.
+  - Verified all 18 authoritative tables unchanged, inspected the longest
+    cohort heading/caption layout, passed 62 tests, Ruff, hierarchy/source
+    checks and git diff --check, and rebuilt HOWTO and the FINAL=0 draft.
+
+* DONE Explain the six reorder types in section 3.2
+  - Add parent-owned introductory definitions in table order, explaining pet,
+    product and autoship restrictions, first shipment within subscription,
+    shipped-line eligibility, and overlapping customer/order/line counts.
+  - Keep the three cohort sections and numerical results unchanged. Rebuild
+    FINAL=0 and inspect the explanatory pages and six-panel cohort pages.
+  - Added six numbered definitions and an overlap warning before shared
+    methodology, consolidating duplicate autoship notes. The full introduction
+    remains on one page; cohort numbering and six-panel pages are unchanged.
+  - Confirmed all 18 authoritative tables unchanged, checked hierarchy/source
+    ownership and whitespace, regenerated HOWTO, inspected the explanatory
+    page, and published the FINAL=0 draft for review.
+
+* DONE Reorder the section 3.2 introduction
+  - Present Cohorts first, Types of reorders discussed second, and Shared
+    methodology third. Preserve definitions, cohort numbering and results.
+  - Rebuild FINAL=0 and inspect the introduction and six-panel pagination.
+  - Reordered and labeled the three blocks as requested. The introduction
+    remains on one page, followed by the unchanged six-panel cohort pages.
+    Regenerated HOWTO, passed hierarchy/whitespace checks, inspected the
+    rendered introduction, and published the FINAL=0 draft for review.

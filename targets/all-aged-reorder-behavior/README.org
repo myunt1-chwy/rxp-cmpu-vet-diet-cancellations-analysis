@@ -1,0 +1,51 @@
+#+TITLE: What is the reorder and returning customer behavior (all customers with aged orders)?
+
+* Question
+What is the reorder and returning customer behavior (all customers with aged
+orders)?
+
+* Ownership
+Target: =all-aged-reorder-behavior=. Level: =subsubsection=.
+Parent: =medium-term-reorder-behavior=.
+Ordered paragraph children: =same-pet-product-return-comparison=,
+=non-autoship-all-aged-returns=, =autoship-initiated-or-non-autoship-all-aged=,
+=same-pet-other-product-return-comparison=, =any-vet-diet-return-comparison=,
+=any-chewy-return-comparison=.
+
+* Reproduction commands
+Run from the repository root:
+#+begin_src sh
+make all-aged-reorder-behavior FINAL=0
+make all-aged-reorder-behavior REPRO=1 FINAL=0
+make all-aged-reorder-behavior REFRESH=1 FINAL=0
+#+end_src
+Default builds validate and reuse cached inputs without warehouse access.
+REFRESH=1 propagates to shared financial-returns and non-autoship-returns
+pipelines and requires Snowflake browser SSO. Each shared pipeline executes
+once per Make invocation. REPRO=1 includes instructions in document order.
+
+* Inputs and presentation
+Children retain their SQL, data, provenance, authoritative Org tables and
+numerical results. This parent performs no independent calculations.
+The first row contains same-pet/same-product, non-autoship and
+initial-autoship reorders. The second row contains same-pet/different-product,
+any-vet-diet and Chewy-wide reorders. Each row aligns three table tops.
+All six tables use the same cohort denominator and overlapping cumulative
+windows: 7 through 70 days in 7-day steps. Study cancellations span
+[2026-05-01, 2026-08-01) UTC; observation cutoff is 2026-10-28 00:00 UTC.
+Cohort definitions, successful-order rules, shipped-line eligibility,
+deduplication and sales notes remain in the section 3.2 introduction.
+
+* Outputs and dependencies
+Authored assembly: =src/latex/body.tex=.
+Generated assembly: =outputs/latex/content.tex=.
+Every child contributes one paragraph and one table, included exactly once.
+Shared rendering: =shared/python/analysis/=. Make dependencies and metadata
+preserve the six-child order above. Stable paragraph IDs keep table labels
+and cached inputs valid after regrouping.
+
+* Compact report layout
+The default report shows six panels in two rows on one landscape page.
+Numerical summary paragraphs above the tables are omitted. The table font
+size is unchanged; caption heights and row spacing keep the top rules aligned.
+REPRO=1 includes additional instructions and may require more pages.

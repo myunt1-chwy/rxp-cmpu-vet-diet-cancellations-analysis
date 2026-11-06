@@ -30,6 +30,7 @@ reproduce-financial-section:
 	$(MAKE) --no-print-directory opportunity-follow-up-sales CACHED=1 START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
 	$(MAKE) --no-print-directory opportunity-new-upload-customer-follow-up CACHED=1 START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
 	$(MAKE) --no-print-directory opportunity-new-vet-diet-customer-follow-up CACHED=1 START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
+	$(MAKE) --no-print-directory opportunity-new-chewy-customer-follow-up CACHED=1 START_DATE=2026-05-01 END_DATE=2026-08-01 AS_OF_DATE=2026-10-28
 	$(MAKE) --no-print-directory combined-follow-up-table
 
 reproduce-contact-section:
@@ -198,6 +199,15 @@ opportunity-new-vet-diet-customer-follow-up:
 .PHONY: opportunity-new-vet-diet-customer-chewy-follow-up
 opportunity-new-vet-diet-customer-chewy-follow-up:
 	.venv/bin/python -m shared.python.create_opportunity_new_upload_customer_follow_up --cohort first-vet-diet --study any-chewy --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+
+.PHONY: opportunity-new-chewy-customer-follow-up
+opportunity-new-chewy-customer-follow-up:
+	.venv/bin/python -m shared.python.create_opportunity_new_upload_customer_follow_up --cohort first-chewy --all-studies --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
+	$(MAKE) --no-print-directory opportunity-new-chewy-customer-chewy-follow-up
+
+.PHONY: opportunity-new-chewy-customer-chewy-follow-up
+opportunity-new-chewy-customer-chewy-follow-up:
+	.venv/bin/python -m shared.python.create_opportunity_new_upload_customer_follow_up --cohort first-chewy --study any-chewy --write-latex --start-date "$(or $(START_DATE),2026-05-01)" --end-date "$(or $(END_DATE),2026-08-01)" --as-of-date "$(or $(AS_OF_DATE),2026-10-28)" $(if $(filter 1,$(CACHED)),--cached) $(if $(filter 1,$(PRINT_SQL)),--print-sql)
 
 .PHONY: opportunity-aged-customer-contacts
 opportunity-aged-customer-contacts:

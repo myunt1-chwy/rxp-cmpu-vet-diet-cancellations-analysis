@@ -1,0 +1,30 @@
+#+TITLE: What is the reorder and returning customer behavior (aged order is customer's first Chewy order)?
+
+* Question
+What is the reorder and returning customer behavior (aged order is customer's
+first Chewy order)?
+
+* Inputs and dependencies
+Parent: =medium-term-reorder-behavior=. This sibling cohort uses the exact
+first Chewy order in available history. Missing placement history and tied
+earliest orders are excluded.
+
+* Build
+Run from the repository root; it includes this target Makefile.
+#+begin_src sh
+make new-to-chewy-reorder-behavior REFRESH=0 REPRO=0 FINAL=0
+make new-to-chewy-reorder-behavior \
+  REFRESH=1 REPRO=0 FINAL=0
+#+end_src
+REFRESH propagates to the shared financial-returns and non-autoship-returns
+pipelines and requires browser SSO. REPRO includes these instructions;
+FINAL controls the report draft setting.
+
+* Outputs
+Generated LaTeX: =outputs/latex/content.tex= in this target.
+
+* Outputs
+Each of the six children owns one authoritative Org table and one visual.
+The parent arranges them in two rows of three aligned panels. Cancellations
+span [2026-05-01, 2026-08-01) UTC; follow-up is cumulative from 7 through
+70 days and requires complete observation through 2026-10-28 00:00 UTC.

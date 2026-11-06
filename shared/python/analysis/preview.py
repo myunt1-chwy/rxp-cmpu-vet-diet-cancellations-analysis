@@ -269,6 +269,15 @@ def preview(repro=0, final=0, compile_pdf=True, only=None, live=False):
                 )
             text = heading + "\n" + instructions + remainder
         text = reorder_wording(text)
+        if key in {
+            "medium-term-reorder-behavior",
+            "all-aged-reorder-behavior",
+            "first-upload-reorder-behavior",
+            "first-vet-diet-reorder-behavior",
+            "new-to-chewy-reorder-behavior",
+        }:
+            # The agreed question deliberately says "returning customer".
+            text = text.replace(reorder_wording(title), title, 1)
         if m["level"] == "paragraph" and targets[m["parent"]].get(
             "aligned_panels"
         ):

@@ -1,0 +1,20 @@
+id: new-to-chewy-reorder-behavior
+level: subsubsection
+parent: medium-term-reorder-behavior
+children:
+- same-pet-product-first-chewy-returns
+- non-autoship-first-chewy-returns
+- autoship-initiated-or-non-autoship-first-chewy
+- same-pet-other-product-first-chewy-returns
+- any-vet-diet-first-chewy-returns
+- any-chewy-first-chewy-returns
+question: What is the reorder and returning customer behavior (aged order is customer's
+  first Chewy order)?
+title: What is the reorder and returning customer behavior (aged order is customer's
+  first Chewy order)?
+shared_dependencies:
+- analysis
+- python/analysis
+landscape: true
+aligned_panels: true
+data_dependencies: []

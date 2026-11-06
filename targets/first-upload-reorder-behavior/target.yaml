@@ -1,0 +1,28 @@
+id: first-upload-reorder-behavior
+level: subsubsection
+parent: medium-term-reorder-behavior
+children:
+- same-pet-product-first-upload-returns
+- non-autoship-first-upload-returns
+- autoship-initiated-or-non-autoship-first-upload
+- same-pet-other-product-first-upload-returns
+- any-vet-diet-first-upload-returns
+- any-chewy-first-upload-returns
+question: What is the reorder and returning customer behavior (aged order is customer's
+  first vet diet CMPU order with approval channel = customer upload)?
+title: What is the reorder and returning customer behavior (aged order is customer's
+  first vet diet CMPU order with approval channel = customer upload)?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/first-upload-reorder-behavior/src/latex/body.tex
+  content: authored
+  build: active
+artifact: null
+data_dependencies: []
+landscape: true
+aligned_panels: true

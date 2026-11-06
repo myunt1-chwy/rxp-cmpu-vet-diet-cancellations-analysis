@@ -50,12 +50,14 @@ def render_comparison(study="same_part_pet"):
             "tab:financial-opportunity-reorder-same-pet-different-part",
             "tab:financial-opportunity-new-upload-same-pet-different-part",
             "tab:financial-opportunity-new-vet-diet-same-pet-different-part",
+            "tab:financial-opportunity-new-chewy-same-pet-different-part",
         ]
         if different_product
         else [
             "tab:financial-opportunity-reorder-windows",
             "tab:financial-opportunity-new-upload-follow-up",
             "tab:financial-opportunity-new-vet-diet-follow-up",
+            "tab:financial-opportunity-new-chewy-follow-up",
         ]
     )
     matching = (
@@ -80,6 +82,7 @@ and a TRUE vet-diet flag on the later line. Use a different order"""
             "tab:financial-opportunity-reorder-any-vet-diet",
             "tab:financial-opportunity-new-upload-any-vet-diet",
             "tab:financial-opportunity-new-vet-diet-any-vet-diet",
+            "tab:financial-opportunity-new-chewy-any-vet-diet",
         ]
         matching = (
             "Require the same numeric customer ID and a TRUE "
@@ -103,7 +106,15 @@ and a TRUE vet-diet flag on the later line. Use a different order"""
         sources = [
             (
                 cohort,
-                filename.replace("follow_up_same_part_pet", "chewy_follow_up"),
+                (
+                    "financial_opportunity_new_chewy_follow_up.tex"
+                    if filename.endswith(
+                        "new_chewy_follow_up_same_part_pet.tex"
+                    )
+                    else filename.replace(
+                        "follow_up_same_part_pet", "chewy_follow_up"
+                    )
+                ),
             )
             for cohort, filename in SOURCES
         ]
@@ -117,6 +128,7 @@ and a TRUE vet-diet flag on the later line. Use a different order"""
             "tab:financial-opportunity-reorder-all-chewy",
             "tab:financial-opportunity-new-upload-all-chewy",
             "tab:financial-opportunity-new-vet-diet-all-chewy",
+            "tab:financial-opportunity-new-chewy-all-chewy",
         ]
         matching = (
             "Match the same numeric customer ID only; include "
@@ -173,13 +185,14 @@ and a TRUE vet-diet flag on the later line. Use a different order"""
         rows.append(" & ".join(cells) + r" \\")
     first, last = tables[0][2]
     cutoff = tables[0][3]
-    all_n, upload_n, vet_n = [table[1] for table in tables]
+    all_n, upload_n, vet_n, chewy_n = [table[1] for table in tables]
+    metric_header = "Customers & Cohort (\\%) & Orders & Lines & Net sales"
     text = (
         r"""\begin{landscape}
 \subsubsection{"""
         + title
         + r"""}
-The three cohorts below compare non-cancelled reorders after CMPU vet-diet
+The four cohorts below compare non-cancelled reorders after CMPU vet-diet
 \texttt{CUSTOMER\_UPLOAD} aged cancellations from """
         + first
         + " through "
@@ -193,7 +206,7 @@ The three cohorts below compare non-cancelled reorders after CMPU vet-diet
         + caption
         + (
             ": cumulative customers, cohort percentages, distinct "
-            "orders and matching-line net sales across three aged-"
+            "orders and matching-line net sales across four aged-"
             "customer cohorts.}\n"
         )
         + "\n".join(r"\label{" + label + "}" for label in labels)
@@ -201,13 +214,14 @@ The three cohorts below compare non-cancelled reorders after CMPU vet-diet
             "\n\\small\n\\setlength{\\tabcolsep}{4pt}\n\\begin{tabul"
             "ar}{@{}r >{\\columncolor{yellow!35}}r rrrr "
             ">{\\columncolor{yellow!35}}r rrrr "
+            ">{\\columncolor{yellow!35}}r rrrr "
             ">{\\columncolor{yellow!35}}r rrrr@{}}\n\\toprule\n & "
             "\\multicolumn{5}{c}{\\shortstack{All aged "
             "customers\\\\$N = "
         )
         + all_n
         + (
-            "$}}\n & \\multicolumn{5}{c}{\\shortstack{First "
+            "$}}\n & \\multicolumn{5}{c}{\\shortstack{First CMPU "
             "\\texttt{CUSTOMER\\_UPLOAD}\\\\vet-diet order aged; $N "
             "= "
         )
@@ -216,11 +230,21 @@ The three cohorts below compare non-cancelled reorders after CMPU vet-diet
  & \multicolumn{5}{c}{\shortstack{First vet-diet order aged\\$N = """
         + vet_n
         + (
+            "$}} \n & \\multicolumn{5}{c}{\\shortstack{First observed "
+            "ECOM order aged\\\\$N = "
+        )
+        + chewy_n
+        + (
             "$}} \\\\\n\\cmidrule(lr){2-6}\\cmidrule(lr){7-"
-            "11}\\cmidrule(lr){12-16}\nDays & Customers & Cohort "
-            "(\\%) & Orders & Lines & Net sales & Customers & Cohort (\\%) "
-            "& Orders & Lines & Net sales & Customers & Cohort (\\%) & "
-            "Orders & Lines & Net sales \\\\\n\\midrule\n"
+            "11}\\cmidrule(lr){12-16}\\cmidrule(lr){17-21}\nDays & "
+            + metric_header
+            + " & "
+            + metric_header
+            + " & "
+            + metric_header
+            + " & "
+            + metric_header
+            + " \\\\\n\\midrule\n"
         )
         + "\n".join(rows)
         + (
@@ -232,13 +256,17 @@ The three cohorts below compare non-cancelled reorders after CMPU vet-diet
             "cohort,\nthe customer's first qualifying aged order is "
             "the sole anchor; later aged orders do not reset follow-"
             "up.\nThe first customer-upload cohort uses the "
-            "earliest observed vet-diet \\texttt{CUSTOMER\\_"
-            "UPLOAD}\norder across historical prescription sources, "
+            "earliest observed CMPU vet-diet \\texttt{CUSTOMER\\_"
+            "UPLOAD}\norder across available history, "
             "using linked prescriptions and ECOM order "
             "history.\nThe first vet-diet cohort uses earliest "
             "observed vet-diet orders across all historical "
             "approval\nchannels and prescription sources, using RxP "
-            "vet-diet lines and ECOM order history.\nEach "
+            "vet-diet lines and ECOM order history.\nThe first "
+            "observed ECOM cohort uses the earliest order in "
+            "available ECOM history, including all products\nand "
+            "statuses; missing placement times and earliest-order "
+            "ties cannot establish membership.\nEach "
             "percentage divides returning customers by its group's "
             "fixed full cohort, including\ncustomers without a "
             "qualifying reorder or with unusable matching keys. The "
@@ -289,7 +317,7 @@ Exclude the entire later order if """
     write_text(
         output / f"{stem}.md",
         "# " + caption + " comparison\n\n"
-        "Presentation values from the three existing report tables; no "
+        "Presentation values from the four existing report tables; no "
         "warehouse refresh.\n\n"
         + markdown_table(
             pd.DataFrame(

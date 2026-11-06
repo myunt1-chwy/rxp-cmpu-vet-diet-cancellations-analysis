@@ -1,0 +1,128 @@
+\label{subsec:medium-term-reorder-behavior}
+\noindent\textbf{Cohorts.}
+A qualifying aged order contains a
+vet-diet line linked to a vet-diet prescription with source CMPU and approval
+channel CUSTOMER\_UPLOAD, cancelled for the reason ``aged order'' from
+May 1 through July 31, 2026, inclusive, UTC. The original aged line need not
+have shipped and may have any autoship status. Prescription creation dates
+do not restrict this population.
+
+\begin{enumerate}
+\item \textbf{All customers with an aged order (All).} Include each customer
+with at least one qualifying aged order, regardless of earlier purchases.
+Every qualifying aged line provides a cancellation date from which to
+measure reorders; a customer may therefore have several anchors.
+
+\item \textbf{Aged order is the first CMPU CUSTOMER\_UPLOAD vet-diet
+order.} Find each customer's earliest placed vet-diet order linked to a
+CMPU prescription with approval channel CUSTOMER\_UPLOAD, across all
+available history. Include the customer only if that very order qualifies
+as aged in the study period. Earlier orders from another prescription
+source or approval channel do not exclude the customer; an earlier CMPU
+CUSTOMER\_UPLOAD vet-diet order does, even if it was cancelled or never
+shipped. Only the qualifying aged lines on that first order provide
+follow-up anchors.
+
+\item \textbf{Aged order is the first-ever vet-diet order.} Find each
+customer's earliest placed vet-diet order across all prescription sources
+and approval channels. Include the customer only if that very order
+qualifies as aged in the study period. Any earlier vet-diet order excludes
+the customer, even if cancelled or unshipped; earlier purchases of other
+products do not. Only the qualifying aged lines on that first order
+provide follow-up anchors.
+
+\item \textbf{Aged order is the first Chewy order.} Find each customer's
+earliest placed Chewy order in available order history, including all
+products and statuses. Include the customer only if that very order
+qualifies as aged in the study period. Any earlier Chewy order excludes
+the customer, even if cancelled or unshipped. Only the qualifying aged
+lines on that first order provide follow-up anchors.
+\end{enumerate}
+
+First-order classification uses available historical records and currently
+recorded prescription attributes, including all order statuses. Customers
+whose first order cannot be established because relevant order records or
+placement times are missing, or because distinct earliest orders tie, are
+excluded from the first-order cohorts. Later aged orders do not reset their
+follow-up. Each percentage uses its cohort's fixed distinct-customer count,
+including customers without a qualifying reorder or with unusable matching
+keys. Later-order eligibility affects the numerator, not cohort membership.
+The cohorts overlap; do not add their counts.
+
+\par\medskip
+\noindent\textbf{Types of reorders discussed.}
+Each cohort's six tables use the definitions below. A reorder is a later
+qualifying order placed by the same customer after an aged-order cancellation.
+Only matching shipped line items count. Products are matched by part number;
+autoship classification uses the line item, not the order-level flag. All
+six types follow the successful-order and follow-up rules below.
+
+\begin{enumerate}
+\item \textbf{Same-pet, same-product reorders.} The later line item matches
+both the pet and the part number on an aged line item. This includes
+non-autoship lines, first autoship shipments and recurring autoship shipments.
+
+\item \textbf{Non-autoship reorders.} The later line item matches the same
+pet and part number and is classified as non-autoship. Lines absent from the
+subscription transaction records are treated as non-autoship; lines with
+an unknown autoship flag in an existing record do not qualify.
+
+\item \textbf{Reorders where line item is the first line item in an
+autoship subscription.}
+The later line item matches the same pet and part number, is an autoship
+line, and belongs to the earliest recorded shipment of that product within
+its subscription. All line items tied at that earliest shipment time qualify.
+Subsequent shipments of the same product within that subscription do not
+qualify for this table. Missing subscription or product identifiers, or a
+missing shipment time, cannot establish a first shipment.
+
+\item \textbf{Same-pet, different-product reorders.} The later vet-diet line
+item matches the pet on an aged line item but has a different part number.
+This captures a change in product for the same pet, with no autoship restriction.
+
+\item \textbf{Any vet-diet reorders.} The later line item is a vet-diet
+product for any pet and any part number, with no autoship restriction.
+
+\item \textbf{Chewy-wide reorders.} The later line item may be in any product
+category, for any pet and any part number, with no autoship restriction.
+\end{enumerate}
+
+The non-autoship and first-autoship tables are subsets of same-pet,
+same-product reorders. Customers and orders can appear in several tables,
+and an order may contain multiple line types. Do not sum counts or sales
+across these overlapping views.
+
+\par\medskip
+\noindent\textbf{Shared methodology.}
+These rules apply to the reorder comparisons, not the cancellation baseline.
+
+\textit{Matching and follow-up.} Require the same numeric customer ID and a
+ different order placed strictly after the matched cancellation through day
+N inclusive. Windows run from 7 through 70 days and require complete follow-up
+through 2026-10-28 00:00 UTC. Pet and part-number restrictions appear with each
+comparison; when required, pet IDs must be non-null and part numbers nonblank.
+Later orders may use any approval channel or prescription source.
+The matching line item must have shipped.
+Shipment presence, statuses and channels reflect currently recorded data;
+windows and cutoff apply to order placement, not shipment dates.
+
+\textit{Successful orders.} Exclude the entire later order if any line has status \texttt{X}, a nonblank
+cancellation reason, a cancellation timestamp or NULL line status. The
+Chewy-wide comparison also excludes an order-header status of \texttt{X}.
+
+\textit{Counts and sales.} Each customer, order and matching physical line
+counts once per window, despite repeated anchor associations and shipments.
+Cumulative windows overlap; do not add counts. Net sales sum
+\texttt{ORDER\_LINE\_NET\_SALES} once per matching shipment/line contribution,
+preserving zero and negative amounts. Sales can be recorded after the
+placement window and do not prove recovered revenue. An asterisk or
+\textit{Incomplete} marks missing sales; N/A denotes a zero denominator.
+Amounts display two decimals.
+
+\AnalysisChild{all-aged-reorder-behavior}
+
+\AnalysisChild{first-upload-reorder-behavior}
+
+\AnalysisChild{first-vet-diet-reorder-behavior}
+
+\AnalysisChild{new-to-chewy-reorder-behavior}

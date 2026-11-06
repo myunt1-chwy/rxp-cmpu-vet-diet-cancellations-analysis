@@ -24,6 +24,8 @@ datasets:
   new-upload-customer-follow-up-studies: same-pet-product-return-comparison
   new-vet-diet-customer-follow-up-chewy: any-chewy-return-comparison
   new-vet-diet-customer-follow-up-studies: same-pet-product-return-comparison
+  new-chewy-customer-follow-up-chewy: any-chewy-return-comparison
+  new-chewy-customer-follow-up-studies: same-pet-product-return-comparison
   null-resource-upload-analysis: null-resource-cancellation-reasons
   order-cancellation-summary: cancellation-sales-baseline
   prescription-cohort-order-comparison: study-order-cancellation-sales
@@ -228,6 +230,10 @@ path_prefixes:
   src/latex/appendix/financial_opportunity_any_vet_diet_comparison.tex: targets/any-vet-diet-return-comparison/src/latex/financial_opportunity_any_vet_diet_comparison.tex
   src/latex/appendix/study_upload_coverage_by_cancel_reason.tex: targets/first-order-upload-coverage/src/latex/study_upload_coverage_by_cancel_reason.tex
   src/latex/appendix/financial_opportunity_new_vet_diet_chewy_follow_up.tex: targets/opportunity-new-upload-customer-follow-up/src/latex/financial_opportunity_new_vet_diet_chewy_follow_up.tex
+  src/latex/appendix/financial_opportunity_new_chewy_follow_up.tex: targets/opportunity-new-upload-customer-follow-up/src/latex/financial_opportunity_new_chewy_follow_up.tex
+  src/latex/appendix/financial_opportunity_new_chewy_follow_up_same_part_pet.tex: targets/opportunity-new-upload-customer-follow-up/src/latex/financial_opportunity_new_chewy_follow_up_same_part_pet.tex
+  src/latex/appendix/financial_opportunity_new_chewy_follow_up_same_pet_different_part.tex: targets/opportunity-new-upload-customer-follow-up/src/latex/financial_opportunity_new_chewy_follow_up_same_pet_different_part.tex
+  src/latex/appendix/financial_opportunity_new_chewy_follow_up_any_vet_diet.tex: targets/opportunity-new-upload-customer-follow-up/src/latex/financial_opportunity_new_chewy_follow_up_any_vet_diet.tex
   src/latex/appendix/approval_analysis.tex: targets/accepted-upload-approval-delay/src/latex/approval_analysis.tex
   src/latex/appendix/financial_opportunity_follow_up_any_vet_diet.tex: targets/opportunity-aged-reorders/src/latex/financial_opportunity_follow_up_any_vet_diet.tex
   src/latex/appendix/financial_opportunity_follow_up_same_pet_different_part.tex: targets/opportunity-aged-reorders/src/latex/financial_opportunity_follow_up_same_pet_different_part.tex

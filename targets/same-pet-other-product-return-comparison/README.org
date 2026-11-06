@@ -27,8 +27,9 @@ Shared source owners and code dependencies are declared in target.yaml.
 * Outputs
 The authoritative table is outputs/tables/table.org. LaTeX is read back
 from that Org table; outputs/tables/provenance.json records fingerprints.
-The parent composes three paragraph panels on a landscape page and retains
-shared cohort and matching notes below them. Each panel appears once.
+The cohort parent groups six reorder-type panels on one landscape page,
+with two rows of three aligned panels. Each panel appears once. Shared
+methodology remains in the short-term reorder subsection.
 Cohorts and windows overlap. Missing sales remain incomplete; signed sales
 are preserved. N/A denotes a zero denominator.
 
@@ -38,7 +39,14 @@ Every later matching physical line must satisfy
 =(order_id, order_line_id)=. A shipped sibling line never qualifies an
 unshipped matching line. Existing order cancellation and unknown-status
 exclusions remain. The baseline cancellation cohort is not shipment-filtered.
-All cumulative panels use days, customers, cohort percentage, orders,
-distinct line items and matching-line net sales. Line items are deduplicated
+All cumulative panels use days, customers, cohort percentage, distinct
+line items, orders and matching-line net sales. Line items are deduplicated
 across shipments and original anchors. Shared presentation code lives in
-shared/python/analysis/reorder_panels.py; captions describe eligibility in plain language.
+shared/python/analysis/reorder_panels.py; captions describe eligibility in plain
+language.
+
+* Report grouping
+Parent: =all-aged-reorder-behavior=. This is one of six reorder tables for the
+same cohort.
+The report preserves the 7-day increments through 70 days and the shared
+methodology reference to section 3.2. Data ownership and commands are stable.

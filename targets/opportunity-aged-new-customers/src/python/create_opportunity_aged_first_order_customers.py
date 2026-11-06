@@ -453,13 +453,14 @@ def main(start_date, end_date, scope, cached, print_sql):
     if scope == "vet-diet-customer-upload":
         text = text.replace(
             "exact first vet-diet order IDs",
-            "exact first CUSTOMER_UPLOAD vet-diet order IDs",
+            "exact first CMPU CUSTOMER_UPLOAD vet-diet order IDs",
         ).replace(
             "across all channels, prescription sources, statuses and dates",
             (
-                "restricted to CUSTOMER_UPLOAD approval-channel prescriptions "
+                "restricted to CMPU prescriptions with CUSTOMER_UPLOAD "
+                "approval channel "
                 "matched on RX_ID and numeric customer ID, across all "
-                "prescription sources, statuses and dates"
+                "statuses and dates"
             ),
         )
     if scope == "vet-diet-customer-upload":

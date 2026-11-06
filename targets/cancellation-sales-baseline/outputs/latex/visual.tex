@@ -55,7 +55,7 @@ qualifying lines, summed from \texttt{ORDER\_LINE\_NET\_SALES} in
 \texttt{EDLDB.BT\_HCA\_HCDM.ORDER\_LINE\_COST\_MEASURES\_RXP},
 once per shipment-and-line record with a shipment or cancellation timestamp in the window. Split-shipment sales outside the window are excluded; records meeting both dates count once. Zero and negative sales remain included;
 any missing sales make the group total incomplete. Display rounds to two
-decimals; exports retain five. Current cancellation reasons are grouped
+decimals. Current cancellation reasons are grouped
 case-insensitively; a missing reason does not establish an uncancelled order.
 Line-item status is \texttt{ORDER\_ORDER\_LINE\_STATUS}; codes are shown as recorded.
 Conflicting statuses across shipment rows for a physical line fail validation.

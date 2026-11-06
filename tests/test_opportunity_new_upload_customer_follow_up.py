@@ -108,7 +108,8 @@ def test_windows_fixed_denominator_missing_keys_and_zero_returns():
     assert not exports["70d-customer-outcomes"].returned.any()
 
 
-def test_sql_first_anchor_no_later_reset_70_day_boundary_cancels():
+@pytest.mark.parametrize("prior_source", [None, "OTHER_SOURCE", "CMPU"])
+def test_sql_first_anchor_no_later_reset_70_day_boundary_cancels(prior_source):
     rx, lines = sql_sources()
     original = lines.iloc[[0]]
     lines = pd.concat(
@@ -141,6 +142,28 @@ def test_sql_first_anchor_no_later_reset_70_day_boundary_cancels():
             ),
         ]
     )
+    if prior_source is not None:
+        rx = pd.concat(
+            [
+                rx,
+                rx.iloc[[0]].assign(
+                    rx_id="prior",
+                    prescription_source=prior_source,
+                ),
+            ]
+        )
+        lines = pd.concat(
+            [
+                lines,
+                original.assign(
+                    order_id=0,
+                    order_line_id=0,
+                    rx_id="prior",
+                    order_placed_dttm=pd.Timestamp("2025-01-01"),
+                    order_cancel_dttm=pd.Timestamp("2025-02-01"),
+                ),
+            ]
+        )
     orders = (
         lines[["order_id", "customer_id", "order_placed_dttm"]]
         .drop_duplicates()
@@ -172,6 +195,9 @@ def test_sql_first_anchor_no_later_reset_70_day_boundary_cancels():
         c.execute("CREATE MACRO IFF(x,a,b) AS CASE WHEN x THEN a ELSE b END")
         c.execute("CREATE MACRO TO_CHAR(x,f) AS CAST(x AS VARCHAR)")
         raw = c.execute(sql).df()
+    if prior_source == "CMPU":
+        assert raw.empty
+        return
     assert set(raw.original_order_id) == {1}
     frozen = pd.DataFrame(
         {
@@ -290,6 +316,19 @@ def test_incomplete_followup_rejected_before_query_or_cohort():
         a.main, ["--as-of-date", "2026-10-01", "--print-sql"]
     )
     assert result.exit_code != 0 and "complete 70-day" in result.output
+
+
+def test_first_chewy_uses_observed_ecom_history():
+    sql = a.render_sql(
+        "2026-05-01",
+        "2026-08-01",
+        "2026-10-28",
+        all_chewy=False,
+        cohort_kind="first-chewy",
+    )
+    assert "opportunity_new_chewy_customer_follow_up" not in sql
+    assert "FROM edldb.ecom.orders AS o" in sql
+    assert "INNER JOIN cohort_customers AS c" in sql
 
 
 from sql_fixtures import fixture_sql

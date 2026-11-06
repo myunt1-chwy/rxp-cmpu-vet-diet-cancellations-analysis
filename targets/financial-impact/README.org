@@ -3,10 +3,7 @@
 * Ownership
 Target: =financial-impact=. Level: =subsection=.
 Parent: =appendix=.
-Ordered children: =estimated-sales-loss=, =same-pet-product-returns=,
-=non-autoship-same-pet-product-returns=,
-=autoship-initiated-or-non-autoship-reorders=,
-=same-pet-other-product-returns=, =any-vet-diet-returns=, =any-chewy-returns=.
+Ordered children: =estimated-sales-loss=.
 
 * Reproduction commands
 Run from the repository root with the project environment installed:
@@ -36,9 +33,6 @@ Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps
 historical dataset paths to target-owned locations. Historical path strings are
 resolved by the registry; root filesystem aliases have been removed.
 
-* Shared reorder methodology
-The parent introduction owns the common cohort, follow-up, shipped-line,
-successful-order, deduplication and sales notes for comparisons 3.1.2--3.1.7.
-The cancellation baseline is explicitly outside these reorder rules.
-Comparison tables reference this introduction and show their own matching
-and autoship conditions in plain language. Table values and extraction SQL are unchanged.
+* Scope
+This subsection owns the cancellation-sales baseline only. Reorder cohort
+methodology and comparisons are owned by =medium-term-reorder-behavior=.

@@ -91,15 +91,19 @@ def table_rows(block):
 
 def cohort_panel(block, index):
     """Select one cohort without changing the validated comparison cells."""
-    if index not in range(3):
-        raise ValueError("Expected one of the three return cohorts")
     _, _, rows, _ = table_rows(block)
     denominators = re.findall(r"\$N = ([\d,]+)\$", block)
     labels = re.findall(r"\\label\{([^}]+)\}", block)
-    if len(denominators) != 3 or len(labels) != 3:
-        raise ValueError("Expected three cohort denominators and labels")
-    if any(len(row) != 16 for row in rows):
-        raise ValueError("Expected a 16-column reorder comparison")
+    n_cohorts = len(labels)
+    expected_columns = 1 + 5 * n_cohorts
+    if n_cohorts < 3 or len(denominators) != n_cohorts:
+        raise ValueError("Expected matching cohort denominators and labels")
+    if index not in range(n_cohorts):
+        raise ValueError("Expected one of the return cohorts")
+    if any(len(row) != expected_columns for row in rows):
+        raise ValueError(
+            f"Expected a {expected_columns}-column reorder comparison"
+        )
     selected = [[row[0], *row[1 + 5 * index : 6 + 5 * index]] for row in rows]
     first, last = selected[0], selected[-1]
     denominator = denominators[index]

@@ -1,6 +1,6 @@
 id: same-pet-product-first-vet-diet-returns
 level: paragraph
-parent: same-pet-product-returns
+parent: first-vet-diet-reorder-behavior
 children: []
 question: How do same-pet, same-product reorders evolve for customers whose first
   vet-diet order aged?
