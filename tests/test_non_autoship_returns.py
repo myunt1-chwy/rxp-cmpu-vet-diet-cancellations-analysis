@@ -46,7 +46,7 @@ def fixture():
     return [original, later]
 
 
-def execute(rows, transactions=None, extra_prescriptions=None):
+def execute(rows, transactions=None):
     sql = a.render_sql()
     sql = sql.replace("edldb.bt_hca_hcdm.rxp_prescriptions", "prescriptions")
     sql = sql.replace(
@@ -59,11 +59,7 @@ def execute(rows, transactions=None, extra_prescriptions=None):
     )
     if transactions is None:
         transactions = pd.DataFrame(rows)[
-            [
-                "order_line_id",
-                "order_line_auto_reorder_flag",
-                "order_line_shipped_dttm",
-            ]
+            ["order_line_id", "order_line_auto_reorder_flag"]
         ].copy()
         for key in [
             "subscription_group_key",
@@ -78,10 +74,6 @@ def execute(rows, transactions=None, extra_prescriptions=None):
             "order_line_pbfresh_subscription_flag",
         ]:
             transactions[flag] = False
-    transactions = transactions.copy()
-    transactions["order_line_shipped_dttm"] = pd.to_datetime(
-        transactions["order_line_shipped_dttm"], utc=True
-    )
     sql = sql.replace("TIMESTAMP_NTZ", "TIMESTAMP").replace(
         "NUMBER(38, 5)", "DECIMAL(38, 5)"
     )
@@ -116,8 +108,6 @@ def execute(rows, transactions=None, extra_prescriptions=None):
             }
         ]
     )
-    if extra_prescriptions is not None:
-        prescriptions = pd.concat([prescriptions, extra_prescriptions])
     orders = lines[
         ["order_id", "customer_id", "order_placed_dttm"]
     ].drop_duplicates()
@@ -127,9 +117,6 @@ def execute(rows, transactions=None, extra_prescriptions=None):
         con.register("prescriptions", prescriptions)
         con.register("orders", orders)
         con.execute("CREATE MACRO IFF(x,a,b) AS CASE WHEN x THEN a ELSE b END")
-        con.execute(
-            "CREATE MACRO CONVERT_TIMEZONE(tz, ts) AS timezone(tz, ts)"
-        )
         con.register("transactions", transactions)
         return a.records(con.execute(sql).df())
 
@@ -320,15 +307,7 @@ def test_first_cohorts_and_successful_order_scope():
     assert all(
         r["denominator"] == 0
         for r in data["summary"]
-        if r["cohort"] in {"first-upload", "first-vet-diet"}
-    )
-    assert (
-        next(
-            r
-            for r in data["summary"]
-            if r["cohort"] == "first-chewy" and r["days"] == 70
-        )["denominator"]
-        == 0
+        if r["cohort"] != "all-aged"
     )
     cancelled_other_product = dict(
         later,
@@ -390,46 +369,40 @@ def test_zero_sales_and_unknown_other_line_status():
 
 @pytest.mark.parametrize("first_shipped", [True, False, None])
 @pytest.mark.parametrize("auto_reorder", [True, False, None])
-def test_initial_shipment_requires_autoship_line(first_shipped, auto_reorder):
+def test_first_shipped_only_ignores_line_flag(first_shipped, auto_reorder):
     rows = fixture()
+    rows[1][a.FIRST_SHIPPED_FLAG] = first_shipped
     rows[1]["order_line_auto_reorder_flag"] = auto_reorder
-    txn = transaction_fixture(auto_reorder)
-    if first_shipped is False:
-        earlier = txn.copy()
-        earlier["order_line_id"] = 999
-        earlier["order_line_shipped_dttm"] = "2025-01-01T00:00:00Z"
-        txn = pd.concat([txn, earlier])
-    elif first_shipped is None:
-        txn["order_line_shipped_dttm"] = None
-    data = execute(rows, txn)
+    data = execute(rows)
     a.validate(data)
     result = next(
         r for r in data["first_shipped_summary"] if r["cohort"] == "all-aged"
     )
-    expected = first_shipped is True and auto_reorder is True
+    expected = first_shipped is True
     assert result["customers"] == int(expected)
     assert result["lines"] == int(expected)
 
 
 @pytest.mark.parametrize("other_flag", [False, None])
-def test_legacy_first_shipped_flag_is_ignored(other_flag):
+def test_first_shipped_conflicting_physical_line_flags_rejected(other_flag):
     rows = fixture()
-    rows[1]["order_auto_reorder_subscription_first_shipped_flag"] = True
+    rows[1][a.FIRST_SHIPPED_FLAG] = True
     rows.append(
         dict(
             rows[1],
             shipment_key="second",
-            order_auto_reorder_subscription_first_shipped_flag=other_flag,
+            **{a.FIRST_SHIPPED_FLAG: other_flag},
         )
     )
-    a.validate(execute(rows))
+    with pytest.raises(ValueError, match="Conflicting"):
+        a.validate(execute(rows))
 
 
 def test_first_shipped_deduplicates_lines_and_keeps_signed_sales():
     original, later = fixture()
     # Original flags never qualify a later line; order auto flag is diagnostic.
-    original["order_auto_reorder_subscription_first_shipped_flag"] = True
-    later["order_auto_reorder_subscription_first_shipped_flag"] = True
+    original[a.FIRST_SHIPPED_FLAG] = True
+    later[a.FIRST_SHIPPED_FLAG] = True
     included_auto = dict(
         later,
         order_line_id=22,
@@ -437,9 +410,7 @@ def test_first_shipped_deduplicates_lines_and_keeps_signed_sales():
         order_line_net_sales=Decimal(-100),
     )
     excluded_auto = dict(
-        included_auto,
-        order_line_id=23,
-        order_line_shipped_dttm=pd.Timestamp("2026-06-10"),
+        included_auto, order_line_id=23, **{a.FIRST_SHIPPED_FLAG: False}
     )
     rows = [
         original,
@@ -457,16 +428,16 @@ def test_first_shipped_deduplicates_lines_and_keeps_signed_sales():
     assert (result["customers"], result["orders"], result["lines"]) == (
         1,
         1,
-        1,
+        2,
     )
-    assert Decimal(result["known_net_sales"]) == -100
+    assert Decimal(result["known_net_sales"]) == -90
     assert summary(data)["known_net_sales"] == "10.00000"
 
 
 @pytest.mark.parametrize("boundary", a.HORIZONS)
 def test_autoship_initiating_cumulative_window_boundaries(boundary):
     original, later = fixture()
-    later["order_auto_reorder_subscription_first_shipped_flag"] = True
+    later[a.FIRST_SHIPPED_FLAG] = True
     later["order_line_auto_reorder_flag"] = True
     later["order_placed_dttm"] = pd.Timestamp("2026-06-01") + pd.Timedelta(
         days=boundary
@@ -490,7 +461,7 @@ def test_autoship_initiating_cumulative_window_boundaries(boundary):
 @pytest.mark.parametrize("line_flag", [True, False, None])
 def test_shipment_required_for_all_reorder_panels(line_flag):
     original, later = fixture()
-    later["order_auto_reorder_subscription_first_shipped_flag"] = True
+    later[a.FIRST_SHIPPED_FLAG] = True
     later["order_line_auto_reorder_flag"] = line_flag
     later["order_line_shipped_dttm"] = None
     # Another shipped line on the order cannot qualify this matching line.
@@ -531,7 +502,6 @@ def transaction_fixture(flag=False):
         [
             {
                 "order_line_id": 21,
-                "order_line_shipped_dttm": "2026-06-09T00:00:00Z",
                 "subscription_group_key": 1,
                 "subscription_key": 2,
                 "order_key": 3,
@@ -557,12 +527,11 @@ def test_transaction_flag_overrides_old_source_without_multiplying_sales():
     assert data["line"][0]["transaction_records"] == 2
 
 
-def test_missing_transaction_is_non_autoship():
+def test_missing_transaction_is_unknown_not_non_autoship():
     data = execute(fixture(), transaction_fixture().iloc[:0])
     a.validate(data)
-    assert summary(data)["customers"] == 1
-    assert summary(data)["null_flag_lines"] == 0
-    assert data["anchor"][0]["original_order_line_auto_reorder_flag"] is False
+    assert summary(data)["customers"] == 0
+    assert summary(data)["null_flag_lines"] == 1
 
 
 def test_conflicting_transaction_keys_are_rejected():
@@ -571,101 +540,3 @@ def test_conflicting_transaction_keys_are_rejected():
     conflict["product_key"] = 999
     with pytest.raises(ValueError, match="Conflicting"):
         a.validate(execute(fixture(), pd.concat([txn, conflict])))
-
-
-@pytest.mark.parametrize("order_flag", [True, False, None])
-def test_order_autoreorder_flag_is_ignored_even_when_conflicting(order_flag):
-    rows = fixture()
-    rows.append(dict(rows[1], order_auto_reorder_flag=order_flag))
-    data = execute(rows)
-    a.validate(data)
-    assert summary(data)["customers"] == 1
-    assert summary(data)["lines"] == 1
-
-
-def test_present_null_transaction_flag_stays_unknown():
-    data = execute(fixture(), transaction_fixture(None))
-    a.validate(data)
-    assert summary(data)["customers"] == 0
-    assert summary(data)["null_flag_lines"] == 1
-
-
-@pytest.mark.parametrize("changed_key", ["subscription_key", "product_key"])
-def test_initial_shipment_partition_uses_both_keys(changed_key):
-    txn = transaction_fixture(True)
-    earlier = txn.copy()
-    earlier["order_line_id"] = 999
-    earlier["order_line_shipped_dttm"] = "2025-01-01T00:00:00Z"
-    earlier[changed_key] = 999
-    data = execute(fixture(), pd.concat([txn, earlier]))
-    a.validate(data)
-    assert data["first_shipped_summary"][0]["customers"] == 1
-
-
-@pytest.mark.parametrize("key", ["subscription_key", "product_key"])
-def test_initial_shipment_requires_pair_keys(key):
-    txn = transaction_fixture(True)
-    txn[key] = None
-    data = execute(fixture(), txn)
-    a.validate(data)
-    assert all(r["customers"] == 0 for r in data["first_shipped_summary"])
-
-
-def test_full_history_includes_earlier_non_autoship_line():
-    txn = transaction_fixture(True)
-    earlier = transaction_fixture(False)
-    earlier["order_line_id"] = 999
-    earlier["order_line_shipped_dttm"] = "2025-01-01T00:00:00Z"
-    data = execute(fixture(), pd.concat([txn, earlier, earlier]))
-    a.validate(data)
-    assert all(r["customers"] == 0 for r in data["first_shipped_summary"])
-    assert len(data["subscription_history"]) == 2
-
-
-def test_eastern_daylight_saving_ties_use_instants():
-    txn = transaction_fixture(True)
-    txn["order_line_shipped_dttm"] = "2026-11-01T01:30:00-04:00"
-    tie = txn.copy()
-    tie["order_line_id"] = 999
-    tie["order_line_shipped_dttm"] = "2026-11-01T05:30:00Z"
-    later = txn.copy()
-    later["order_line_id"] = 998
-    later["order_line_shipped_dttm"] = "2026-11-01T01:00:00-05:00"
-    data = execute(fixture(), pd.concat([txn, tie, later]))
-    a.validate(data)
-    assert data["first_shipped_summary"][0]["customers"] == 1
-    assert pd.Timestamp(data["line"][0]["product_first_shipped_utc"]) == (
-        pd.Timestamp("2026-11-01T05:30:00")
-    )
-
-
-@pytest.mark.parametrize("source,expected", [("OTHER_SOURCE", 1), ("CMPU", 0)])
-def test_first_upload_history_requires_cmpu(source, expected):
-    original, later = fixture()
-    historical = dict(
-        later,
-        order_id=99,
-        order_line_id=991,
-        rx_id="historical",
-        order_placed_dttm=pd.Timestamp("2025-01-01"),
-        order_line_shipped_dttm=pd.Timestamp("2025-01-02"),
-    )
-    prescriptions = pd.DataFrame(
-        [
-            {
-                "rx_id": "historical",
-                "customer_id": 7,
-                "is_vet_diet_flag": True,
-                "approval_channel": "CUSTOMER_UPLOAD",
-                "prescription_source": source,
-            }
-        ]
-    )
-    data = execute(
-        [original, later, historical], extra_prescriptions=prescriptions
-    )
-    a.validate(data)
-    cohorts = {r["cohort"]: r for r in data["summary"] if r["days"] == 70}
-    assert cohorts["all-aged"]["denominator"] == 1
-    assert cohorts["first-upload"]["denominator"] == expected
-    assert cohorts["first-vet-diet"]["denominator"] == 0
