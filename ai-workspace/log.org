@@ -438,3 +438,22 @@
     and commit hooks passed. No warehouse refresh; retired directory stays absent.
   - Preserved unrelated staged generated artifacts and the .gitignore edit.
     No push was performed.
+
+* 2026-11-05 Add line-level autoship reorder analyses and consistent panels
+  - User approved the accumulated work; source changes committed as bda9af4
+    on feat/non-autoship-returns.
+  - Added three-cohort non-autoship and initial-autoship analyses through
+    70 days. Transaction line flags classify autoship; missing rows imply
+    non-autoship. Initial shipments use the earliest UTC shipment instant
+    for each subscription/product pair, including earliest-time ties.
+  - Required each matching reorder line's own shipment date, added distinct
+    line counts and aligned all six comparisons as three landscape panels.
+    Consolidated methodology in 3.1, replaced caption SQL with plain language
+    and confined extract-production details to 3.5.
+  - Refreshed and reconciled the warehouse results. Initial-autoship 70-day
+    customers: 2,758 / 1,204 / 652. The final change preserves cohort anchors
+    and 3.1.2/3.1.3 results. Cached reproduction needs no warehouse access.
+  - Relevant tests, Ruff, SQLFluff, hierarchy/ownership checks, staged checks
+    and commit hooks passed. Inspected the draft PDF; FINAL=0 remains set.
+  - Committed sources, tests, metadata and documentation. Generated reports,
+    generated LaTeX, retained data, playground and editor files stay local.
