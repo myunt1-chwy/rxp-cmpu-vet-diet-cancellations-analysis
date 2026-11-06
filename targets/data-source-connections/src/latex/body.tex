@@ -131,7 +131,7 @@ the specified follow-up day inclusive, bounded by the October 28, 2026,
 00:00 UTC observation cutoff. Windows of 7--70 days overlap; each cancellation
 is its own anchor. Whole candidate orders with cancellation evidence or unknown
 line status are excluded. Orders and sales are deduplicated across repeated
-anchor matches; a returning customer counts once within each endpoint/window.
+anchor matches; a reordering customer counts once within each endpoint/window.
 
 Contacts join the original aged order on \texttt{ORDER\_ID} in SQL; Python
 normalizes identifiers and additionally requires equal nonmissing customer IDs,

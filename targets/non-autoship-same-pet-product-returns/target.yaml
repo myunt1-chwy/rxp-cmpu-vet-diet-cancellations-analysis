@@ -1,0 +1,18 @@
+id: non-autoship-same-pet-product-returns
+level: subsubsection
+parent: financial-impact
+children:
+- non-autoship-all-aged-returns
+- non-autoship-first-upload-returns
+- non-autoship-first-vet-diet-returns
+question: What percentage of customers reorder for the same pet and part number
+  within 70 days when autoship reorders are excluded?
+title: What percentage of customers reorder for the same pet and part number within
+  70 days when autoship reorders are excluded?
+shared_dependencies:
+- python/analysis
+- python/non_autoship_returns.py
+- python/markdown_tables.py
+data_dependencies: []
+landscape: true
+aligned_panels: true

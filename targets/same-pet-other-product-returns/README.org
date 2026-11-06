@@ -1,27 +1,31 @@
-#+TITLE: What percentage of customers come back and place a successful order for the same pet but different product after an aged order in the next 70 days?
+#+TITLE: Same-pet, different-product vet-diet reorders
 
-* Ownership
-Target: =same-pet-other-product-returns=. Level: =subsubsection=.
-Parent: =financial-impact=.
-Ordered children: =same-pet-other-product-return-comparison=.
+* Question
+What percentage of customers come back and place a successful order for the
+same pet but different product after an aged order in the next 70 days?
 
 * Reproduction commands
-Run from the repository root with the project environment installed:
 #+begin_src sh
 make same-pet-other-product-returns
-make same-pet-other-product-returns REPRO=1
+make same-pet-other-product-returns REPRO=1 FINAL=0
 make same-pet-other-product-returns REFRESH=1
 #+end_src
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+Default builds use validated cached financial-return inputs. REFRESH=1
+propagates to the shared extraction pipeline; no refresh is needed for
+this layout change.
 
-* Inputs and dependencies
-The child make targets above are actual prerequisites. Parent prose is in =src/latex/body.tex= and may appear before, between and after the ordered children.
+* Structure and outputs
+Three cohort paragraphs own their tables and numerical summaries. Their
+ordered IDs are declared in target.yaml. This parent places their outputs
+side by side on one landscape page. Shared methodology is in the parent
+financial-impact introduction.
+The existing denominators, observations and study parameters are unchanged.
+Outputs: outputs/latex/content.tex, assembled into the draft report.
 
-Shared dependencies:
-- =shared/analysis=
-- =shared/artifact-ownership.yaml=
-- =shared/python/paths.py=
+* Panel alignment
+Headings and summaries share the first layout row. Tables share a second
+row so their top rules align automatically without fixed-height spacers.
 
-* Outputs
-Generated content: =targets/same-pet-other-product-returns/outputs/latex/content.tex=.
-Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+* Shared notes
+Common methodology is documented once in the financial-impact introduction.
+Tables reference that section and retain comparison-specific eligibility descriptions.

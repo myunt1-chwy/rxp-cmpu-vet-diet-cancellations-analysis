@@ -160,6 +160,7 @@ def analyze(
     matches["qualifying_non_cancelled"] = (
         matches.reorder_order_has_cancellation.eq(0)
         & matches.reorder_order_has_unknown_status.eq(0)
+        & matches.reorder_shipped_utc.notna()
     )
     eligible = originals.loc[
         originals.usable_match_keys & originals.complete_followup, KEYS

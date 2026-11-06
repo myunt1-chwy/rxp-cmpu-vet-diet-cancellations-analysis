@@ -31,8 +31,8 @@ def read_table(path):
         for line in body.splitlines()
         if re.match(r"^\d+ & ", line.strip())
     ]
-    if not rows or any(len(row) != 5 for row in rows):
-        raise ValueError(f"Expected five-column follow-up rows in {path}")
+    if not rows or any(len(row) != 6 for row in rows):
+        raise ValueError(f"Expected six-column follow-up rows in {path}")
     days = [int(row[0]) for row in rows]
     if days != sorted(set(days)):
         raise ValueError(f"Duplicate or unordered follow-up days in {path}")

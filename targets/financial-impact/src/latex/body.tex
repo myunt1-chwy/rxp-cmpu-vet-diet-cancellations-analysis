@@ -9,9 +9,61 @@ customer ID to vet-diet prescriptions with
 \texttt{APPROVAL\_CHANNEL = CUSTOMER\_UPLOAD}.
 
 
+\par\medskip
+\noindent\textbf{Shared methodology for the reorder comparisons below.}
+These rules apply to the reorder comparisons, not the cancellation baseline.
+
+\textit{Cohorts and anchors.} All aged customers includes every qualifying
+aged cancellation in the study period, without a prescription-creation or
+first-order restriction. The first CUSTOMER\_UPLOAD cohort requires the
+customer's earliest observed vet-diet CUSTOMER\_UPLOAD order to have aged;
+the first vet-diet cohort requires the earliest observed vet-diet order,
+across approval channels and prescription sources, to have aged. Historical
+RxP lines, linked prescriptions and ECOM order history establish first orders.
+For these first-order cohorts that order is the sole anchor; later aged orders
+do not reset follow-up. Percentages use each fixed full cohort, including
+customers without a qualifying reorder or with unusable matching keys.
+Cohorts overlap; do not add their counts.
+
+\textit{Matching and follow-up.} Require the same numeric customer ID and a
+ different order placed strictly after the matched cancellation through day
+N inclusive. Windows run from 7 through 70 days and require complete follow-up
+through 2026-10-28 00:00 UTC. Pet and part-number restrictions appear with each
+comparison; when required, pet IDs must be non-null and part numbers nonblank.
+Later orders may use any approval channel or prescription source.
+Each matching physical line must satisfy
+\texttt{MIN(ORDER\_LINE\_SHIPPED\_DTTM) IS NOT NULL}, grouped by
+\texttt{(order\_id, order\_line\_id)}; shipment of a sibling line does not qualify it.
+Shipment presence, statuses and channels reflect currently recorded data;
+windows and cutoff apply to order placement, not shipment dates.
+
+\textit{Successful orders.} Exclude the entire later order if any line has status \texttt{X}, a nonblank
+cancellation reason, a cancellation timestamp or NULL line status. The
+Chewy-wide comparison also excludes an order-header status of \texttt{X}.
+Autoship comparisons use line-level transaction flags; the order autoreorder
+flag is ignored. A missing subscription transaction row means non-autoship;
+a NULL flag on a present row remains unknown. Initial autoship shipments
+require an autoship line at the earliest recorded shipment time for that
+product within its subscription, considering all available shipment history.
+Lines tied at that earliest timestamp all qualify. Missing subscription or
+product identifiers, or a missing shipment time, cannot qualify.
+
+\textit{Counts and sales.} Each customer, order and matching physical line
+counts once per window, despite repeated anchor associations and shipments.
+Cumulative windows overlap; do not add counts. Net sales sum
+\texttt{ORDER\_LINE\_NET\_SALES} once per matching shipment/line contribution,
+preserving zero and negative amounts. Sales can be recorded after the
+placement window and do not prove recovered revenue. An asterisk or
+\textit{Incomplete} marks missing sales; N/A denotes a zero denominator.
+Amounts display two decimals.
+
 \AnalysisChild{estimated-sales-loss}
 
 \AnalysisChild{same-pet-product-returns}
+
+\AnalysisChild{non-autoship-same-pet-product-returns}
+
+\AnalysisChild{autoship-initiated-or-non-autoship-reorders}
 
 \AnalysisChild{same-pet-other-product-returns}
 

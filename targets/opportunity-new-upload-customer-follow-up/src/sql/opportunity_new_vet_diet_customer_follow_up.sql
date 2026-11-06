@@ -303,6 +303,8 @@ reorders AS (
     FROM financial AS f
     INNER JOIN order_cancellations AS o ON f.order_id = o.order_id
     GROUP BY f.order_id, f.order_line_id
+    -- Require shipment on this physical line, never on another order line.
+    HAVING MIN(f.shipped_at_utc) IS NOT NULL
 )
 
 SELECT

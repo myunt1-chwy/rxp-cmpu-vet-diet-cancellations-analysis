@@ -1,0 +1,18 @@
+id: autoship-initiated-or-non-autoship-reorders
+level: subsubsection
+parent: financial-impact
+children:
+- autoship-initiated-or-non-autoship-all-aged
+- autoship-initiated-or-non-autoship-first-upload
+- autoship-initiated-or-non-autoship-first-vet-diet
+question: What percentage of customers reorder for the same pet and part number
+  within 70 days through line items that initiated autoship?
+title: What percentage of customers reorder for the same pet and part number within
+  70 days through line items that initiated autoship?
+shared_dependencies:
+- python/analysis
+- python/non_autoship_returns.py
+- python/markdown_tables.py
+data_dependencies: []
+landscape: true
+aligned_panels: true

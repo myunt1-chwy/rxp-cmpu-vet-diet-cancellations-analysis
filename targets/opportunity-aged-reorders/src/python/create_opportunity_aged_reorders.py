@@ -51,7 +51,7 @@ def window_table(summary, params, as_of_date, study="same-part-pet"):
         body.append(
             (
                 f"{r.followup_days} & {r.customers:,} & {percentage} & "
-                f"{r.orders:,} & {amount}"
+                f"{r.orders:,} & {r.matching_lines:,} & {amount}"
             )
             + r" \\"
         )
@@ -71,9 +71,9 @@ def window_table(summary, params, as_of_date, study="same-part-pet"):
             "\n\\caption{Customers, non-cancelled reorder orders "
             "and matching-line net sales within FOLLOWUP_DAYS days "
             "after aged cancellation.}\n\\label{tab:financial-"
-            "opportunity-reorder-windows}\n\\begin{tabular}{@{}rrrrr"
+            "opportunity-reorder-windows}\n\\begin{tabular}{@{}rrrrrr"
             "@{}}\n\\toprule\nFollow-up (days) & Customers & Cohort "
-            "(\\%) & Orders & Net sales \\\\\n\\midrule\n"
+            "(\\%) & Orders & Lines & Net sales \\\\\n\\midrule\n"
         )
         + "\n".join(body)
         + (

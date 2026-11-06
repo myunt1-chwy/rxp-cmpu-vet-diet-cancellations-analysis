@@ -1,0 +1,53 @@
+#+TITLE: Same-pet, same-product reorders: cohort panel
+
+* Question
+How do same-pet, same-product reorders evolve for customers whose first vet-
+diet order aged?
+
+* Reproduction commands
+Run from the repository root. The shared non-autoship-returns pipeline runs
+once per Make invocation; cached builds make no warehouse queries.
+#+begin_src sh
+make same-pet-product-first-vet-diet-returns
+make same-pet-product-first-vet-diet-returns REPRO=1 FINAL=0
+make same-pet-product-first-vet-diet-returns REFRESH=1
+#+end_src
+Missing or incompatible cached inputs require an explicit REFRESH=1 build.
+
+* Inputs and dependencies
+This paragraph uses shipped_summary from the shared target-owned SQL.
+The financial-returns inputs certify cohort membership and anchors; the
+non-autoship-returns pipeline validates their manifests and the new results.
+Cancellations: [2026-05-01, 2026-08-01) UTC. Observation cutoff:
+2026-10-28 00:00 UTC. Cumulative windows: 7 through 70 days, every 7 days.
+Cohort membership, anchors, matching, complete follow-up and shipment
+aggregation are preserved. Later matching lines must have a shipment date.
+This comparison imposes no autoship restriction.
+Shared source owners and code dependencies are declared in target.yaml.
+
+* Outputs
+The authoritative table is outputs/tables/table.org. LaTeX is read back
+from that Org table; outputs/tables/provenance.json records fingerprints.
+The parent composes three paragraph panels on a landscape page and retains
+shared cohort and matching notes below them. Each panel appears once.
+Cohorts and windows overlap. Missing sales remain incomplete; signed sales
+are preserved. N/A denotes a zero denominator.
+
+* Shipped matching lines
+The shared non-autoship-returns SQL pipeline now owns this panel's metrics.
+Later matching physical lines require =reorder_shipped_utc IS NOT NULL=,
+where the timestamp is =MIN(ORDER_LINE_SHIPPED_DTTM)=. All three cohorts
+retain their anchors and denominators. The window uses order placement,
+not shipment time. The cancellation and unknown-status exclusions remain.
+Org tables are generated directly from the shared validated extraction.
+
+* Common line-item eligibility and presentation
+Every later matching physical line must satisfy
+=MIN(ORDER_LINE_SHIPPED_DTTM) IS NOT NULL=, grouped by
+=(order_id, order_line_id)=. A shipped sibling line never qualifies an
+unshipped matching line. Existing order cancellation and unknown-status
+exclusions remain. The baseline cancellation cohort is not shipment-filtered.
+All cumulative panels use days, customers, cohort percentage, orders,
+distinct line items and matching-line net sales. Line items are deduplicated
+across shipments and original anchors. Shared presentation code lives in
+shared/python/analysis/reorder_panels.py; captions describe eligibility in plain language.

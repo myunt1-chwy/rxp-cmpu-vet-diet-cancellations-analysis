@@ -124,3 +124,11 @@ diagrams:
   commands:
   - - data-source-diagrams
   data_targets: []
+non-autoship-returns:
+  dependencies:
+  - financial-returns
+  commands:
+  - - extract-non-autoship-returns
+  data_targets:
+  - non-autoship-all-aged-returns
+  - same-pet-product-return-comparison

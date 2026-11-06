@@ -1,40 +1,34 @@
-#+TITLE: How do successful Chewy return rates and net sales compare across the three customer cohorts over 70 days?
+#+TITLE: Chewy-wide shipped reorder cohort panel
 
-* Ownership
-Target: =any-chewy-return-comparison=. Level: =paragraph=.
-Parent: =any-chewy-returns=.
-Ordered children: none.
+* Question
+How do Chewy-wide reorders evolve for all aged customers?
+
+* Inputs and definitions
+Uses EDLDB.ECOM.ORDER_LINE for later matching physical lines across all
+Chewy categories, with the existing RxP aged-cancellation cohort anchors.
+Each later line requires =MIN(ORDER_LINE_SHIPPED_DTTM) IS NOT NULL= grouped
+by =(order_id, order_line_id)=. No pet, product or vet-diet restriction
+applies to later lines. Orders with cancellation evidence or unknown line
+status are excluded. Cancellations: [2026-05-01, 2026-08-01) UTC. Cutoff:
+2026-10-28 00:00 UTC. Windows: 7 through 70 days in 7-day increments,
+based on placement after cancellation. Cohorts and windows overlap.
+Line-item counts deduplicate physical lines across anchors and shipments.
+Zero and negative sales remain; missing sales are incomplete; N/A denotes
+a zero denominator. Cohort denominators retain all original customers.
 
 * Reproduction commands
-Run from the repository root with the project environment installed:
 #+begin_src sh
 make any-chewy-return-comparison
-make any-chewy-return-comparison REPRO=1
 make any-chewy-return-comparison REFRESH=1
+make any-chewy-return-comparison REPRO=1 FINAL=0
 #+end_src
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+The shared financial-returns pipeline runs once per Make invocation.
+Cached builds validate existing inputs without warehouse access. Missing or
+stale inputs require an explicit REFRESH=1 build with browser SSO.
 
-* Inputs and dependencies
-Generator batch: =financial-returns=, defined in =shared/analysis/pipelines.yaml=. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
-- =make opportunity-follow-up-sales CACHED=1=
-- =make opportunity-new-upload-customer-follow-up CACHED=1=
-- =make opportunity-new-vet-diet-customer-follow-up CACHED=1=
-- =make combined-follow-up-table CACHED=1=
-
-Retained input folders and ownership:
-- =targets/cancellation-sales-baseline/data/=
-- =targets/same-pet-product-return-comparison/data/=
-- =targets/any-chewy-return-comparison/data/=
-
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-
-Shared dependencies:
-- =shared/analysis=
-- =shared/artifact-ownership.yaml=
-- =shared/python/paths.py=
-
-* Outputs
-Generated content: =targets/any-chewy-return-comparison/outputs/latex/content.tex=.
-Tables are exported to =outputs/tables/table.org= and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; =outputs/tables/provenance.json= records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's =outputs/build/= folder.
-Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+* Outputs and dependencies
+Authoritative values: outputs/tables/table.org. LaTeX reads back Org cells.
+Provenance: outputs/tables/provenance.json. The parent composes three aligned
+panels on a landscape page. Shared rendering lives in
+shared/python/analysis/reorder_panels.py. Source and data dependencies are
+explicit in target.yaml. Each cohort owns one paragraph and one table.

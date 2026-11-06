@@ -70,3 +70,11 @@ analysis-refresh-preflight:
 	$(PYTHON) shared/python/analysis/refresh_preflight.py --refresh $(REFRESH) --targets $(MAKECMDGOALS)
 
 analysis-pipeline-financial-baseline analysis-pipeline-financial-returns analysis-pipeline-contacts analysis-pipeline-contact-reasons analysis-pipeline-contact-frequency analysis-pipeline-contact-window analysis-pipeline-study-population analysis-pipeline-upload-coverage analysis-pipeline-first-order-status analysis-pipeline-upload-creation analysis-pipeline-upload-state analysis-pipeline-upload-approval analysis-pipeline-survival analysis-pipeline-verification analysis-pipeline-diagrams: analysis-refresh-preflight
+
+.PHONY: analysis-pipeline-non-autoship-returns
+analysis-pipeline-non-autoship-returns: analysis-pipeline-financial-returns
+	$(PYTHON) shared/python/analysis/run_pipeline.py non-autoship-returns --refresh $(REFRESH)
+
+.PHONY: extract-non-autoship-returns
+extract-non-autoship-returns:
+	PYTHONPATH=. $(PYTHON) targets/non-autoship-all-aged-returns/src/python/build_returns.py --refresh $(if $(filter 1,$(CACHED)),0,1)

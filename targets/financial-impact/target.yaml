@@ -4,6 +4,8 @@ parent: appendix
 children:
 - estimated-sales-loss
 - same-pet-product-returns
+- non-autoship-same-pet-product-returns
+- autoship-initiated-or-non-autoship-reorders
 - same-pet-other-product-returns
 - any-vet-diet-returns
 - any-chewy-returns

@@ -188,6 +188,8 @@ def sql_sources():
                 shipment_key=1000 * i,
                 order_placed_dttm=pd.Timestamp("2026-06-01")
                 + pd.Timedelta(days=days),
+                order_line_shipped_dttm=pd.Timestamp("2026-06-02")
+                + pd.Timedelta(days=days),
                 order_cancel_dttm=pd.NaT,
                 order_order_line_status="D",
                 order_cancel_reason=None,
@@ -571,6 +573,7 @@ def test_broad_sql_and_study_specific_matching_and_deduplication():
                     "cohort_customers": 1,
                     "cohort_percentage": 100.0,
                     "orders": len(result["reorders"]),
+                    "matching_lines": len(result["reorders"]),
                     "actual_net_sales": Decimal(1),
                 }
             ]
@@ -852,3 +855,14 @@ def test_customer_order_frequency_empty_window(tmp_path):
 
 
 from sql_fixtures import fixture_sql
+
+
+def test_sql_requires_shipment_on_matching_physical_line():
+    rx, lines = sql_sources()
+    other = lines.loc[lines.order_id.eq(10)].assign(
+        order_line_id=1001, shipment_key=10001, product_part_number="OTHER"
+    )
+    lines.loc[lines.order_id.eq(10), "order_line_shipped_dttm"] = pd.NaT
+    raw = execute_sql(rx, pd.concat([lines, other]), all_studies=True)
+    selected = raw.loc[raw.reorder_order_id.eq(10), "reorder_line_id"]
+    assert set(selected) == {1001}

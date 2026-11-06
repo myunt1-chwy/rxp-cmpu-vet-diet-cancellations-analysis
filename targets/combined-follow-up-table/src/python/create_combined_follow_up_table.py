@@ -199,28 +199,28 @@ The three cohorts below compare non-cancelled reorders after CMPU vet-diet
         + "\n".join(r"\label{" + label + "}" for label in labels)
         + (
             "\n\\small\n\\setlength{\\tabcolsep}{4pt}\n\\begin{tabul"
-            "ar}{@{}r >{\\columncolor{yellow!35}}r rrr "
-            ">{\\columncolor{yellow!35}}r rrr "
-            ">{\\columncolor{yellow!35}}r rrr@{}}\n\\toprule\n & "
-            "\\multicolumn{4}{c}{\\shortstack{All aged "
+            "ar}{@{}r >{\\columncolor{yellow!35}}r rrrr "
+            ">{\\columncolor{yellow!35}}r rrrr "
+            ">{\\columncolor{yellow!35}}r rrrr@{}}\n\\toprule\n & "
+            "\\multicolumn{5}{c}{\\shortstack{All aged "
             "customers\\\\$N = "
         )
         + all_n
         + (
-            "$}}\n & \\multicolumn{4}{c}{\\shortstack{First "
+            "$}}\n & \\multicolumn{5}{c}{\\shortstack{First "
             "\\texttt{CUSTOMER\\_UPLOAD}\\\\vet-diet order aged; $N "
             "= "
         )
         + upload_n
         + r"""$}}
- & \multicolumn{4}{c}{\shortstack{First vet-diet order aged\\$N = """
+ & \multicolumn{5}{c}{\shortstack{First vet-diet order aged\\$N = """
         + vet_n
         + (
-            "$}} \\\\\n\\cmidrule(lr){2-5}\\cmidrule(lr){6-"
-            "9}\\cmidrule(lr){10-13}\nDays & Customers & Cohort "
-            "(\\%) & Orders & Net sales & Customers & Cohort (\\%) "
-            "& Orders & Net sales & Customers & Cohort (\\%) & "
-            "Orders & Net sales \\\\\n\\midrule\n"
+            "$}} \\\\\n\\cmidrule(lr){2-6}\\cmidrule(lr){7-"
+            "11}\\cmidrule(lr){12-16}\nDays & Customers & Cohort "
+            "(\\%) & Orders & Lines & Net sales & Customers & Cohort (\\%) "
+            "& Orders & Lines & Net sales & Customers & Cohort (\\%) & "
+            "Orders & Lines & Net sales \\\\\n\\midrule\n"
         )
         + "\n".join(rows)
         + (
@@ -301,6 +301,7 @@ Exclude the entire later order if """
                     "Customers",
                     "Cohort (%)",
                     "Orders",
+                    "Lines",
                     "Net sales",
                 ],
             )

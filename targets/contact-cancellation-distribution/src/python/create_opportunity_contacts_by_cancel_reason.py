@@ -397,13 +397,9 @@ and numeric customer ID, across all categories. """
             "times and non-inbound directions are excluded and "
             "audited.\nInbound direction is a source proxy, not "
             "proof of human initiation.\nNo prescription-creation "
-            "or first-order restriction applies.\nExtraction time "
-            "(UTC): "
+            "or first-order restriction applies.\n"
         )
-        + audit["extracted_at_utc"]
-        + r""".
-Executable SQL and complete order/contact records are under
-\path{data/opportunity/customer-contacts-by-cancel-reason/}.
+        + r"""
 \end{minipage}
 \end{table}
 """

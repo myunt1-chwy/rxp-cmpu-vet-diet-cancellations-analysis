@@ -118,8 +118,8 @@ lines. Counts may overlap across days and should not be added as global unique
 totals. Missing timestamps or customer IDs, mismatching customer IDs, unknown
 directions and outbound contacts remain audited and are excluded from this
 table. Email contacts with Other ingress are included; inbound direction is
-a source proxy and does not establish human initiation. Full channel/ingress
-audits are exported with the data. Original eligibility uses cancellation
+a source proxy and does not establish human initiation.
+Original eligibility uses cancellation
 dates and all qualifying orders, without a first-order or prescription-creation
 restriction. Observation cutoff: """
         + as_of

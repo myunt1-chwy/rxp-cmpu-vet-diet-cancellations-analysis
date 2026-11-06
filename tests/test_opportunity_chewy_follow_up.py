@@ -362,3 +362,11 @@ def test_all_chewy_70_day_boundary():
 
 
 from sql_fixtures import fixture_sql, sql_contains
+
+
+def test_ecom_requires_shipment_on_each_physical_line():
+    ecom = ecom_source()
+    ecom.loc[ecom.order_line_id.eq(1010), "order_line_shipped_dttm"] = pd.NaT
+    raw = execute_ecom(ecom)
+    selected = raw.loc[raw.reorder_order_id.eq(101), "reorder_line_id"]
+    assert set(selected) == {1011}

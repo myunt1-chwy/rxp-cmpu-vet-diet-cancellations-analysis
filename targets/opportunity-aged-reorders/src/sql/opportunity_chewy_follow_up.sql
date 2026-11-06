@@ -148,6 +148,8 @@ reorders AS (
         ON l.order_id = k.order_id AND l.order_line_id = k.order_line_id
     INNER JOIN order_cancellations AS o ON l.order_id = o.order_id
     GROUP BY l.order_id, l.order_line_id
+    -- Require shipment on this physical line, never on another order line.
+    HAVING MIN(l.order_line_shipped_dttm) IS NOT NULL
 )
 
 SELECT

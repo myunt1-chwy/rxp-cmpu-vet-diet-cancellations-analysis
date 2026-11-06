@@ -1,4 +1,4 @@
-#+TITLE: How do 14-day same-pet, same-product return rates compare for customers contacting on days -7 through +3 and other customers?
+#+TITLE: How do 14-day same-pet, same-product reorder rates compare for customers contacting on days -7 through +3 and other customers?
 
 * Ownership
 Target: =return-rates-by-contact-window=. Level: =paragraph=.

@@ -120,6 +120,7 @@ original_sha256:
   src/python/prior_shipment_history.py: 440b2a6f34bf0f54f65742c3dbad7c81defb602c83d7d56a5dcb67a1ac9b6b5b
   src/python/recreate_upload_data_verification.py: 4b96441f508faaf5d8b526d475025123d844fbe792fdfa72a7478e78e50b89fe
 queries:
+  non_autoship_returns.sql.j2: targets/non-autoship-all-aged-returns/src/sql/non_autoship_returns.sql.j2
   create_opportunity_aged_reorders-query-4.sql.j2: targets/opportunity-aged-reorders/src/sql/create_opportunity_aged_reorders-query-4.sql.j2
   create_opportunity_aged_reorders-query-3.sql.j2: targets/opportunity-aged-reorders/src/sql/create_opportunity_aged_reorders-query-3.sql.j2
   create_opportunity_aged_customer_contacts-query-2.sql.j2: targets/contact-days-relative-to-cancellation/src/sql/create_opportunity_aged_customer_contacts-query-2.sql.j2

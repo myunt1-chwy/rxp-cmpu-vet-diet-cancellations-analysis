@@ -244,9 +244,6 @@ def latex_table(summary, audit):
         + f"{audit['parent_orders']:,}"
         + r""" orders) in the no-recorded-reason rows of
 Table~\ref{tab:study-upload-coverage-by-cancellation-reason}.
-At the status extraction ("""
-        + audit["extracted_at_utc"]
-        + r"""),
 """
         + f"{audit['retained_lines']:,}"
         + r""" lines still had a null or blank reason;

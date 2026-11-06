@@ -1514,3 +1514,231 @@
   - All 685 tests and 16 subtests, Ruff, hierarchy/ownership checks and diff
     checks pass. Cached rendering did not recreate the retired directory.
     No warehouse refresh. Other staged artifacts and gitignore edits preserved.
+
+* DONE Add same-pet, same-product returns excluding autoship reorders
+  - Accepted implementation plan: non-autoship-same-pet-product-returns; three cohort
+    paragraphs, shared self-contained SQL, validated caches, authoritative Org
+    tables, landscape report composition, and explicit NULL-flag diagnostics.
+  - Preserve anchors, denominators, dates and signed sales. Verify extraction,
+    reconciliation, cached reproduction and draft PDF; FINAL=0.
+  - Stop for review and request approval before committing.
+  - Implemented 2026-11-05 on feat/non-autoship-returns; awaiting review and
+    approval to commit. Playground SQL remains untouched.
+  - Live extraction reconciles exact anchors and unchanged denominators
+    (30,382 / 11,550 / 5,097). Unfiltered physical-line membership agrees
+    with existing financial inputs for every cohort and all ten windows.
+  - Day-70 non-autoship returns: 1,055 (3.47%), 448 (3.88%), 178 (3.49%).
+    No NULL flags among qualifying lines or missing included sales records.
+  - Verification: 49 relevant tests, Ruff, SQLFluff, hierarchy/ownership,
+    80-column reproduction docs and git diff --check passed. Actual cached
+    reproduction passed with warehouse extraction disabled; failure tests
+    preserve usable inputs and the published PDF.
+  - make report FINAL=0 succeeded. Inspected page 6: section 3.1.3 and
+    Tables 3--5 appear between the existing same-product comparison and
+    different-product returns. No overfull boxes or undefined references.
+    New section REPRO=1 also compiled without overfull boxes.
+
+* DONE Convert return sections 3.1.2, 3.1.4 and 3.1.5 to three panels
+  - Accepted layout: mirror 3.1.3 with one paragraph and table per cohort,
+    side by side on a landscape page. Preserve calculations and results.
+  - Keep shared methodology, reference labels and cached reproduction;
+    update target metadata and HOWTO. Verify every displayed cell and PDF
+    layout; retain FINAL=0 and stop for review before committing.
+  - Implemented 2026-11-05: nine cohort paragraphs now render as three
+    landscape panel groups on report pages 5, 7 and 8. Existing cohort
+    data ownership and reference labels are preserved; methods sit below
+    each group. All 450 displayed cells match the prior comparisons.
+  - Cached section Make builds and report assembly succeeded. Inspected
+    all three pages; no overfull boxes or undefined references. REPRO=1
+    also compiled without overfull boxes; long commands wrap at hyphens.
+  - Ruff, hierarchy/ownership, 80-column documentation and diff checks
+    passed. No warehouse refresh. FINAL=0; awaiting approval to commit.
+
+* DONE Align panel table tops and use reorder terminology
+  - Align table top rules across each three-cohort panel group using shared
+    text and table rows, including the non-autoship section.
+  - Replace return/returned/returning terminology in report prose with
+    reorder/reordered/reordering. Preserve stable IDs and calculations.
+  - Rebuild and inspect draft pages, table references and reproduction
+    layout; keep FINAL=0 and stop for review before committing.
+  - Implemented 2026-11-05: all four panel groups use separate shared text
+    and table rows. Visually verified aligned top rules on pages 5--8.
+  - Updated headings, captions, prose and reproduction documentation to
+    use reorder terminology; stable paths and target IDs are unchanged.
+    Checked the complete rendered text for the superseded terminology.
+  - All existing authoritative table values are unchanged. Normal and
+    REPRO=1 builds compile without overfull boxes; Ruff, hierarchy,
+    ownership and diff checks pass. FINAL=0; awaiting review and commit
+    approval. No warehouse refresh was needed.
+
+* DONE Collect first-shipped subscription flag and produce 70-day reorders
+  - Add ORDER_AUTO_REORDER_SUBSCRIPTION_FIRST_SHIPPED_FLAG to the shared
+    extraction and audit conflicting physical-line values.
+  - Produce a supplementary three-cohort 70-day table for same-pet and
+    same-part-number reorders where the first-shipped flag is TRUE OR
+    ORDER_LINE_AUTO_REORDER_FLAG is FALSE. Preserve original anchors,
+    denominators, successful-order criteria and complete follow-up.
+  - Validate SQL OR/NULL behavior, counts and shipment-level sales; execute
+    the warehouse extraction and export an authoritative Org table.
+  - Verified warehouse results: 3,376 / 1,482 / 757 customers at 70 days;
+    rates 11.11% / 12.83% / 14.85%. Original summaries and PDF unchanged.
+    No unknown eligibility or missing matched sales. Counts and signed
+    shipment sales reconcile; validated cached build makes no warehouse call.
+  - 69 relevant tests passed, including 33 flag/matching/cache tests.
+    Ruff, SQLFluff, hierarchy, ownership and diff checks passed.
+    Supplementary Org/Markdown table and executable SQL are ready for review.
+    No commit made; awaiting approval.
+
+* DONE Add report panels for autoship-initiating or non-autoship reorders
+  - Headings approved by the user; use the agreed question wording.
+  - Add a subsubsection and three cohort paragraphs for the validated 70-day
+    query, immediately after the non-autoship comparison.
+  - Describe qualifying line items as initiating autoship or not part of
+    autoship; retain the exact order/line flag predicate and cohort rules.
+  - Reuse the shared cached extraction, generate owned Org tables and aligned
+    landscape panels, document commands, and inspect the draft PDF.
+  - Added section 3.1.4 with three independently reproducible paragraphs.
+    Verified aligned table rules, approved headings and placement on page 7
+    of the draft PDF. Org tables agree with the validated 70-day summaries.
+  - Cached parent Make build and REPRO instructions passed without a refresh.
+    44 relevant tests, Ruff, hierarchy, ownership and diff checks passed.
+    HOWTO regenerated in document order. FINAL=0; no commit made.
+
+* DONE Expand autoship-initiating or non-autoship panels through 70 days
+  - Generate cumulative 7-day increments through day 70 in SQL for all
+    three cohorts, preserving the filter, headings, anchors and denominators.
+  - Validate every window, refresh extraction, reconcile day 70, rebuild
+    the aligned draft report panels and inspect the page.
+  - Refreshed and validated all 30 cohort/window summaries. Day-70 results,
+    original non-autoship summaries and denominators are unchanged. Cached
+    reproduction succeeds with warehouse access disabled.
+  - Rebuilt draft PDF and inspected page 7: all ten rows are readable and
+    table top rules align. 43 tests, Ruff, SQLFluff, hierarchy, ownership and
+    diff checks pass. FINAL=0; changes await review and commit approval.
+
+* DONE Restrict new autoship panels to first-shipped flag TRUE
+  - Remove the line-auto-reorder FALSE eligibility arm. Retain cohorts,
+    matching, denominators and 7-day windows through day 70.
+  - Update wording, validate flag combinations, refresh SQL extraction,
+    reconcile against the prior line evidence and inspect the draft PDF.
+  - Refreshed all 30 cohort/window summaries and reconciled counts and sales
+    against prior first-shipped TRUE line evidence. Existing non-autoship
+    summaries are unchanged; cached reproduction makes no warehouse call.
+  - Updated section 3.1.4 wording and inspected page 7: ten rows per panel,
+    aligned rules and first-shipped-only notes. Day-70 rates: 8.09%, 9.59%,
+    12.16%. 43 tests, Ruff, SQLFluff, ownership, hierarchy and diff checks
+    passed. FINAL=0; awaiting review and commit approval.
+
+* DONE Require shipped matching lines in sections 3.1.2 and 3.1.3
+  - Require non-null physical-line shipment timestamps in SQL; preserve
+    original cohorts, placement windows and section 3.1.4 eligibility.
+  - Generate all six panels from the shared validated extraction, format
+    caption predicates as code, refresh and reconcile counts and sales,
+    then inspect the aligned draft pages.
+  - Refreshed and reconciled all 60 cohort/window results against physical
+    line evidence. All prior qualifying lines already had shipment dates,
+    so results are unchanged. Section 3.1.4 and denominators are unchanged.
+  - Captions show each predicate as code on its own line. Inspected pages
+    5 and 6 for readability, alignment, headings and numbering; FINAL=0.
+  - 58 tests, Ruff, SQLFluff, hierarchy, ownership and diff checks passed.
+    Cached reproduction makes no warehouse call; REPRO instructions pass.
+    No commit made; awaiting review and commit approval.
+
+* DONE Require shipped physical lines throughout section 3.1 and unify panels
+  - Filter later physical lines by order ID and line ID in all reorder SQL.
+    Keep original cancellation cohorts intact. Extend to first-shipped,
+    different-product, any-vet-diet and Chewy-wide reorder comparisons.
+  - Use consistent six-column cohort panels: days, customers, percentage,
+    orders, line items and net sales; show code-formatted caption filters.
+  - Refresh affected inputs, reconcile physical-line counts and sales,
+    validate cached reproduction and inspect the draft report.
+  - All seven warehouse reorder queries now enforce non-null shipment at
+    (order_id, order_line_id) grain; original cancellation cohorts remain
+    intact. First-shipped comparisons also require the line's own shipment.
+  - All 18 reorder cohort panels share one renderer and six columns,
+    including distinct physical line-item counts. Chewy-wide comparison
+    now has three paragraphs with the proposed cohort question headings.
+  - Refreshed six financial sources and the shared source; reconciled 120
+    financial exports and the shared summaries. Denominators are unchanged.
+    One previously unshipped Chewy line now has a November 4 shipment;
+    report notes distinguish snapshot shipment presence from placement
+    windows/cutoff. Detailed reconciliation is target-owned in data.
+  - 96 tests, Ruff, SQLFluff, hierarchy, ownership and diff checks passed.
+    Cached builds and REPRO instructions passed. Inspected all six landscape
+    pages for aligned rules, captions, line counts and readable tables.
+    FINAL=0; no commit made. Awaiting review and commit approval.
+
+* DONE Source autoship line flags from subscription transactions
+  - Join aged and reorder physical lines to
+    EDLDB.BT_SHARED_DW.FCT_SUBSCRIPTION_ORDER_LINE_TRANSACTION.
+  - Preserve cohort membership, shipment requirements and order flags.
+    Collect subscription keys and transaction flags without multiplying sales.
+  - Refresh the extract, reconcile results and validate cached reproduction.
+  - Fresh extract validated: denominators and unfiltered/first-shipped
+    metrics unchanged. Non-autoship 70-day customers are 115, 31 and 13.
+    Missing transaction flags remain unknown; no conflicting rows found.
+  - 99 tests, Ruff, SQLFluff, hierarchy/ownership and diff checks passed.
+    Cached reproduction passed with warehouse access explicitly blocked.
+    Draft remains FINAL=0; no commit made, pending user review.
+
+* DONE Treat absent subscription transactions as non-autoship
+  - Classify missing transaction rows as FALSE for aged and reorder lines.
+    Preserve NULL flags on present rows as unknown. Ignore order autoreorder.
+  - Initial shipments require line autoreorder TRUE and first-shipped TRUE.
+  - Refresh and validate extraction, cached reproduction and draft panels.
+  - Refreshed and reconciled all cohorts; 70-day non-autoship customer
+    counts are 1,149 / 471 / 187. Initial-autoship counts are
+    2,442 / 1,102 / 617. Denominators and unfiltered metrics unchanged.
+  - 103 tests, Ruff, SQLFluff and hierarchy/ownership checks passed.
+    Verified cached reproduction without warehouse access and inspected
+    both updated landscape pages. FINAL=0; awaiting review before commit.
+
+* DONE Consolidate shared reorder methodology in section 3.1
+  - Move shared cohort, shipment, success, counting and sales notes to 3.1.
+  - Remove duplicated notes from comparison pages; retain specific filters
+    and a reference to the shared methodology. Rebuild from cached inputs.
+  - Inspect the draft for placement, readability and aligned table rules.
+  - Shared methodology now appears once in the 3.1 introduction; all
+    six reorder comparisons reference it and retain their own code filters.
+  - Verified unchanged authoritative Org tables and cached regeneration
+    without warehouse access. 65 tests, Ruff, hierarchy/ownership and
+    diff checks passed. Inspected the introduction and all six panels.
+    Draft remains FINAL=0; no commit made pending review.
+
+* DONE Replace SQL in reorder table captions with plain language
+  - Explain matching and autoship eligibility without intermediate fields.
+  - Regenerate from cached inputs, verify unchanged values and inspect PDF.
+  - Replaced SQL predicates in all 18 reorder captions with reader-facing
+    descriptions; removed intermediate success-field names from 3.1 prose.
+  - Tables unchanged; cached regeneration used no warehouse access.
+    65 tests, Ruff, hierarchy/ownership and diff checks passed. Inspected
+    all six comparison pages; FINAL=0. Awaiting review before commit.
+
+* DONE Remove extract details outside report section 3.5
+  - Remove extraction timestamps, export precision and extract-production
+    references from reader-facing financial, contact and upload notes.
+  - Preserve the data-verification section, analytical rules and values.
+  - Regenerate from cached inputs and inspect the draft and report text.
+  - Removed extraction/export references and stored precision from the
+    financial, contact and upload-status prose. Section 3.5 retains its
+    verification details. Final PDF text scan found no extract/export
+    references outside 3.5; all authoritative Org tables are unchanged.
+  - Cached builds, 49 tests, Ruff, hierarchy/ownership and diff checks
+    passed. Inspected all edited pages. FINAL=0; awaiting commit approval.
+
+* DONE Define initial autoship by earliest subscription/product shipment
+  - Replace the order first-shipped flag in 3.1.4 with full-history earliest
+    shipped line by subscription_key and product_key. Retain line autoship.
+  - Normalize LTZ shipment instants to UTC; include earliest timestamp ties.
+    Annotate grain, history scope, NULL handling and unchanged cohort rules.
+  - Refresh all three cohorts, reconcile history minima and signed sales,
+    verify cached reproduction and rebuild the plain-language draft panels.
+  - Refreshed all three initial-autoship cohorts: 70-day customers are
+    2,758 / 1,204 / 652. Old order first-shipped flag is no longer read.
+  - Reconciled 189,049 historical shipped lines across 15,875 pairs;
+    15 pairs have earliest-time ties. Optimized pair selection agrees
+    exactly with the unrestricted audit. Anchors and 3.1.2/3.1.3 unchanged.
+  - 109 tests passed, including DST, full history, product/subscription
+    partitions, missing keys, ties and duplicates. Final SQLFluff, Ruff,
+    hierarchy/ownership, cached reproduction and diff checks passed.
+    Inspected 3.1.4 and shared-methodology pages. FINAL=0; no commit made.

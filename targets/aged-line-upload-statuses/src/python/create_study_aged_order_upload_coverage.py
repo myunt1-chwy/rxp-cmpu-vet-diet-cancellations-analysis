@@ -144,12 +144,7 @@ def main():
             f"across {audit['parent_orders']:,} orders. Include "
             "cancellations\nat or before October 27, 2026, 00:00 "
             "UTC; later or undated aged cancellations are "
-            "excluded.\nStatuses are from the retained extraction "
-            "at "
-        )
-        + audit["extracted_at_utc"]
-        + (
-            ".\nPrescriptions count distinct \\texttt{RX\\_ID}s; "
+            "excluded.\nPrescriptions count distinct \\texttt{RX\\_ID}s; "
             "each physical line counts once.\nWith/without upload "
             "counts lines with/without at least one entity, not "
             "entities.\nValidate prescription/customer/both first-"

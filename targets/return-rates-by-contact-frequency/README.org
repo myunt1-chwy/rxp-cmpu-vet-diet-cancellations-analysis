@@ -1,4 +1,4 @@
-#+TITLE: How do 14-day same-pet, same-product return rates vary with contact-day frequency?
+#+TITLE: How do 14-day same-pet, same-product reorder rates vary with contact-day frequency?
 
 * Ownership
 Target: =return-rates-by-contact-frequency=. Level: =paragraph=.

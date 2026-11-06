@@ -1,40 +1,43 @@
-#+TITLE: How do successful vet-diet return rates and net sales compare across the three customer cohorts over 70 days?
+#+TITLE: Any vet-diet reorders: cohort panel
 
-* Ownership
-Target: =any-vet-diet-return-comparison=. Level: =paragraph=.
-Parent: =any-vet-diet-returns=.
-Ordered children: none.
+* Question
+How do any vet-diet reorders evolve for all aged customers?
 
 * Reproduction commands
-Run from the repository root with the project environment installed:
+Run from the repository root. The shared financial-return pipeline runs
+once per Make invocation; cached builds make no warehouse queries.
 #+begin_src sh
 make any-vet-diet-return-comparison
-make any-vet-diet-return-comparison REPRO=1
+make any-vet-diet-return-comparison REPRO=1 FINAL=0
 make any-vet-diet-return-comparison REFRESH=1
 #+end_src
-Default builds reuse retained source data and rerun the validation and presentation steps. They do not query the warehouse. Missing or stale inputs stop the build; inspect the pipeline log before requesting refresh. REFRESH=1 is explicit and may change results.
+Missing or incompatible cached inputs require an explicit REFRESH=1 build.
 
 * Inputs and dependencies
-Generator batch: =financial-returns=, defined in =shared/analysis/pipelines.yaml=. The batch is shared by related paragraphs and runs once per make invocation.
-Existing generator commands (the batch explicitly sets CACHED=1 by default):
-- =make opportunity-follow-up-sales CACHED=1=
-- =make opportunity-new-upload-customer-follow-up CACHED=1=
-- =make opportunity-new-vet-diet-customer-follow-up CACHED=1=
-- =make combined-follow-up-table CACHED=1=
-
-Retained input folders and ownership:
-- =targets/cancellation-sales-baseline/data/=
-- =targets/same-pet-product-return-comparison/data/=
-- =targets/any-chewy-return-comparison/data/=
-
-Dates and cohort parameters are preserved from the source manifests and the existing generator defaults. Financial/contact defaults use May 1 through July 31, 2026, with follow-up observed through October 28; upload/prescription analyses retain their August 15 through October 14 study and documented upload/cancellation cutoffs. Do not mix source snapshots.
-
-Shared dependencies:
-- =shared/analysis=
-- =shared/artifact-ownership.yaml=
-- =shared/python/paths.py=
+This paragraph selects cohort 1 from the validated combined follow-up
+export. It preserves every customer, percentage, order and sales cell.
+The financial-returns pipeline validates the existing source manifests.
+Cancellations: [2026-05-01, 2026-08-01) UTC. Observation cutoff:
+2026-10-28 00:00 UTC. Cumulative windows: 7 through 70 days, every 7 days.
+No changes to cohort membership, anchors, successful-order criteria,
+matching, follow-up completeness, shipment aggregation or autoship rules.
+Shared source owners and code dependencies are declared in target.yaml.
 
 * Outputs
-Generated content: =targets/any-vet-diet-return-comparison/outputs/latex/content.tex=.
-Tables are exported to =outputs/tables/table.org= and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; =outputs/tables/provenance.json= records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's =outputs/build/= folder.
-Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+The authoritative table is outputs/tables/table.org. LaTeX is read back
+from that Org table; outputs/tables/provenance.json records fingerprints.
+The parent composes three paragraph panels on a landscape page and retains
+shared cohort and matching notes below them. Each panel appears once.
+Cohorts and windows overlap. Missing sales remain incomplete; signed sales
+are preserved. N/A denotes a zero denominator.
+
+* Common line-item eligibility and presentation
+Every later matching physical line must satisfy
+=MIN(ORDER_LINE_SHIPPED_DTTM) IS NOT NULL=, grouped by
+=(order_id, order_line_id)=. A shipped sibling line never qualifies an
+unshipped matching line. Existing order cancellation and unknown-status
+exclusions remain. The baseline cancellation cohort is not shipment-filtered.
+All cumulative panels use days, customers, cohort percentage, orders,
+distinct line items and matching-line net sales. Line items are deduplicated
+across shipments and original anchors. Shared presentation code lives in
+shared/python/analysis/reorder_panels.py; captions describe eligibility in plain language.

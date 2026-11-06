@@ -47,6 +47,40 @@ def tex_escape(text):
     )
 
 
+def reorder_wording(text):
+    """Use reorder terminology in prose, preserving stable paths and IDs."""
+    # Query-result descriptions are not customer behavior.
+    text = re.sub(
+        r"\b(query|queries|extracts)\s+(returns?|returned)\b",
+        lambda match: (
+            match[1]
+            + " "
+            + {"return": "yield", "returns": "yields", "returned": "yielded"}[
+                match[2].lower()
+            ]
+        ),
+        text,
+        flags=re.IGNORECASE,
+    )
+    words = {
+        "return": "reorder",
+        "returns": "reorders",
+        "returned": "reordered",
+        "returning": "reordering",
+    }
+
+    def replace(match):
+        value = words[match[0].lower()]
+        return value.capitalize() if match[0][0].isupper() else value
+
+    return re.sub(
+        r"(?<![\w/\\-])(returning|returned|returns|return)(?![\w/-])",
+        replace,
+        text,
+        flags=re.IGNORECASE,
+    )
+
+
 def reproduction(directory):
     """
     Include the same authored commands and caveats used to generate HOWTO.
@@ -164,20 +198,19 @@ def preview(repro=0, final=0, compile_pdf=True, only=None, live=False):
             continue
         m = targets[key]
         directory = ROOT / "targets" / key
-        wide = False
+        wide = bool(targets[key].get("landscape"))
         title = m.get("question") or m["title"]
+        if m.get("generated_visual") or "cohort_panel" in m:
+            title = tex_escape(title)
         body = (directory / "src/latex/body.tex").read_text()
         if m["level"] == "paragraph":
             visual = (
                 (directory / "outputs/latex/visual.tex").read_text()
-                if live
+                if live or m.get("generated_visual") or "cohort_panel" in m
                 else render_visual(directory)
             )
             text = "\\paragraph{" + title + "}\n" + body + "\n" + visual
             if key in {
-                "same-pet-product-return-comparison",
-                "same-pet-other-product-return-comparison",
-                "any-vet-diet-return-comparison",
                 "any-chewy-return-comparison",
                 "first-order-upload-coverage",
                 "no-recorded-cancellation-upload-statuses",
@@ -192,17 +225,58 @@ def preview(repro=0, final=0, compile_pdf=True, only=None, live=False):
             raise ValueError(
                 f"LaTeX/metadata child order differs: {key}: {actual}"
             )
+        child_fragment = (
+            "intro.tex}" if m.get("aligned_panels") else "content.tex}"
+        )
         text = re.sub(
             r"\\AnalysisChild\{([^}]+)\}",
-            lambda match: (
-                "\\input{targets/" + match[1] + "/outputs/latex/content.tex}"
+            lambda match, fragment=child_fragment: (
+                "\\input{targets/" + match[1] + "/outputs/latex/" + fragment
             ),
             text,
         )
+        if m.get("aligned_panels"):
+            table_children = re.findall(r"\\AnalysisTable\{([^}]+)\}", body)
+            if table_children != m["children"]:
+                raise ValueError(f"Panel table order differs: {key}")
+            text = re.sub(
+                r"\\AnalysisTable\{([^}]+)\}",
+                lambda match: (
+                    "\\input{targets/"
+                    + match[1]
+                    + "/outputs/latex/panel-table.tex}"
+                ),
+                text,
+            )
         if repro:
             # Parent instructions precede children, matching HOWTO's traversal.
             heading, remainder = text.split("\n", 1)
-            text = heading + "\n" + reproduction(directory) + remainder
+            instructions = reproduction(directory)
+            if m.get("generated_visual") or "cohort_panel" in m:
+                instructions = instructions.replace(
+                    r"\begin{quote}\small", r"\begin{quote}\footnotesize"
+                )
+            if "cohort_panel" in m:
+                # Long target IDs may wrap at existing hyphens in panels.
+                instructions = re.sub(
+                    r"(\\texttt\{)(.*?)(\}\\par)",
+                    lambda match: (
+                        match[1]
+                        + match[2].replace("-", r"-\allowbreak{}")
+                        + match[3]
+                    ),
+                    instructions,
+                )
+            text = heading + "\n" + instructions + remainder
+        text = reorder_wording(text)
+        if m["level"] == "paragraph" and targets[m["parent"]].get(
+            "aligned_panels"
+        ):
+            intro, marker, table = text.partition(r"\refstepcounter{table}")
+            if not marker:
+                raise ValueError(f"Missing panel table boundary: {key}")
+            write(directory / "outputs/latex/intro.tex", intro)
+            write(directory / "outputs/latex/panel-table.tex", marker + table)
         if wide:
             text = "\\begin{landscape}\n" + text + "\n\\end{landscape}\n"
         write(directory / "outputs/latex/content.tex", text + "\n")

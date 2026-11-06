@@ -766,7 +766,7 @@ def financial_opportunity_latex(summary, params):
             "COST\\_MEASURES\\_RXP},\nonce per shipment-and-line "
             "record. Zero and negative sales remain included;\nany "
             "missing sales make the group total incomplete. Display "
-            "rounds to two\ndecimals; exports retain five. Current "
+            "rounds to two\ndecimals. Current "
             "cancellation reasons are grouped\ncase-insensitively; "
             "a missing reason does not establish an uncancelled "
             "order.\nLine-item status is \\texttt{ORDER\\_ORDER\\_"

@@ -1,0 +1,64 @@
+#+TITLE: Non-autoship same-pet, same-product reorders
+
+* Question
+What percentage of customers reorder for the same pet and part number within 70
+days when autoship reorders are excluded?
+
+* Inputs and definitions
+Uses certified RxP prescriptions and shipment/line measures, plus ECOM
+order history. Study cancellations: [2026-05-01, 2026-08-01) UTC;
+observation cutoff: 2026-10-28 00:00 UTC. Windows: 7 through 70 days.
+The original cohort requires vet-diet lines linked by Rx ID and customer
+to CMPU, CUSTOMER_UPLOAD vet-diet prescriptions with an aged-order reason.
+Original aged lines have no autoship restriction. Later matching lines
+require a FALSE line autoship flag. Missing transaction rows imply FALSE;
+present NULL flags are excluded and audited.
+The order autoreorder flag is ignored. Cohorts and windows overlap.
+A successful later order has no line with X status, recorded cancellation
+reason or cancellation timestamp, and no unknown line status. Matching uses
+numeric customer ID, non-null pet ID and exact nonblank part number on a
+different order. Placement is strictly after the matched cancellation and
+at or before the inclusive window end. Each anchor needs complete follow-up.
+All-aged customers retain every qualifying aged anchor. First-order cohorts
+retain only the unique earliest observed qualifying order, determined from
+ECOM history with missing-history and timestamp-tie checks. The first-upload
+history includes CUSTOMER_UPLOAD vet-diet prescriptions across sources;
+the first-vet-diet history includes all channels and prescription sources.
+Physical lines and shipment contributions are deduplicated before aggregation.
+Conflicting physical-line flags fail validation, including FALSE/NULL mixes.
+
+* Reproduction commands
+#+begin_src sh
+make non-autoship-same-pet-product-returns
+make non-autoship-same-pet-product-returns REFRESH=1
+make non-autoship-same-pet-product-returns REPRO=1 FINAL=0
+#+end_src
+The shared extraction runs once for all three paragraphs. The financial
+reorder pipeline builds first; REFRESH propagates to those dependencies.
+Default builds
+require validated cached inputs and never access the warehouse. Refresh
+requires browser SSO and compatible existing financial-return inputs.
+Refresh stages extraction and validation before replacing usable inputs.
+
+* Outputs and dependencies
+Each paragraph owns outputs/tables/table.org and outputs/latex/visual.tex.
+The all-aged paragraph owns the shared query and data/current cache,
+including raw records, query, manifest and reconciliation. Other paragraphs
+declare this data dependency. The parent composes one landscape page.
+Net sales preserve signed amounts; missing sales are disclosed. First-order
+classification reflects available historical records and snapshot channels.
+
+* Panel alignment
+Headings and summaries share the first layout row. Tables share a second
+row so their top rules align automatically without fixed-height spacers.
+
+* Shipped matching lines
+Later matching physical lines require =reorder_shipped_utc IS NOT NULL=,
+where the timestamp is =MIN(ORDER_LINE_SHIPPED_DTTM)=. This requirement
+applies to all reorder comparisons under section 3.1. Windows still use order placement;
+original aged lines and cohort denominators have no shipment restriction.
+Table captions describe eligibility in plain language.
+
+* Shared notes
+Common methodology is documented once in the financial-impact introduction.
+Tables reference that section and retain comparison-specific eligibility descriptions.

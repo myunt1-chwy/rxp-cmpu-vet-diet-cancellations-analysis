@@ -38,3 +38,25 @@ playground/local-metadata/
 # SQL execution history is local-only, even for legacy callers.
 **/sql-history/
 /generated_sql/
+
+# New non-autoship targets regenerate all presentation artifacts locally.
+targets/non-autoship-*/outputs/
+
+# Cohort-panel presentation outputs are generated locally.
+targets/same-pet-product-first-upload-returns/outputs/
+targets/same-pet-product-first-vet-diet-returns/outputs/
+targets/same-pet-other-product-first-upload-returns/outputs/
+targets/same-pet-other-product-first-vet-diet-returns/outputs/
+targets/any-vet-diet-first-upload-returns/outputs/
+targets/any-vet-diet-first-vet-diet-returns/outputs/
+
+# Aligned panel rows are generated from paragraph content.
+targets/*/outputs/latex/intro.tex
+targets/*/outputs/latex/panel-table.tex
+
+# Autoship-initiating cohort panels are regenerated from validated inputs.
+targets/autoship-initiated-or-non-autoship-*/outputs/
+
+# New Chewy-wide cohort panels are generated.
+targets/any-chewy-first-upload-returns/outputs/
+targets/any-chewy-first-vet-diet-returns/outputs/

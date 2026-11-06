@@ -6,22 +6,24 @@ FROM (
         reorder_line_id,
         reorder_known_net_sales
     FROM matches
-    WHERE qualifying_non_cancelled AND (
-        {% if study == "same-part-pet" %}
-            original_pet_id = reorder_pet_id
-            AND original_product_part_number = reorder_product_part_number
-            AND NULLIF(TRIM(original_product_part_number), '') IS NOT NULL
-            AND NULLIF(TRIM(reorder_product_part_number), '') IS NOT NULL
-        {% elif study == "same-pet-different-part" %}
-            original_pet_id = reorder_pet_id
-            AND original_product_part_number <> reorder_product_part_number
-            AND reorder_is_vet_diet = TRUE
-            AND NULLIF(TRIM(original_product_part_number), '') IS NOT NULL
-            AND NULLIF(TRIM(reorder_product_part_number), '') IS NOT NULL
-        {% elif study == "any-vet-diet" %}
-            reorder_is_vet_diet = TRUE
-        {% elif study == "any-chewy" %}
-            TRUE
-        {% endif %}
-    )
+    WHERE
+        qualifying_non_cancelled
+        AND reorder_shipped_utc IS NOT NULL AND (
+            {% if study == "same-part-pet" %}
+                original_pet_id = reorder_pet_id
+                AND original_product_part_number = reorder_product_part_number
+                AND NULLIF(TRIM(original_product_part_number), '') IS NOT NULL
+                AND NULLIF(TRIM(reorder_product_part_number), '') IS NOT NULL
+            {% elif study == "same-pet-different-part" %}
+                original_pet_id = reorder_pet_id
+                AND original_product_part_number <> reorder_product_part_number
+                AND reorder_is_vet_diet = TRUE
+                AND NULLIF(TRIM(original_product_part_number), '') IS NOT NULL
+                AND NULLIF(TRIM(reorder_product_part_number), '') IS NOT NULL
+            {% elif study == "any-vet-diet" %}
+                reorder_is_vet_diet = TRUE
+            {% elif study == "any-chewy" %}
+                TRUE
+            {% endif %}
+        )
 )

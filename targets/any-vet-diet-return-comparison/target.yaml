@@ -2,10 +2,8 @@ id: any-vet-diet-return-comparison
 level: paragraph
 parent: any-vet-diet-returns
 children: []
-question: How do successful vet-diet return rates and net sales compare across the three customer cohorts
-  over 70 days?
-title: How do successful vet-diet return rates and net sales compare across the three customer cohorts
-  over 70 days?
+question: How do any vet-diet reorders evolve for all aged customers?
+title: How do any vet-diet reorders evolve for all aged customers?
 shared_dependencies:
 - analysis
 - python/analysis
@@ -27,18 +25,11 @@ artifact: Table (one visual).
 pipeline: financial-returns
 table_columns:
 - Follow-up days
-- All aged customers
-- All aged customer share (%)
-- All aged orders
-- All aged net sales
-- First upload customers
-- First upload customer share (%)
-- First upload orders
-- First upload net sales
-- First vet diet customers
-- First vet diet customer share (%)
-- First vet diet orders
-- First vet diet net sales
+- Reordering customers
+- Cohort (%)
+- Distinct orders
+- Distinct matching line items
+- Matching-line net sales
 data_dependencies:
 - cancellation-sales-baseline
 - same-pet-product-return-comparison
@@ -57,3 +48,8 @@ code_dependencies:
 - targets/opportunity-aged-new-customers/src/python/create_opportunity_aged_first_order_customers.py
 - targets/opportunity-aged-reorders/src/python/create_opportunity_aged_reorders.py
 - targets/opportunity-new-upload-customer-follow-up/src/python/create_opportunity_new_upload_customer_follow_up.py
+- targets/any-vet-diet-return-comparison/src/latex/visual.tex
+- shared/python/analysis/paragraph_artifacts.py
+- shared/python/analysis/reorder_panels.py
+cohort_panel: 0
+reference_visual: targets/any-vet-diet-return-comparison/src/latex/visual.tex

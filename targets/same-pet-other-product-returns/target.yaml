@@ -3,10 +3,12 @@ level: subsubsection
 parent: financial-impact
 children:
 - same-pet-other-product-return-comparison
-question: What percentage of customers come back and place a successful order for the same pet but different
-  product after an aged order in the next 70 days?
-title: What percentage of customers come back and place a successful order for the same pet but different
-  product after an aged order in the next 70 days?
+- same-pet-other-product-first-upload-returns
+- same-pet-other-product-first-vet-diet-returns
+question: What percentage of customers come back and place a successful order for
+  the same pet but different product after an aged order in the next 70 days?
+title: What percentage of customers come back and place a successful order for the
+  same pet but different product after an aged order in the next 70 days?
 shared_dependencies:
 - analysis
 - python/analysis
@@ -19,3 +21,5 @@ migration:
   build: active
 artifact: null
 data_dependencies: []
+landscape: true
+aligned_panels: true

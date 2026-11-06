@@ -2,10 +2,10 @@ id: return-rates-by-contact-window
 level: paragraph
 parent: contact-proximity-and-returns
 children: []
-question: How do 14-day same-pet, same-product return rates compare for customers contacting on days -7
-  through +3 and other customers?
-title: How do 14-day same-pet, same-product return rates compare for customers contacting on days -7 through
-  +3 and other customers?
+question: How do 14-day same-pet, same-product reorder rates compare for customers
+  contacting on days -7 through +3 and other customers?
+title: How do 14-day same-pet, same-product reorder rates compare for customers
+  contacting on days -7 through +3 and other customers?
 shared_dependencies:
 - analysis
 - python/analysis

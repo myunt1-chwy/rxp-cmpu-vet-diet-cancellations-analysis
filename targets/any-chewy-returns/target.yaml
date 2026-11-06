@@ -3,10 +3,12 @@ level: subsubsection
 parent: financial-impact
 children:
 - any-chewy-return-comparison
-question: What percentage of customers place a Chewy order successfully in the following 70 days after
-  their aged order?
-title: What percentage of customers place a Chewy order successfully in the following 70 days after their
-  aged order?
+- any-chewy-first-upload-returns
+- any-chewy-first-vet-diet-returns
+question: What percentage of customers place a Chewy order successfully in the following
+  70 days after their aged order?
+title: What percentage of customers place a Chewy order successfully in the following
+  70 days after their aged order?
 shared_dependencies:
 - analysis
 - python/analysis
@@ -19,3 +21,5 @@ migration:
   build: active
 artifact: null
 data_dependencies: []
+landscape: true
+aligned_panels: true

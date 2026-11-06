@@ -280,7 +280,7 @@ def latex_table(
         rows.append(
             (
                 f"{r.followup_days} & {r.returning_customers:,} & "
-                f"{percentage} & {r.orders:,} & {sales}"
+                f"{percentage} & {r.orders:,} & {r.matching_lines:,} & {sales}"
             )
             + r" \\"
         )
@@ -305,8 +305,8 @@ Table~\ref{tab:financial-opportunity-new-upload-follow-up} follows the
             "percentage of the fixed cohort, orders and matching-"
             "line net sales through 70 days.}\n\\label{tab:financial"
             "-opportunity-new-upload-follow-"
-            "up}\n\\begin{tabular}{@{}rrrrr@{}}\n\\toprule\nFollow-"
-            "up (days) & Customers & Cohort (\\%) & Orders & Net "
+            "up}\n\\begin{tabular}{@{}rrrrrr@{}}\n\\toprule\nFollow-"
+            "up (days) & Customers & Cohort (\\%) & Orders & Lines & Net "
             "sales \\\\\n\\midrule\n"
         )
         + "\n".join(rows)

@@ -324,3 +324,8 @@ make example-topic
 make validate-analysis-structure validate-analysis-sources
 make analysis-howto
 #+end_src
+
+* Reader-facing data notes
+Keep extract-production details, extraction timestamps and storage precision
+out of the report except in the data-verification subsection (3.5).
+Analytical observation windows and limitations remain with the analyses.

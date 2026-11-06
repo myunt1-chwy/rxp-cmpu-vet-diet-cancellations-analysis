@@ -25,3 +25,15 @@ Shared dependencies:
 * Outputs
 Generated content: =targets/any-chewy-returns/outputs/latex/content.tex=.
 Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.
+
+* Unified cohort panels
+Three independently reproducible paragraphs own the all-aged, first-upload
+and first-vet-diet cohort tables. The parent aligns them on one landscape
+page. Every table includes distinct physical line-item counts, requires a
+non-null shipment date on that line, and shows caption predicates as code.
+Shipment presence reflects the extraction snapshot; the 70-day windows
+and observation cutoff apply to order placement, not shipment time.
+
+* Shared notes
+Common methodology is documented once in the financial-impact introduction.
+Tables reference that section and retain comparison-specific eligibility descriptions.

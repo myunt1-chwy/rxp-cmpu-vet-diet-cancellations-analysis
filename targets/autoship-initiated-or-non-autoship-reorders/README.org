@@ -1,0 +1,56 @@
+#+TITLE: Autoship-initiating reorders
+
+* Question
+What percentage of customers reorder for the same pet and part number within
+70 days through line items that initiated autoship?
+
+* Inputs and definitions
+Shared validated extraction: non-autoship-all-aged-returns/data/current.
+Study cancellations: [2026-05-01, 2026-08-01) UTC. Observation cutoff:
+2026-10-28 00:00 UTC. Cumulative windows run from 7 through 70 days
+in 7-day increments.
+Qualifying later lines must have ORDER_LINE_AUTO_REORDER_FLAG = TRUE and
+match the earliest recorded shipment for their subscription_key/product_key
+pair in EDLDB.BT_SHARED_DW.FCT_SUBSCRIPTION_ORDER_LINE_TRANSACTION.
+The old order-level first-shipped flag is not used. Compare the physical
+line's earliest shipment with the full pair history, including shipments
+before the study and non-autoship shipments. No cohort or study-date filter
+restricts the history. All lines tied at the earliest timestamp qualify.
+Missing keys or shipment timestamps cannot establish an initial shipment;
+unknown eligibility is counted separately. A missing transaction row remains
+non-autoship. Target IDs and commands remain stable for reproduction.
+ORDER_LINE_SHIPPED_DTTM is TIMESTAMP_LTZ: CONVERT_TIMEZONE('UTC', timestamp)
+normalizes the stored instant before casting to TIMESTAMP_NTZ. This avoids
+reinterpreting Eastern session display as UTC or mishandling DST transitions.
+Original aged lines have no autoship restriction. Match the same numeric
+customer, non-null pet and exact nonblank part number on a different,
+successful order placed after cancellation. Require complete follow-up.
+Cohorts overlap and retain their existing denominators and anchor rules.
+The first-upload cohort requires its first CUSTOMER_UPLOAD vet-diet order
+to have aged; the first-vet-diet cohort requires its first vet-diet order
+to have aged. First-order status reflects available order history.
+Physical lines, shipment contributions and repeated anchors are deduplicated.
+Conflicting physical-line flags fail validation. Sales retain signed amounts;
+missing sales are disclosed and zero denominators display N/A.
+
+* Reproduction commands
+#+begin_src sh
+make autoship-initiated-or-non-autoship-reorders
+make autoship-initiated-or-non-autoship-reorders REFRESH=1
+make autoship-initiated-or-non-autoship-reorders REPRO=1 FINAL=0
+#+end_src
+Default builds validate and reuse cached inputs without warehouse access.
+REFRESH propagates to financial cohort inputs and the shared extraction;
+browser SSO is required. Missing or stale caches give a refresh command.
+The shared non-autoship-returns pipeline computes all cohorts once.
+
+* Outputs and dependencies
+The parent composes its three paragraph targets in aligned landscape
+panels. Tables appear only in their owning paragraphs.
+Shared orchestration and validation: shared/python/non_autoship_returns.py.
+Self-contained SQL and scalar parameters are owned by
+non-autoship-all-aged-returns/src/sql/non_autoship_returns.sql.j2.
+
+* Shared notes
+Common methodology is documented once in the financial-impact introduction.
+Tables reference that section and retain comparison-specific eligibility descriptions.
