@@ -72,14 +72,15 @@ def boxplot(entities, stats, states, domain, title, subtitle):
             "state_label:N",
             sort=states,
             title="Final state",
-            axis=alt.Axis(labelLimit=260),
+            axis=alt.Axis(labelLimit=520),
         ),
         color=alt.Color("state_label:N", scale=colors, legend=None),
     )
     scale = alt.Scale(
         type="symlog", constant=1 / 3600, domain=domain, nice=False
     )
-    tick_hours = [1 / 60, 5 / 60, 30 / 60, 1, 6, 24, 48, 72, 120, 240]
+    # Sparse ticks keep the enlarged labels from overlapping.
+    tick_hours = [1 / 60, 5 / 60, 1, 6, 24, 72, 240]
     axis = alt.Axis(
         values=[
             value for value in tick_hours if domain[0] <= value <= domain[1]
@@ -91,8 +92,8 @@ def boxplot(entities, stats, states, domain, title, subtitle):
         ),
         labelAngle=0,
         labelOverlap=False,
-        labelLineHeight=16,
-        labelPadding=8,
+        labelLineHeight=32,
+        labelPadding=16,
     )
 
     def x(field):
@@ -140,7 +141,7 @@ def boxplot(entities, stats, states, domain, title, subtitle):
         )
     )
     counts = base.mark_text(
-        align="left", dx=12, color="#333333", fontSize=13
+        align="left", dx=24, color="#333333", fontSize=26
     ).encode(
         x=alt.value(1500), text="count_label:N", color=alt.value("#333333")
     )
@@ -153,22 +154,22 @@ def boxplot(entities, stats, states, domain, title, subtitle):
         (zero + whisker + caps[0] + caps[1] + box + median + points + counts)
         .properties(
             width=1500,
-            height=max(200, len(states) * 56),
-            padding={"left": 10, "right": 160, "top": 10, "bottom": 10},
+            height=max(400, len(states) * 112),
+            padding={"left": 10, "right": 320, "top": 10, "bottom": 10},
             title=alt.Title(
                 title,
                 subtitle=subtitle,
                 anchor="start",
-                fontSize=23,
-                subtitleFontSize=14,
-                offset=18,
+                fontSize=46,
+                subtitleFontSize=28,
+                offset=36,
             ),
         )
         .configure(
             background="transparent",
             font="Arial",
             axis=alt.AxisConfig(
-                labelFontSize=13, titleFontSize=16, titlePadding=14
+                labelFontSize=26, titleFontSize=32, titlePadding=28
             ),
         )
         .configure_view(stroke=None)
