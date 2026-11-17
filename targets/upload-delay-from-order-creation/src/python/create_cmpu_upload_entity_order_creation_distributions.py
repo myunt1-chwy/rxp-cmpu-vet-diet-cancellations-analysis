@@ -177,61 +177,25 @@ def figure(rows, stats, params):
         GROUPS,
         domain,
         "Upload creation relative to order creation",
+        # The caption carries the full method; one line keeps the figure
+        # compact.
         [
             (
-                f"CMPU vet diet · CUSTOMER_UPLOAD · Rx {params['start_date']} "
-                f"to {params['end_date']} exclusive (UTC)"
-            ),
-            (
-                f"Upload creation {params['upload_start_date']} to "
-                f"{params['upload_end_date']} exclusive (UTC) · Aged "
-                f"cancellation ≤ {params['as_of_date']} 00:00 UTC"
-            ),
-            (
-                "Upload CREATED_TS_UTC − order ORDER_PLACED_DTTM · Positive: "
-                "upload after order · Negative: upload before order"
-            ),
-            (
-                "One observation per entity · Earliest matched first order · "
-                "Median, quartiles, 1.5×IQR whiskers and all outliers"
-            ),
-            (
-                "Symmetric-log spacing · One-second linear region around zero "
-                "· n = usable / total"
-            ),
+                "Positive: upload after order · Negative: upload before "
+                "order · n = usable / total"
+            )
         ],
     )
     spec = chart.to_dict()
-    # Keep all requested positive time ticks; include negative anchors and zero
-    # so entities uploaded before ordering remain interpretable on the same
-    # axis.
-    ticks = [
-        -240,
-        -72,
-        -24,
-        -6,
-        -1,
-        -0.5,
-        -5 / 60,
-        -1 / 60,
-        0,
-        1 / 60,
-        5 / 60,
-        0.5,
-        1,
-        6,
-        24,
-        48,
-        72,
-        120,
-        240,
-    ]
+    # Sparse ticks keep the enlarged labels from overlapping at the
+    # standard width.
+    ticks = [-240, -24, -1, -1 / 60, 0, 1 / 60, 1, 24, 240]
     axis = {
         "values": [v for v in ticks if domain[0] <= v <= domain[1]],
         "labelAngle": 0,
         "labelOverlap": False,
-        "labelLineHeight": 16,
-        "labelPadding": 8,
+        "labelLineHeight": 36,
+        "labelPadding": 16,
         "labelExpr": (
             "datum.value == 0 ? ['0', ''] : abs(datum.value) < 1 ? "
             "[format(datum.value * 60, '.0f'), abs(datum.value) == 1/60 ? "
@@ -239,9 +203,16 @@ def figure(rows, stats, params):
             "abs(datum.value) == 1 ? 'hour' : 'hours']"
         ),
     }
-    # Extra width allows signed minute/hour labels to remain horizontal.
-    width = 2600 if lower < 0 and upper > 0 else 1500
+    # Standard width and compact rows so the figure is not shrunk on the
+    # page; text is enlarged beyond the shared defaults.
+    width = 1500
     spec["width"] = width
+    spec["height"] = 260
+    spec["title"].update(fontSize=52, subtitleFontSize=34, offset=30)
+    spec["config"]["axis"].update(
+        labelFontSize=32, titleFontSize=36, titlePadding=24
+    )
+    spec["padding"]["right"] = 380
     for layer in spec["layer"]:
         encoding = layer.get("encoding", {})
         if "y" in encoding:
@@ -251,6 +222,7 @@ def figure(rows, stats, params):
             encoding["x"]["axis"] = axis
         if encoding.get("text", {}).get("field") == "count_label":
             encoding["x"]["value"] = width
+            layer["mark"]["fontSize"] = 32
     return alt.LayerChart.from_dict(spec)
 
 
