@@ -470,3 +470,16 @@
     report is blocked by a pre-existing stale financial-returns cache, and
     48 pytest failures also exist on the base branch.
   - Committed as 748c4eb. Generated tables and SQL stay local (gitignored).
+
+* 2026-11-17 Cache refresh and legible upload duration figures
+  - Refreshed financial-returns and non-autoship-returns (REFRESH=1); the
+    stale caches had blocked make report. Net sales moved by at most 0.057%
+    and five 70-day order/line counts by one or two; customers unchanged.
+    No prose cites the changed figures. Committed as ec37349.
+  - Doubled text in shared duration box-plots (3.4.4 Figures 3-4) and
+    thinned time ticks to avoid overlap. Committed as ff7a3d7.
+  - Figure 2 (3.4.3.1): standard 1,500 px width, compact rows, one-line
+    subtitle and larger text; legible on page 23. The removed subtitle
+    lines held date ranges and method notes, which the caption mostly
+    covers. Committed as eda4781 with the rebuilt FINAL=0 report.
+  - Full make report now builds end to end; pages 23-24 inspected.
