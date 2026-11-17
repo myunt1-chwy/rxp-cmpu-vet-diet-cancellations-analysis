@@ -483,3 +483,12 @@
     lines held date ranges and method notes, which the caption mostly
     covers. Committed as eda4781 with the rebuilt FINAL=0 report.
   - Full make report now builds end to end; pages 23-24 inspected.
+
+* 2026-11-04 Merge analysis into the Chewy repository
+  - User authorized preserving destination history and publishing main.
+  - Merge commit 1ab671c combines source 41c4464 and destination 6b58245.
+  - Retained destination CODEOWNERS and PR template, the analysis README,
+    and combined ignore rules; removed template trailing whitespace.
+  - Python lint/format checks, staged SQL checks and merge diff checks passed.
+  - Used an isolated integration worktree; original branch and origin remain
+    unchanged.

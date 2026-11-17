@@ -60,3 +60,23 @@ targets/autoship-initiated-or-non-autoship-*/outputs/
 # New Chewy-wide cohort panels are generated.
 targets/any-chewy-first-upload-returns/outputs/
 targets/any-chewy-first-vet-diet-returns/outputs/
+
+# Additional destination repository ignore rules.
+!gradle/wrapper/gradle-wrapper.jar
+*.class
+*.env
+*.env.local
+*.log
+.DS_Store
+.attach_pid*
+.docker
+.gradle
+**/build/
+**/bin/
+**/version.txt
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+*.csv
