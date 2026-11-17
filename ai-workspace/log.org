@@ -457,3 +457,16 @@
     and commit hooks passed. Inspected the draft PDF; FINAL=0 remains set.
   - Committed sources, tests, metadata and documentation. Generated reports,
     generated LaTeX, retained data, playground and editor files stay local.
+
+* 2026-11-17 Post-day-10 cancellation reasons for aged-order risk
+  - Answered Copilot's PR #1 review that the event-free survival ratio was
+    read as aged-order risk without evidence. New paragraph target
+    post-day-10-cancellation-reasons tabulates Snowflake reasons for
+    first-order lines cancelled after day 10; Prescription Issue is grouped
+    with Aged Order (pharmacists' code for no prescription by day 10).
+  - Result: 98.1% aging-equivalent (29,711 of 30,288); 0.9% customer.
+    The aged-order-risk prose now cites generated values via values.tex.
+  - Checks, SQL lint and Ruff passed; inspected report pp. 26-27. Full make
+    report is blocked by a pre-existing stale financial-returns cache, and
+    48 pytest failures also exist on the base branch.
+  - Committed as 748c4eb. Generated tables and SQL stay local (gitignored).
