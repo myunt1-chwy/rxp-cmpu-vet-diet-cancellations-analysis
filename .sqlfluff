@@ -17,6 +17,7 @@ min_day = -13
 end_day = 4
 min_day_offset = 14
 day_count = 17
+cutoff_days = 10
 handled_only = False
 
 upload_start_date = 2026-08-01

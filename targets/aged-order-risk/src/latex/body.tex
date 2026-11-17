@@ -1,13 +1,20 @@
 \label{subsec:survival-analysis}
+\input{targets/post-day-10-cancellation-reasons/outputs/latex/values.tex}
 
 We look at the chance of an order becoming an aged order in this
 section. Here, we build a survival curve. Survival means that an order
-has yet to encounter a accepted document upload or a cancellation. The
-The cancellations after day 10 are system created aged order
-cancellations. From figure \ref{fig:first-order-line-survival}, that
-after day 3, the change of an order becoming an aged order is about
-~50\% (28.90\%/55.80\%) if there is no accepted document upload or any
-cancellation except aged order.
+has yet to encounter an accepted document upload or a cancellation.
+After day 10, nearly all cancellations are system-created aged-order
+cancellations: \PostDayTenAgingShare{} (\PostDayTenAgingLines{} of
+\PostDayTenTotalLines{} lines) are recorded as \emph{Aged Order} or
+\emph{Prescription Issue}, which pharmacists use when no prescription
+exists by day 10, and \PostDayTenCustomerShare{} are customer
+cancellations (Table~\ref{tab:post-day-10-cancellation-reasons}).
+Therefore, for an order with no accepted document upload or
+cancellation by day 3, the chance of becoming an aged order is about
+50\% (28.91\%/55.80\%, from Figure~\ref{fig:first-order-line-survival}).
+Because a few uploads and other cancellations still occur after day 10,
+this ratio slightly overstates the aged-order risk.
 
 Figure~\ref{fig:first-order-line-survival} shows the probability that a first-order
 line is still awaiting an accepted upload or cancellation after order placement.

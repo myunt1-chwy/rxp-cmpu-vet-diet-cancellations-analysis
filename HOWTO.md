@@ -4790,6 +4790,40 @@ resolved by the registry; root filesystem aliases have been removed.
 - `cmpu_first_order_line_event_times.sql` (in
   `targets/first-order-survival-curve/src/sql/`)
 
+Which cancellation reasons account for first-order lines cancelled after day 10?
+(`post-day-10-cancellation-reasons`)
+---
+
+### Question
+
+Which cancellation reasons account for first-order lines cancelled after day 10?
+
+### Inputs and dependencies
+
+Snowflake: `EDLDB.BT_HCA_HCDM.RXP_PRESCRIPTIONS` joined to
+`ORDER_LINE_COST_MEASURES_RXP` on the first order line. Cached extract in
+`data/`; REFRESH=1 re-queries Snowflake. Parent:
+`first-order-event-free-survival`. Shared renderer: `shared/python/analysis/`.
+
+### Build
+
+Run from the repository root; it includes this target Makefile.
+
+```sh
+make post-day-10-cancellation-reasons \
+  REFRESH=0 REPRO=0 FINAL=0
+make post-day-10-cancellation-reasons \
+  REFRESH=1 REPRO=0 FINAL=0
+```
+
+REFRESH=1 re-runs the warehouse extract; the default reuses the cached,
+digest-checked Parquet. REPRO includes these instructions; FINAL controls the
+report draft setting.
+
+### Outputs
+
+Generated LaTeX: `outputs/latex/content.tex` in this target.
+
 How did we verify the data? (`data-verification`)
 ---
 

@@ -2,3 +2,5 @@
 .PHONY: first-order-event-free-survival
 first-order-event-free-survival: first-order-survival-curve
 	$(PYTHON) shared/python/analysis/build_target.py first-order-event-free-survival --refresh $(REFRESH) --repro $(REPRO) --final $(FINAL)
+
+first-order-event-free-survival: post-day-10-cancellation-reasons

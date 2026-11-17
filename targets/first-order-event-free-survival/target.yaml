@@ -3,6 +3,7 @@ level: subsubsection
 parent: aged-order-risk
 children:
 - first-order-survival-curve
+- post-day-10-cancellation-reasons
 question: How long do first-order lines remain without an accepted upload or cancellation?
 title: How long do first-order lines remain without an accepted upload or cancellation?
 shared_dependencies:

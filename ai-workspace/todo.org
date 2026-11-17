@@ -1881,3 +1881,15 @@
     remains on one page, followed by the unchanged six-panel cohort pages.
     Regenerated HOWTO, passed hierarchy/whitespace checks, inspected the
     rendered introduction, and published the FINAL=0 draft for review.
+
+* DONE Evidence aged-order cancellations after day 10 (Copilot PR #1)
+  - Add paragraph target post-day-10-cancellation-reasons under
+    first-order-event-free-survival: Snowflake reasons for first-order
+    lines cancelled more than 10 days after placement, with Prescription
+    Issue grouped with Aged Order as aging-equivalent.
+  - Replace the unsupported aged-order-risk claim with generated values
+    (98.1%, 29,711 of 30,288; 0.9% customer) and fix typos and 28.91%.
+  - Refreshed the extract, passed structure/source checks, SQL lint, Ruff
+    and git diff --check; assembled FINAL=0 report and inspected pp. 26-27.
+    Full make report is blocked by a pre-existing stale financial-returns
+    cache; pytest has 48 failures, also present on the base branch.
