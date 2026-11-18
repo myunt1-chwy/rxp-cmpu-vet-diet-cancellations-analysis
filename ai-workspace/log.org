@@ -492,3 +492,11 @@
   - Python lint/format checks, staged SQL checks and merge diff checks passed.
   - Used an isolated integration worktree; original branch and origin remain
     unchanged.
+
+* 2026-11-18 Block refreshed figures that contradict prose (Copilot PR #1)
+  - Addressed review r4607835801 in 91baaa3 on fix/refresh-snapshot-guard.
+  - Paragraph builds check copied figures against recorded sha256 values or
+    generated prose hashes; make rebaseline TARGET=<id> accepts reviews.
+  - upload-delay-from-order-creation caption now uses generated counts,
+    correcting the stale 29,715 to 29,750 overall entities.
+  - Tables and executive-summary numbers remain unguarded follow-ups.
