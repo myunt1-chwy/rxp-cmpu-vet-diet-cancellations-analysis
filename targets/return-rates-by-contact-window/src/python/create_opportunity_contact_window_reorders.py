@@ -149,6 +149,14 @@ def main():
         text,
     )
     write_text(target, text)
+    # The parent section cites the same difference through a generated macro.
+    write_text(
+        ROOT
+        / "targets/return-rates-by-contact-window/outputs/latex/values.tex",
+        "\\newcommand{\\ContactWindowRateDifference}"
+        f"{{{abs(difference):.2f}}}\n"
+        f"\\newcommand{{\\ContactWindowRateDirection}}{{{direction}}}\n",
+    )
     print(summary.to_string(index=False))
 
 
