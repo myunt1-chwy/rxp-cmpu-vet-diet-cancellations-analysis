@@ -39,5 +39,6 @@ pipeline: first-order-status
 images:
 - source: targets/first-order-upload-status-flow/outputs/diagrams/2026-08-15_2026-10-14/cmpu-first-order-lines_customer-upload_uploads-2026-08-01_2026-10-25_accepted-state-change_order-placed_sankey.png
   output: outputs/diagrams/visual.png
+  sha256: 45a19bf866659334b0e7057ff5555340acfe42ab64d96a173888c931ab5d863a
 data_dependencies:
 - first-order-upload-status-flow

@@ -38,5 +38,6 @@ pipeline: survival
 images:
 - source: targets/first-order-survival-curve/outputs/figures/2026-08-15_2026-10-14/cmpu-first-order-line-survival_uploads-2026-08-01_2026-10-26_accepted-state-change_order-placed.png
   output: outputs/figures/visual.png
+  sha256: 145045bd8cc0df6ef0f878125e92ad0bfe744333ac7b1aa9f918bc75de122697
 data_dependencies:
 - first-order-survival-curve

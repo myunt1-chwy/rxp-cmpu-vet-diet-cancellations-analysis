@@ -138,6 +138,29 @@ def cohort_panel(block, index):
     )
 
 
+def check_snapshot(key, asset, source):
+    """Reject a figure that no longer matches the prose describing it.
+
+    Authored prose declares the image hash it was reviewed against; generated
+    prose records the hash of the figure produced in the same run.
+    """
+    actual = hashlib.sha256(source.read_bytes()).hexdigest()
+    if "prose_values" in asset:
+        values = ROOT / "targets" / key / asset["prose_values"]
+        if not values.is_file():
+            raise ValueError(f"{key}: missing {values}; rebuild the pipeline")
+        recorded = re.search(r"figure_sha256: (\w+)", values.read_text())
+        expected = recorded[1] if recorded else None
+    else:
+        expected = asset.get("sha256")
+    if expected != actual:
+        raise ValueError(
+            f"{key}: {asset['source']} differs from the results its prose "
+            f"describes (expected {expected}, found {actual}). Review the "
+            f"prose, then run make rebaseline TARGET={key}."
+        )
+
+
 def generate(metadata):
     directory = ROOT / "targets" / metadata["id"]
     if metadata.get("generated_visual"):
@@ -225,6 +248,7 @@ def generate(metadata):
         # Image source paths are authored metadata, not cached image contents.
         for asset in metadata.get("images", []):
             source = ROOT / asset["source"]
+            check_snapshot(metadata["id"], asset, source)
             destination = directory / asset["output"]
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)

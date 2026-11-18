@@ -1899,3 +1899,19 @@
     template; retained the analysis README and combined ignore rules.
   - Performed the merge in an isolated worktree, leaving the current feature
     branch and existing origin remote unchanged.
+
+* DONE Block refreshed results that contradict authored prose (Copilot PR #1)
+  - Comment r4607835801: REFRESH=1 can publish figures whose captions and
+    executive-summary numbers no longer match.
+  - Guard: record the authored sha256 of each copied image in target.yaml
+    and fail the paragraph build (and therefore make report) on mismatch;
+    add make rebaseline TARGET=<id> to accept reviewed changes.
+  - upload-delay-from-order-creation: have the pipeline write count macros
+    plus the figure hash to outputs/latex/stats.tex and use them in
+    body.tex/visual.tex, so caption and figure come from one run.
+  - Remaining hard-coded prose targets stay guarded; convert later.
+  - Prose was already stale (29,715 vs 29,750 plotted); macros now render
+    29,750/782. Baselined 10 other figures at current hashes. Guard tests
+    (match, changed, missing, generated mismatch), FINAL=0 report, Ruff,
+    structure/source validation and git diff --check pass; HOWTO updated.
+    Tables and executive-summary numbers remain unguarded.

@@ -30,4 +30,5 @@ pipeline: diagrams
 images:
 - source: targets/data-source-diagrams/outputs/diagrams/data-source-connections/prescription-first-order.png
   output: outputs/diagrams/visual.png
+  sha256: 3afe239ea5613396e5311711a0db5300da21ce35b9232224399d51091942461e
 data_dependencies: []

@@ -4,6 +4,10 @@ Run `make setup` to install the project environment and commit hooks. All
 commands below run from the repository root. Default target builds reuse cached
 data; `REFRESH=1` explicitly requests refresh where supported.
 
+A refreshed figure that differs from the results its prose describes stops the
+build. Review and update the prose, then accept the figure with `make rebaseline
+TARGET=<id>`.
+
 Checks: `make validate-analysis-structure`, `make validate-analysis-sources`,
 `make sql-lint`, and `make sql-lint-staged`. SQL formatting is available through
 `make sql-format SQL_PATH=<file>`. Warehouse queries use Snowflake; local audit

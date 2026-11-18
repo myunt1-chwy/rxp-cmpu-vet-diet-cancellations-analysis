@@ -23,6 +23,7 @@ pipeline: upload-state
 images:
 - source: targets/all-upload-state-change-delays/outputs/figures/2026-08-15_2026-10-14/cmpu-upload-entity-state-change-distributions/all-study-linked.png
   output: outputs/figures/visual.png
+  sha256: c960024eefd70f8d8c1dd8b459a34724a18d5fa39512731595a7afcce87ce15c
 data_dependencies:
 - all-upload-state-change-delays
 sources:

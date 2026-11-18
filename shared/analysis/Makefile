@@ -1,4 +1,9 @@
 # Shared extraction/validation batches, run once per make invocation.
+# After reviewing a target's prose against refreshed figures, accept them.
+.PHONY: rebaseline
+rebaseline:
+	$(PYTHON) shared/python/analysis/rebaseline.py $(TARGET)
+
 .PHONY: analysis-pipeline-financial-baseline
 analysis-pipeline-financial-baseline:
 	$(PYTHON) shared/python/analysis/run_pipeline.py financial-baseline --refresh $(REFRESH)

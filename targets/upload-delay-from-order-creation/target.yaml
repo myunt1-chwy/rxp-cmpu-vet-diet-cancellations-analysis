@@ -37,5 +37,6 @@ pipeline: upload-creation
 images:
 - source: targets/upload-delay-from-order-creation/outputs/figures/2026-08-15_2026-10-14/cmpu-upload-entity-order-creation-distributions/overall-and-aged-orders.png
   output: outputs/figures/visual.png
+  prose_values: outputs/latex/stats.tex
 data_dependencies:
 - upload-delay-from-order-creation

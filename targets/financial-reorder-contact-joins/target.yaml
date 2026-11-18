@@ -30,4 +30,5 @@ pipeline: diagrams
 images:
 - source: targets/data-source-diagrams/outputs/diagrams/data-source-connections/financial-reorder-contact.png
   output: outputs/diagrams/visual.png
+  sha256: 001a050d66d911152bd6c7150f6bf8d0205fa03f47da7ab8b9b618cfb37e9da7
 data_dependencies: []

@@ -226,6 +226,25 @@ def figure(rows, stats, params):
     return alt.LayerChart.from_dict(spec)
 
 
+def write_prose_values(stats, figure_path):
+    """Write the caption's counts with the hash of the figure they describe.
+
+    The paragraph build rejects a figure whose hash differs, so the prose
+    and the plot always come from the same run.
+    """
+    usable = stats.set_index("population")["usable"]
+    text = (
+        f"% figure_sha256: {digest(figure_path)}\n"
+        f"\\newcommand{{\\UploadDelayOverallN}}{{{usable['Overall']:,}}}\n"
+        f"\\newcommand{{\\UploadDelayAgedN}}{{{usable['Aged orders']:,}}}\n"
+    )
+    write_text(
+        ROOT / "targets/upload-delay-from-order-creation/outputs/latex"
+        "/stats.tex",
+        text,
+    )
+
+
 def write_outputs(frame, metadata, directory, charts, tables):
     associations, entities, rows, stats, audit = prepare(
         frame, metadata["parameters"]
@@ -236,6 +255,7 @@ def write_outputs(frame, metadata, directory, charts, tables):
     figure(rows, stats, metadata["parameters"]).save(
         output_path(path), scale_factor=2
     )
+    write_prose_values(stats, output_path(path))
     note = (
         "Elapsed hours = upload CREATED_TS_UTC − first-order "
         "ORDER_PLACED_DTTM. "

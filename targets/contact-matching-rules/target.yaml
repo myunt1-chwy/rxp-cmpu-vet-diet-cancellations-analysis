@@ -30,4 +30,5 @@ pipeline: diagrams
 images:
 - source: targets/data-source-diagrams/outputs/diagrams/data-source-connections/contact-matching.png
   output: outputs/diagrams/visual.png
+  sha256: ec1880f2f439ef292e5f9c950a8f96c39d86cb62d38ab2b422590f4a9f755534
 data_dependencies: []

@@ -30,4 +30,5 @@ pipeline: diagrams
 images:
 - source: targets/data-source-diagrams/outputs/diagrams/data-source-connections/overview.png
   output: outputs/diagrams/visual.png
+  sha256: 49d127d780efcb24516a2ef00965bbf5c30b68d71ec74bf3aa60a66fb8bcd555
 data_dependencies: []

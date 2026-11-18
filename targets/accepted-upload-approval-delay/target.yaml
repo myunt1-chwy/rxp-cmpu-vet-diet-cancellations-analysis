@@ -37,6 +37,7 @@ pipeline: upload-approval
 images:
 - source: targets/accepted-upload-approval-delay/outputs/figures/2026-08-15_2026-10-14/cmpu-d-lines_upload-to-max-approval_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_cumulative.png
   output: outputs/figures/visual.png
+  sha256: d182252107276fb89e4f64c3ce7ba5c662cbaa8a73df44e24ff7e1f71ead34d9
 data_dependencies:
 - accepted-upload-approval-delay
 - first-order-upload-status-flow
