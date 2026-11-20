@@ -1,0 +1,54 @@
+-- sqlfluff:dialect:duckdb
+WITH distinct_rx AS (
+    SELECT DISTINCT
+        rx_id,
+        approval_channel,
+        approved_numerator,
+        rx_status,
+        cancel_reason,
+        cancel_time
+    FROM source
+),
+
+categories AS (
+    SELECT
+        *,
+        CASE
+            WHEN approved_numerator = TRUE THEN 'Approved'
+            WHEN upper(trim(rx_status)) = 'DENIED' THEN 'Rejected' ELSE
+                'Unknown'
+        END AS decision
+    FROM distinct_rx
+),
+
+populations AS (
+    SELECT
+        0 AS population,
+        *
+    FROM categories
+    UNION ALL
+    SELECT
+        1 AS population,
+        *
+    FROM categories
+    WHERE approval_channel = 'CUSTOMER_UPLOAD'
+    UNION ALL
+    SELECT
+        2 AS population,
+        *
+    FROM categories
+    WHERE
+        approval_channel = 'CUSTOMER_UPLOAD'
+        AND cancel_reason = 'aged order'
+        AND cast(cancel_time AS TIMESTAMP_NS) <= TIMESTAMP '2026-10-27'
+)
+
+SELECT
+    population,
+    count(*) AS line_count,
+    count(*) FILTER (WHERE decision = 'Approved') AS approved_count,
+    count(*) FILTER (WHERE decision = 'Unknown') AS unknown_count,
+    count(*) FILTER (WHERE decision = 'Rejected') AS denied_count
+FROM populations
+GROUP BY population
+ORDER BY population

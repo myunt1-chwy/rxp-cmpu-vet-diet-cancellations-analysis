@@ -1,0 +1,21 @@
+id: prescription-upload-coverage
+level: subsubsection
+parent: upload-processing-delays
+children:
+- first-order-upload-coverage
+- no-recorded-cancellation-upload-statuses
+- aged-line-upload-statuses
+question: What is the percentage of prescription upload?
+title: What is the percentage of prescription upload?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/first-order-upload-coverage/src/latex/study_upload_coverage_by_cancel_reason.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

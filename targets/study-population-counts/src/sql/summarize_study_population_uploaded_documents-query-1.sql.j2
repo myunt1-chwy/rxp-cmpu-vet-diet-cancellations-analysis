@@ -1,0 +1,35 @@
+-- sqlfluff:dialect:duckdb
+SELECT
+    count(DISTINCT upload_id) AS uploaded_documents,
+    count(DISTINCT CASE WHEN state_name = 'ACCEPTED' THEN upload_id END)
+        AS accepted_documents
+FROM f
+WHERE
+    matched_rx_id IS NOT NULL
+    AND matched_order_id IS NOT NULL
+    AND matched_order_line_id IS NOT NULL
+UNION ALL
+SELECT
+    count(DISTINCT upload_id) AS uploaded_documents,
+    count(DISTINCT CASE WHEN state_name = 'ACCEPTED' THEN upload_id END)
+        AS accepted_documents
+FROM f
+WHERE
+    matched_rx_id IS NOT NULL
+    AND matched_order_id IS NOT NULL
+    AND matched_order_line_id IS NOT NULL
+    AND approval_channel = 'CUSTOMER_UPLOAD'
+UNION ALL
+SELECT
+    count(DISTINCT upload_id) AS uploaded_documents,
+    count(DISTINCT CASE WHEN state_name = 'ACCEPTED' THEN upload_id END)
+        AS accepted_documents
+FROM
+    f
+WHERE
+    matched_rx_id IS NOT NULL
+    AND matched_order_id IS NOT NULL
+    AND matched_order_line_id IS NOT NULL
+    AND approval_channel = 'CUSTOMER_UPLOAD'
+    AND lower(trim(order_cancel_reason)) = 'aged order'
+    AND cast(order_cancel_time AS TIMESTAMP_NS) <= TIMESTAMP '2026-10-27'

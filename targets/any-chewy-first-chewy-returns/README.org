@@ -1,0 +1,42 @@
+#+TITLE: Chewy-wide shipped reorder cohort panel
+
+* Question
+How do Chewy-wide reorders evolve for customers whose first Chewy order
+aged?
+
+* Inputs and definitions
+Uses EDLDB.ECOM.ORDER_LINE for later matching physical lines across all
+Chewy categories, with the existing RxP aged-cancellation cohort anchors.
+Each later line requires =MIN(ORDER_LINE_SHIPPED_DTTM) IS NOT NULL= grouped
+by =(order_id, order_line_id)=. No pet, product or vet-diet restriction
+applies to later lines. Orders with cancellation evidence or unknown line
+status are excluded. Cancellations: [2026-05-01, 2026-08-01) UTC. Cutoff:
+2026-10-28 00:00 UTC. Windows: 7 through 70 days in 7-day increments,
+based on placement after cancellation. Cohorts and windows overlap.
+Line-item counts deduplicate physical lines across anchors and shipments.
+Zero and negative sales remain; missing sales are incomplete; N/A denotes
+a zero denominator. Cohort denominators retain all original customers.
+
+* Reproduction commands
+#+begin_src sh
+make any-chewy-first-chewy-returns
+make any-chewy-first-chewy-returns REFRESH=1
+make any-chewy-first-chewy-returns REPRO=1 FINAL=0
+#+end_src
+The shared financial-returns pipeline runs once per Make invocation.
+Cached builds validate existing inputs without warehouse access. Missing or
+stale inputs require an explicit REFRESH=1 build with browser SSO.
+
+* Outputs and dependencies
+Authoritative values: outputs/tables/table.org. LaTeX reads back Org cells.
+Provenance: outputs/tables/provenance.json. The cohort parent composes six
+panels on one landscape page,
+with two rows of three aligned panels. Shared rendering lives in
+shared/python/analysis/reorder_panels.py. Source and data dependencies are
+explicit in target.yaml. Each cohort owns one paragraph and one table.
+
+* Report grouping
+Parent: =new-to-chewy-reorder-behavior=. This is one of six reorder tables for
+the same cohort.
+The report preserves the 7-day increments through 70 days and the shared
+methodology reference to section 3.2. Data ownership and commands are stable.

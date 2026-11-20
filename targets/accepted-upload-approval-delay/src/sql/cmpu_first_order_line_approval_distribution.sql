@@ -1,0 +1,68 @@
+-- REFNUM 16: preserve unmatched prescriptions for eligibility auditing.
+-- Timestamps are UTC except the explicit Eastern wall-clock companion.
+WITH prescriptions AS (
+    SELECT
+        rx_id,
+        rx_creation_datetime,
+        approval_channel,
+        first_order_id,
+        first_orderitem_id,
+        CASE
+            WHEN REGEXP_LIKE(TRIM(first_orderitem_id), '^[0-9]+$')
+                THEN TRY_TO_NUMBER(first_orderitem_id)
+        END AS first_order_line_id,
+        COUNT(*) OVER (PARTITION BY rx_id) AS rx_source_rows
+    FROM edldb.bt_hca_hcdm.rxp_prescriptions
+    WHERE
+        prescription_source = 'CMPU' AND is_vet_diet_flag = TRUE
+        AND approval_channel = 'CUSTOMER_UPLOAD'
+        AND rx_creation_datetime >= '{{ start_date }}'::TIMESTAMP_NTZ
+        AND rx_creation_datetime < '{{ end_date }}'::TIMESTAMP_NTZ
+),
+
+lines_keys AS (
+    SELECT DISTINCT
+        first_order_id,
+        first_order_line_id
+    FROM prescriptions
+    WHERE first_order_id IS NOT NULL AND first_order_line_id IS NOT NULL
+),
+
+lines AS (
+    SELECT
+        o.order_id,
+        o.order_line_id,
+        COUNT(*) AS shipment_rows,
+        MIN(o.order_order_line_status) AS line_status,
+        COUNT(DISTINCT COALESCE(o.order_order_line_status, '[Missing]'))
+            AS status_variants,
+        MIN(o.order_line_created_dttm) AS line_created_utc,
+        MIN(o.order_line_created_dttm_est) AS line_created_eastern,
+        MIN(o.order_placed_dttm) AS order_placed_utc,
+        COUNT(DISTINCT o.order_placed_dttm)
+        + CASE
+            WHEN COUNT_IF(o.order_placed_dttm IS NULL) > 0 THEN 1 ELSE 0
+        END AS placement_variants,
+        MIN(o.order_placed_dttm_est) AS order_placed_eastern,
+        COUNT(DISTINCT o.order_placed_dttm_est) AS eastern_variants,
+        COUNT_IF(o.order_placed_dttm_est IS NULL) AS missing_eastern_rows,
+        MAX(o.max_approved_datetime) AS max_approved_datetime,
+        COUNT_IF(o.max_approved_datetime IS NULL) AS missing_approval_rows,
+        COUNT(DISTINCT o.max_approved_datetime) AS approval_variants
+    FROM edldb.bt_hca_hcdm.order_line_cost_measures_rxp AS o
+    INNER JOIN lines_keys AS p
+        ON
+            o.order_id = p.first_order_id
+            AND o.order_line_id = p.first_order_line_id
+    GROUP BY o.order_id, o.order_line_id
+)
+
+SELECT
+    p.*,
+    l.*,
+    CURRENT_TIMESTAMP::VARCHAR AS extracted_at_session_time,
+    CURRENT_WAREHOUSE() AS extraction_warehouse
+FROM prescriptions AS p
+LEFT JOIN
+    lines AS l
+    ON p.first_order_id = l.order_id AND p.first_order_line_id = l.order_line_id

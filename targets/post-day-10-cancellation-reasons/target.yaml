@@ -1,0 +1,26 @@
+id: post-day-10-cancellation-reasons
+level: paragraph
+parent: first-order-event-free-survival
+children: []
+question: Which cancellation reasons account for first-order lines cancelled after
+  day 10?
+title: Which cancellation reasons account for first-order lines cancelled after
+  day 10?
+shared_dependencies:
+- analysis
+- python/analysis
+- python/markdown_tables.py
+- python/runtime.py
+- python/sql_templates.py
+data_dependencies:
+- post-day-10-cancellation-reasons
+generated_visual: true
+artifact: Table (one visual).
+sources:
+- targets/post-day-10-cancellation-reasons/src/sql/post_day_10_cancellation_reasons.sql.j2
+- targets/post-day-10-cancellation-reasons/src/python/build_post_day_10_cancellation_reasons.py
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/python/runtime.py
+- shared/python/sql_templates.py
+- shared/python/paths.py

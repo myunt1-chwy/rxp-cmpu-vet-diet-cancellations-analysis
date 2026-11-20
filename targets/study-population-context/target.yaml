@@ -1,0 +1,22 @@
+id: study-population-context
+level: subsubsection
+parent: upload-processing-delays
+children:
+- study-population-counts
+- study-prescription-decisions
+- study-order-cancellation-sales
+- first-order-upload-status-flow
+question: Which prescriptions, orders, customers, and uploads are included in the study?
+title: Which prescriptions, orders, customers, and uploads are included in the study?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/study-population-counts/src/latex/study_population_analysis.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

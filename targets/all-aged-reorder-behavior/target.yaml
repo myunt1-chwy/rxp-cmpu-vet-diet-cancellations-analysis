@@ -1,0 +1,28 @@
+id: all-aged-reorder-behavior
+level: subsubsection
+parent: medium-term-reorder-behavior
+children:
+- same-pet-product-return-comparison
+- non-autoship-all-aged-returns
+- autoship-initiated-or-non-autoship-all-aged
+- same-pet-other-product-return-comparison
+- any-vet-diet-return-comparison
+- any-chewy-return-comparison
+question: What is the reorder and returning customer behavior (all customers with
+  aged orders)?
+title: What is the reorder and returning customer behavior (all customers with aged
+  orders)?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/all-aged-reorder-behavior/src/latex/body.tex
+  content: authored
+  build: active
+artifact: null
+data_dependencies: []
+landscape: true
+aligned_panels: true

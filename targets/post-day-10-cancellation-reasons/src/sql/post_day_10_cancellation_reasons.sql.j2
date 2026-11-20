@@ -1,0 +1,45 @@
+-- Cancellation reasons for CMPU vet-diet first-order lines cancelled more
+-- than 10 days after order placement. The cohort matches the survival curve's
+-- prescription window. All unsuffixed timestamps are interpreted as UTC.
+WITH prescriptions AS (
+    SELECT DISTINCT
+        first_order_id,
+        TRY_TO_NUMBER(first_orderitem_id) AS first_order_line_id
+    FROM edldb.bt_hca_hcdm.rxp_prescriptions
+    WHERE
+        prescription_source = 'CMPU'
+        AND is_vet_diet_flag = TRUE
+        AND approval_channel = 'CUSTOMER_UPLOAD'
+        AND rx_creation_datetime >= '{{ start_date }}'::TIMESTAMP_NTZ
+        AND rx_creation_datetime < '{{ end_date }}'::TIMESTAMP_NTZ
+        AND REGEXP_LIKE(TRIM(first_orderitem_id), '^[0-9]+$')
+),
+
+lines AS (
+    SELECT
+        o.order_id,
+        o.order_line_id,
+        MIN(o.order_placed_dttm) AS order_placed_utc,
+        MIN(o.order_cancel_dttm) AS order_cancel_utc,
+        MIN(o.order_cancel_reason) AS order_cancel_reason
+    FROM edldb.bt_hca_hcdm.order_line_cost_measures_rxp AS o
+    INNER JOIN prescriptions AS p
+        ON
+            o.order_id = p.first_order_id
+            AND o.order_line_id = p.first_order_line_id
+    GROUP BY o.order_id, o.order_line_id
+)
+
+SELECT
+    COALESCE(order_cancel_reason, '(null)') AS order_cancel_reason,
+    COUNT(*) AS lines,
+    MEDIAN(
+        DATEDIFF(SECOND, order_placed_utc, order_cancel_utc) / 86400
+    ) AS median_cancel_day
+FROM lines
+WHERE
+    order_cancel_utc IS NOT NULL
+    AND DATEDIFF(SECOND, order_placed_utc, order_cancel_utc) / 86400
+    > {{ cutoff_days }}
+GROUP BY COALESCE(order_cancel_reason, '(null)')
+ORDER BY lines DESC, order_cancel_reason ASC

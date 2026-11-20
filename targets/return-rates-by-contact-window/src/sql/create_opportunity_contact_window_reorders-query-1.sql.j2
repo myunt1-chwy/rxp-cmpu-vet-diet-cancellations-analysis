@@ -1,0 +1,19 @@
+-- sqlfluff:dialect:duckdb
+WITH contacting AS (
+    SELECT DISTINCT customer_id
+    FROM detail
+    WHERE
+        direction = 'inbound'
+        AND contact_customer_id = customer_id AND contact_at_utc IS NOT NULL
+        AND contact_at_utc >= cancelled_at_utc - INTERVAL 7 DAY
+        AND contact_at_utc < cancelled_at_utc + INTERVAL 4 DAY
+)
+
+SELECT
+    c.customer_id IS NOT NULL AS contacted_in_window,
+    COUNT(*) AS customers,
+    SUM(CASE WHEN customers.reordered THEN 1 ELSE 0 END) AS reordered_customers
+FROM customers
+LEFT JOIN contacting AS c ON customers.customer_id = c.customer_id
+GROUP BY 1
+ORDER BY 1 DESC

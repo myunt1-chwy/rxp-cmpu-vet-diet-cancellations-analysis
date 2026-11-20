@@ -1,0 +1,22 @@
+id: medium-term-reorder-behavior
+level: subsection
+parent: appendix
+children:
+- all-aged-reorder-behavior
+- first-upload-reorder-behavior
+- first-vet-diet-reorder-behavior
+- new-to-chewy-reorder-behavior
+question: What is the short term (70 days) reorder and returning customer behavior?
+title: What is the short term (70 days) reorder and returning customer behavior?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/medium-term-reorder-behavior/src/latex/body.tex
+  content: authored
+  build: active
+artifact: null
+data_dependencies: []

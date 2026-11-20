@@ -1,0 +1,52 @@
+#+TITLE: Same-pet, different-product vet-diet reorders: cohort panel
+
+* Question
+How do same-pet, different-product vet-diet reorders evolve for customers whose
+first Chewy order aged?
+
+* Reproduction commands
+Run from the repository root. The shared financial-return pipeline runs
+once per Make invocation; cached builds make no warehouse queries.
+#+begin_src sh
+make same-pet-other-product-first-chewy-returns
+make same-pet-other-product-first-chewy-returns REPRO=1 FINAL=0
+make same-pet-other-product-first-chewy-returns REFRESH=1
+#+end_src
+Missing or incompatible cached inputs require an explicit REFRESH=1 build.
+
+* Inputs and dependencies
+This paragraph selects cohort 3 from the validated combined follow-up
+export. It preserves every customer, percentage, order and sales cell.
+The financial-returns pipeline validates the existing source manifests.
+Cancellations: [2026-05-01, 2026-08-01) UTC. Observation cutoff:
+2026-10-28 00:00 UTC. Cumulative windows: 7 through 70 days, every 7 days.
+No changes to cohort membership, anchors, successful-order criteria,
+matching, follow-up completeness, shipment aggregation or autoship rules.
+Shared source owners and code dependencies are declared in target.yaml.
+
+* Outputs
+The authoritative table is outputs/tables/table.org. LaTeX is read back
+from that Org table; outputs/tables/provenance.json records fingerprints.
+The cohort parent groups six reorder-type panels on one landscape page,
+with two rows of three aligned panels. Each panel appears once. Shared
+methodology remains in the short-term reorder subsection.
+Cohorts and windows overlap. Missing sales remain incomplete; signed sales
+are preserved. N/A denotes a zero denominator.
+
+* Common line-item eligibility and presentation
+Every later matching physical line must satisfy
+=MIN(ORDER_LINE_SHIPPED_DTTM) IS NOT NULL=, grouped by
+=(order_id, order_line_id)=. A shipped sibling line never qualifies an
+unshipped matching line. Existing order cancellation and unknown-status
+exclusions remain. The baseline cancellation cohort is not shipment-filtered.
+All cumulative panels use days, customers, cohort percentage, distinct
+line items, orders and matching-line net sales. Line items are deduplicated
+across shipments and original anchors. Shared presentation code lives in
+shared/python/analysis/reorder_panels.py; captions describe eligibility in plain
+language.
+
+* Report grouping
+Parent: =new-to-chewy-reorder-behavior=. This is one of six reorder tables for
+the same cohort.
+The report preserves the 7-day increments through 70 days and the shared
+methodology reference to section 3.2. Data ownership and commands are stable.

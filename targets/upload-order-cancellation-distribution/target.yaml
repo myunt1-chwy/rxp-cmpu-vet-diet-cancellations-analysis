@@ -1,0 +1,19 @@
+id: upload-order-cancellation-distribution
+level: subsubsection
+parent: data-verification
+children:
+- uploaded-order-cancellation-reasons
+question: What is the distribution of order cancellation reasons in the prescription upload tables?
+title: What is the distribution of order cancellation reasons in the prescription upload tables?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/data-verification/src/latex/data_verification.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

@@ -1,0 +1,57 @@
+id: study-population-counts
+level: paragraph
+parent: study-population-context
+children: []
+question: How many prescriptions, orders, lines, customers, and uploaded documents are in each study population?
+title: How many prescriptions, orders, lines, customers, and uploaded documents are in each study population?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- source-ownership.yaml
+- python/sql_templates.py
+- python/runtime.py
+- python/prescription_uploads.py
+- python/upload_entities.py
+- python/financial_values.py
+- python/opportunity_report_tables.py
+migration:
+  status: active
+  source: targets/study-population-counts/src/latex/study_population_analysis.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Table (one visual).
+sources:
+- targets/study-population-counts/src/python/refresh_study_population_inputs.py
+- targets/study-population-counts/src/python/summarize_study_population_uploaded_documents.py
+- targets/study-population-counts/src/sql/cmpu_study_population_uploaded_documents.sql
+- targets/study-population-counts/src/sql/refresh_study_population_uploaded_documents.sql.j2
+- targets/study-population-counts/src/sql/summarize_study_population_uploaded_documents-query-1.sql.j2
+- targets/study-population-counts/src/python/create_study_population_report_tables.py
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/python/runtime.py
+- shared/python/upload_entities.py
+- shared/python/paths.py
+- shared/python/financial_values.py
+- shared/python/opportunity_report_tables.py
+- shared/python/sql_templates.py
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+pipeline: study-population
+table_columns:
+- Population
+- Prescriptions
+- Orders
+- Order lines
+- Customers
+- Uploaded documents
+- Accepted documents
+data_dependencies:
+- first-order-upload-status-flow
+- study-population-counts
+- study-prescription-decisions
+- study-order-cancellation-sales

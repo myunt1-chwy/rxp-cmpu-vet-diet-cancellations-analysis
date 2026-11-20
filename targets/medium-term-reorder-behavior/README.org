@@ -1,0 +1,65 @@
+#+TITLE: What is the short term (70 days) reorder and returning customer behavior?
+
+* Ownership
+Target: =medium-term-reorder-behavior=. Level: =subsection=.
+Parent: =appendix=. Appears immediately after =financial-impact=.
+Ordered children: =all-aged-reorder-behavior=, =first-upload-reorder-behavior=,
+=first-vet-diet-reorder-behavior=, =new-to-chewy-reorder-behavior=.
+
+* Reproduction commands
+Run from the repository root:
+#+begin_src sh
+make medium-term-reorder-behavior FINAL=0
+make medium-term-reorder-behavior REPRO=1 FINAL=0
+make medium-term-reorder-behavior REFRESH=1 FINAL=0
+#+end_src
+Default builds validate and reuse cached inputs without warehouse access.
+REFRESH=1 propagates to child pipelines and requires Snowflake browser SSO.
+REPRO=1 includes reproduction instructions in document order.
+
+* Inputs and dependencies
+Children retain ownership of their calculations, authoritative Org tables,
+and validated data. The shared financial-returns and non-autoship-returns
+pipelines execute once per Make invocation. No separate extraction belongs
+to this parent. The shared renderer is =shared/python/analysis/=.
+Study cancellations: [2026-05-01, 2026-08-01) UTC. Observation cutoff:
+2026-10-28 00:00 UTC. Cumulative follow-up: 7 through 70 days, every 7 days.
+
+* Outputs
+Authored common descriptions: =src/latex/body.tex=.
+Generated assembly: =outputs/latex/content.tex= within this target.
+The report includes this subsection before customer-contact-patterns;
+numbering and methodology references are resolved by LaTeX.
+
+* Shared reorder methodology
+The parent introduction owns the common cohort, follow-up, shipped-line,
+successful-order, deduplication and sales notes for all six reorder comparisons.
+The cancellation baseline is explicitly outside these reorder rules.
+Comparison tables reference this introduction and show their own matching
+and autoship conditions in plain language.
+
+* Cohort history
+All retains every qualifying CMPU CUSTOMER_UPLOAD vet-diet aged order.
+First-upload now ranks only CMPU CUSTOMER_UPLOAD vet-diet orders, across
+all dates and statuses; the exact earliest order must itself qualify as aged.
+First-vet-diet ranks vet-diet orders across all sources and approval channels.
+First-Chewy ranks all observed Chewy orders; the exact earliest order must
+itself qualify as aged.
+Only qualifying aged lines on the first order anchor first-cohort follow-up.
+Missing history, missing placement times and earliest-order ties cannot
+establish first-order membership. Cohorts and cumulative windows overlap.
+
+* Cohort-first document order
+Each cohort owns six reorder-type paragraphs, arranged on one landscape
+page in two rows of three aligned panels. All customers appear first,
+followed by first CMPU CUSTOMER_UPLOAD vet-diet customers, first-ever
+vet-diet customers and first-Chewy customers. The six former comparison Make commands remain aliases
+for their paragraph builds, but no longer create report sections.
+
+* Reorder-type explanations
+The introduction presents Cohorts, Types of reorders discussed, then Shared
+methodology. It describes all six table types, in panel order, including
+same-pet/part-number matching, line-level autoship classification, earliest
+product-within-subscription shipment, broader product scopes and overlap.
+This is parent-owned explanatory prose; calculations, table ownership and
+cohort-section numbering are unchanged.

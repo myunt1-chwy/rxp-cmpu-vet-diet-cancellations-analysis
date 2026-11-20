@@ -1,0 +1,28 @@
+-- sqlfluff:dialect:duckdb
+WITH populations AS (
+    SELECT
+        0 AS population,
+        *
+    FROM details
+    UNION ALL
+    SELECT
+        1 AS population,
+        *
+    FROM details
+    WHERE approval_channel = 'CUSTOMER_UPLOAD'
+    UNION ALL
+    SELECT
+        2 AS population,
+        *
+    FROM details
+    WHERE aged_subset
+)
+
+SELECT
+    COUNT(DISTINCT rx_id) AS prescriptions,
+    COUNT(DISTINCT order_id) AS orders,
+    COUNT(DISTINCT ROW(order_id, order_line_id)) AS order_lines,
+    COUNT(DISTINCT customer_id) AS customers
+FROM populations
+GROUP BY population
+ORDER BY population

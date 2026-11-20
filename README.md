@@ -1,3 +1,5 @@
-# phds-ds-discovery-cmpu-vet-diet-cancelled-orders - Simple Repo
+# README
 
-This is a bare repository.
+See [HOWTO.md](HOWTO.md) for setup instructions.
+
+The final report is under the outputs/reports/pdf directory

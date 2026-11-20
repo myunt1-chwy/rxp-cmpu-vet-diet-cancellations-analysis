@@ -1,0 +1,43 @@
+id: accepted-upload-approval-delay
+level: paragraph
+parent: accepted-upload-approval-time
+children: []
+question: How long after an accepted upload is the prescription approved?
+title: How long after an accepted upload is the prescription approved?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+- python/__init__.py
+- python/markdown_tables.py
+- source-ownership.yaml
+- python/sql_templates.py
+- python/runtime.py
+- python/prescription_uploads.py
+- python/sankey.py
+migration:
+  status: active
+  source: targets/accepted-upload-approval-delay/src/latex/approval_analysis.tex
+  content: split
+  code: relocated
+  build: active
+artifact: Figure (one visual).
+sources:
+- targets/accepted-upload-approval-delay/src/python/create_cmpu_first_order_line_approval_distribution.py
+- targets/accepted-upload-approval-delay/src/sql/cmpu_first_order_line_approval_distribution.sql
+- targets/accepted-upload-approval-delay/src/sql/cmpu_upload_to_max_approval_extract.sql
+code_dependencies:
+- shared/python/markdown_tables.py
+- shared/python/runtime.py
+- shared/python/prescription_uploads.py
+- shared/python/sankey.py
+- shared/python/paths.py
+pipeline: upload-approval
+images:
+- source: targets/accepted-upload-approval-delay/outputs/figures/2026-08-15_2026-10-14/cmpu-d-lines_upload-to-max-approval_uploads-2026-08-01_2026-10-25_nonnegative_accepted-state-change_order-placed_cumulative.png
+  output: outputs/figures/visual.png
+  sha256: d182252107276fb89e4f64c3ce7ba5c662cbaa8a73df44e24ff7e1f71ead34d9
+data_dependencies:
+- accepted-upload-approval-delay
+- first-order-upload-status-flow

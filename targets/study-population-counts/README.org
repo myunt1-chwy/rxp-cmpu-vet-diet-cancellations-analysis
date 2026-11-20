@@ -1,0 +1,52 @@
+#+TITLE: How many prescriptions, orders, lines, customers, and uploaded documents are in each study population?
+
+* Ownership
+Target: =study-population-counts=. Level: =paragraph=.
+Parent: =study-population-context=.
+Ordered children: none.
+
+* Reproduction commands
+Run from the repository root with the project environment installed:
+#+begin_src sh
+make study-population-counts
+make study-population-counts REPRO=1
+make study-population-counts REFRESH=1
+#+end_src
+Default builds reuse retained source data and rerun validation and presentation. =REFRESH=1= runs the study-population extraction workflow: the first-order population, decision evidence, uploaded-document associations, and financial evidence are refreshed with the existing study windows and cutoffs. The extracts are separate warehouse queries, not one warehouse snapshot. The workflow records one refresh-run ID and checks membership, customer/order keys, cancellation reasons, and financial membership before rendering.
+
+* Inputs and dependencies
+Generator batch: =study-population=, defined in =shared/analysis/pipelines.yaml=. The batch is shared by related paragraphs and runs once per make invocation.
+The shared =study-population= pipeline runs once for the population paragraphs. Its refresh sequence is =study-population-refresh-inputs=, =prescription-cohort-order-comparison=, then =study-population-tables=. The first-order status query is regenerated with the same run ID before the other population extracts.
+
+Retained input folders and ownership:
+- =targets/first-order-upload-status-flow/data/=
+- =targets/study-population-counts/data/=
+- =targets/study-prescription-decisions/data/=
+- =targets/study-order-cancellation-sales/data/=
+
+The study window remains August 15 through October 14, 2026 UTC; upload creation remains August 1 through October 25 inclusive; aged cancellation remains through October 27, 2026 at 00:00 UTC. A failed membership or evidence reconciliation stops the pipeline.
+- =targets/study-population-counts/src/python/refresh_study_population_inputs.py=
+- =targets/study-population-counts/src/sql/refresh_study_population_uploaded_documents.sql.j2=
+- =targets/study-prescription-decisions/src/sql/refresh_study_population_prescription_decisions.sql.j2=
+- =targets/study-population-counts/src/python/summarize_study_population_uploaded_documents.py=
+- =targets/study-population-counts/src/sql/cmpu_study_population_uploaded_documents.sql=
+- =targets/study-population-counts/src/sql/summarize_study_population_uploaded_documents-query-1.sql.j2=
+
+Imported analysis dependencies:
+- =shared/python/upload_entities.py= and =shared/python/runtime.py=
+- =shared/python/markdown_tables.py=
+
+Shared dependencies:
+- =shared/analysis=
+- =shared/artifact-ownership.yaml=
+- =shared/python/paths.py=
+- =shared/python/__init__.py=
+- =shared/python/upload_entities.py= and =shared/python/runtime.py=
+- =shared/python/markdown_tables.py=
+- =shared/source-ownership.yaml=
+- =shared/python/sql_templates.py=
+
+* Outputs
+Generated content: =targets/study-population-counts/outputs/latex/content.tex=.
+Tables are exported to =outputs/tables/table.org= and read back to assemble LaTeX. The compatibility adapter retains cell formatting from the validated legacy renderer; =outputs/tables/provenance.json= records the source and Org fingerprints. Figures and diagrams are copied from their newly regenerated canonical exports. Logs are under the batch owner's =outputs/build/= folder.
+Data and outputs are ignored by Git. =shared/artifact-ownership.yaml= maps historical dataset paths to target-owned locations. Historical path strings are resolved by the registry; root filesystem aliases have been removed.

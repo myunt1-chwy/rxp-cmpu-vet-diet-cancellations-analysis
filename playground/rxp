@@ -1,0 +1,17 @@
+    SELECT customer_id,
+           product_id,
+           product_sku,
+           event_category,
+           event_label,
+           event_timestamp AS upload_timestamp,
+           session_id,
+           event_id
+   FROM EDLDB.SEGMENT.SEGMENT_HITS_PRODUCTS, c
+     WHERE session_date_est >= DATEADD(day, -14, CURRENT_DATE)
+      AND (
+            (event_category = 'pet-healthcare' AND event_action = 'click' AND event_label =
+  'auth-file-submit')
+         OR (event_category = 'van-damme' AND event_label IN ('upload-preview-upload', 'upload-success'))
+          )
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY event_id, product_id ORDER BY event_timestamp) = 1
+    ORDER BY upload_timestamp DESC;

@@ -1,0 +1,31 @@
+id: autoship-initiated-or-non-autoship-first-chewy
+level: paragraph
+parent: new-to-chewy-reorder-behavior
+children: []
+question: How do line items that are the first line items shipped in autoship
+  subscriptions for same pet and product evolve for customers whose first Chewy
+  order aged?
+title: How do line items that are the first line items shipped in autoship
+  subscriptions for same pet and product evolve for customers whose first Chewy
+  order aged?
+shared_dependencies:
+- python/analysis
+- python/non_autoship_returns.py
+- python/markdown_tables.py
+data_dependencies:
+- non-autoship-all-aged-returns
+- same-pet-product-return-comparison
+pipeline: non-autoship-returns
+generated_visual: true
+code_dependencies:
+- shared/python/financial_values.py
+- shared/python/first_order_cohorts.py
+- shared/python/reorder_analysis.py
+- shared/python/markdown_tables.py
+- shared/python/paths.py
+- shared/python/sql_templates.py
+- shared/source-ownership.yaml
+- targets/cancellation-sales-baseline/src/python/create_opportunity_order_cancellation_summary.py
+- targets/opportunity-new-upload-customer-follow-up/src/python/create_opportunity_new_upload_customer_follow_up.py
+- shared/python/non_autoship_returns.py
+- shared/python/analysis/reorder_panels.py

@@ -1,0 +1,19 @@
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "18px", "primaryTextColor": "#172b4d", "lineColor": "#456078", "edgeLabelBackground": "#f2f5f9"}, "flowchart": {"htmlLabels": true, "useMaxWidth": false, "nodeSpacing": 25, "rankSpacing": 35}}}%%
+flowchart TB
+classDef physical fill:#e3f2fd,stroke:#235789,stroke-width:2px;
+classDef derived fill:#fff2d5,stroke:#9b6916,stroke-dasharray:5 3;
+P["EDLDB.BT_HCA_HCDM.RXP_PRESCRIPTIONS<br/>RX_ID; CUSTOMER_ID; FIRST_ORDER_ID;<br/>FIRST_ORDERITEM_ID; decision evidence"]:::physical
+L["EDLDB.BT_HCA_HCDM.ORDER_LINE_COST_MEASURES_RXP<br/>ORDER_ID; ORDER_LINE_ID; SHIPMENT_KEY;<br/>placement, cancellation and approval times"]:::physical
+A["First-order prescription / line associations<br/>digits-only TRIM FIRST_ORDERITEM_ID<br/>to TRY_TO_NUMBER = first_order_line_id"]:::derived
+U["EDLDB.BT_HCA_HCDM.RXP_UPLOAD_ENTITY<br/>UPLOAD_ID; RX_ID list; CUSTOMER_ID;<br/>CREATED_TS_UTC; STATE_CHANGED_TS_UTC"]:::physical
+E["Expanded upload / prescription matches<br/>SPLIT / FLATTEN RX_ID; TRIM tokens;<br/>digits-only CUSTOMER_ID to TRY_TO_NUMBER"]:::derived
+T["Sankey / approval / event-time evidence<br/>ACCEPTED; rank per RX_ID + CUSTOMER_ID<br/>by CREATED_TS_UTC, UPLOAD_ID"]:::derived
+G["Document counts / entity figures<br/>all current states; discover then fetch all versions;<br/>validate and count each UPLOAD_ID once"]:::derived
+P -->|"LEFT JOIN lines on FIRST_ORDER_ID = ORDER_ID<br/>AND first_order_line_id = ORDER_LINE_ID<br/>decision extract uses INNER JOIN"| A
+L -->|"GROUP BY ORDER_ID, ORDER_LINE_ID;<br/>validate shipment attribute consistency"| A
+U -->|"UPLOAD_TYPE = DIET_PRESCRIPTION;<br/>discovery by creation window"| E
+P -->|"RX_ID = expanded token<br/>AND CUSTOMER_ID = numeric upload CUSTOMER_ID"| E
+E -->|"earliest created accepted entity;<br/>use its STATE_CHANGED_TS_UTC"| T
+A -->|"LEFT on RX_ID + CUSTOMER_ID;<br/>collapse distinct physical lines downstream"| T
+E -->|"match first-order keys; entity grain"| G
+A -->|"ORDER_ID + ORDER_LINE_ID;<br/>earliest matched placement per entity"| G

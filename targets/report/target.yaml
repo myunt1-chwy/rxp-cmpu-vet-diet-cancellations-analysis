@@ -1,0 +1,20 @@
+id: report
+level: document
+parent: null
+children:
+- executive-summary
+- next-steps
+- appendix
+question: null
+title: CMPU aged-order analysis
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/report/src/latex/assembly-source.tex
+  build: active
+artifact: null
+data_dependencies: []

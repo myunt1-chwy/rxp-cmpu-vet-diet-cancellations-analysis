@@ -1,0 +1,19 @@
+id: aged-order-risk
+level: subsection
+parent: appendix
+children:
+- first-order-event-free-survival
+question: What is the probability that after X days the order will be an aged order?
+title: What is the probability that after X days the order will be an aged order?
+shared_dependencies:
+- analysis
+- python/analysis
+- artifact-ownership.yaml
+- python/paths.py
+migration:
+  status: active
+  source: targets/first-order-survival-curve/src/latex/survival_analysis.tex
+  content: split
+  build: active
+artifact: null
+data_dependencies: []

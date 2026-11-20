@@ -1,0 +1,25 @@
+#+TITLE: Retained opportunity-same-pet-part-auto-reorder analysis
+
+This existing command is retained outside the report hierarchy. Moving its source does not add a report section.
+
+* Reproduction
+Run =make opportunity-same-pet-part-auto-reorder CACHED=1= to reuse retained inputs. Existing command parameters and cache validation are unchanged. No warehouse refresh is needed for this source move.
+
+* Owned source
+- =targets/opportunity-same-pet-part-auto-reorder/src/python/create_opportunity_auto_reorder.py=
+- =targets/opportunity-same-pet-part-auto-reorder/src/sql/create_opportunity_auto_reorder-query-2.sql.j2=
+- =targets/opportunity-same-pet-part-auto-reorder/src/sql/opportunity_auto_reorder_flags.sql=
+
+Reusable helper modules remain in =shared/=. Module imports and SQL names resolve through =shared/source-ownership.yaml=.
+
+* Cohort definition
+SQL derives successful same-pet, same-part-number physical reorder lines
+across mature 7-through-70-day windows. The all-aged population covers the union
+of the two first-order subsets; each reported cohort retains its own
+denominator. Missing ECOM matches remain explicit, and customer identity is
+validated rather than inferred from a successful order-key join.
+
+The query is self-contained: inputs are scalar parameters, not saved row or
+identifier lists. Review its target-owned =src/sql/= source;
+=make cohort-sql-review= renders the registered cohort queries and
+=make cohort-sql-check= lints them without warehouse access.

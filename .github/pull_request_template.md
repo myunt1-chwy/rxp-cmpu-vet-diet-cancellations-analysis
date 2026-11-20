@@ -7,7 +7,7 @@
 ### Solution
 
 > Describe how this PR solves the problems or goals from above with enough detail so that reviewers understand.
-> 
+>
 > Solution may be omitted where the PR description and solution can be a single sentence or the solution is obvious
 
 
